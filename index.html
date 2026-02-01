@@ -21,23 +21,17 @@
             background-color: var(--bg-color); 
             color: var(--text-main); 
             margin: 0; 
-            padding: 10px; 
+            padding: 12px; 
             padding-bottom: 60px;
         }
 
-        /* 頂部導航與地點切換 */
+        /* 頂部導航 */
         .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; }
         h1 { margin: 0; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         
-        /* 地點切換按鈕 */
         .location-badge {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.2); color: white; padding: 5px 12px; border-radius: 20px;
+            font-size: 14px; cursor: pointer; border: 1px solid rgba(255,255,255,0.4);
             display: flex; align-items: center; gap: 5px;
         }
         .location-badge:active { background: rgba(255,255,255,0.4); }
@@ -46,71 +40,46 @@
         .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .connected { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
 
-        .card { 
-            background: var(--card-bg); 
-            padding: 16px; 
-            border-radius: 16px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-            margin-bottom: 15px; 
-            width: 100%; 
-            overflow: hidden; 
-        }
-        
+        .card { background: var(--card-bg); padding: 16px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; width: 100%; overflow: hidden; }
         .card h3 { margin: 0 0 12px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; color: var(--bg-color); font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* === 輸入區 === */
-        .row-date { margin-bottom: 12px; }
-        .row-date label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
-        
-        .row-stats { display: flex; gap: 12px; margin-bottom: 20px; }
-        .col-half { flex: 1; }
-        .col-half label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
-        
-        .input-style { 
-            width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 16px; background: #f9f9f9; color: #333; line-height: normal;
-            display: flex; align-items: center; justify-content: center;
-        }
-        
+        /* 輸入區樣式 */
+        .input-style { width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; background: #f9f9f9; color: #333; display: flex; align-items: center; justify-content: center; }
         input[type="date"] { -webkit-appearance: none; appearance: none; display: flex; align-items: center; justify-content: center; line-height: normal; padding: 0; }
         input[type="date"]::-webkit-date-and-time-value { line-height: 1.5; padding-top: 2px; }
 
-        .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-        .name-wrapper { flex: 1; min-width: 0; position: relative; } 
-        
-        .name-select, .custom-name { 
-            width: 100%; height: 44px; padding: 0 10px; border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 15px; background: white; appearance: none; -webkit-appearance: none; color: #333;
-        }
-        .name-select {
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat; background-position: right 8px center; background-size: 16px;
-        }
+        /* 群組模式樣式 (4人) */
+        .group-mode .row-date { margin-bottom: 12px; }
+        .group-mode .row-stats { display: flex; gap: 12px; margin-bottom: 20px; }
+        .group-mode .col-half { flex: 1; }
+        .group-mode .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+        .group-mode .name-select { width: 100%; height: 44px; border-radius: 8px; border: 1px solid #ddd; background: white; font-size: 15px; padding: 0 10px; }
+        .group-mode .score-input { width: 80px; height: 44px; text-align: center; font-weight: bold; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
+        .sign-btn { flex: 0 0 40px; height: 40px; border-radius: 50%; border: none; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-plus { background: #fff; color: var(--win-color); border: 1.5px solid var(--win-color); }
+        .btn-minus { background: var(--lose-color); color: white; border: 1.5px solid var(--lose-color); }
 
-        .sign-btn { 
-            flex: 0 0 40px; height: 40px; width: 40px; font-size: 24px; font-weight: bold; border: none; border-radius: 50%; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .btn-plus { background-color: #fff; color: var(--win-color); border: 1.5px solid var(--win-color); }
-        .btn-minus { background-color: var(--lose-color); color: white; border: 1.5px solid var(--lose-color); }
+        /* 個人模式樣式 (1人) */
+        .personal-mode .input-row { margin-bottom: 12px; }
+        .personal-mode label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
+        .personal-mode .score-input-large { width: 100%; height: 50px; font-size: 24px; text-align: center; border: 2px solid #ddd; border-radius: 10px; font-weight: bold; color: var(--text-main); }
+        .personal-mode .score-input-large:focus { border-color: var(--bg-color); outline: none; }
 
-        .score-input { width: 80px; height: 44px; padding: 0 5px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; text-align: center; font-weight: bold; color: var(--text-main); }
-
+        /* 共用按鈕 */
         .action-btn { width: 100%; padding: 14px; background-color: var(--text-main); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .cancel-btn { width: 100%; padding: 10px; background-color: #95a5a6; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
+        /* 統計與列表 */
         table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; table-layout: fixed; }
         th { background-color: #f8f9fa; color: #888; font-weight: 600; padding: 10px 4px; text-align: center; font-size: 13px; border-radius: 4px; }
         td { padding: 12px 4px; text-align: center; border-bottom: 1px solid #eee; word-wrap: break-word; }
         
         .win-text { color: var(--win-color); font-weight: bold; }
         .lose-text { color: var(--lose-color); font-weight: bold; }
-        
         .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 14px; }
-        .rank-1 { background: transparent; font-size: 20px; line-height: 24px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); }
-        .rank-2 { background: transparent; font-size: 20px; line-height: 24px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); }
-        .rank-3 { background: transparent; font-size: 20px; line-height: 24px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); }
-        .rank-boss { background: #2c3e50; color: #f1c40f; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-block; width: auto; height: auto; line-height: normal; }
+        .rank-1 { background: transparent; font-size: 20px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); }
+        .rank-2 { background: transparent; font-size: 20px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); }
+        .rank-3 { background: transparent; font-size: 20px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); }
         .rank-other { background: #eee; font-size: 12px; color: #666; }
 
         .dashboard-grid { display: flex; gap: 10px; margin-bottom: 5px; }
@@ -123,10 +92,7 @@
         .history-date { font-size: 13px; color: #333; font-weight: 500; }
         .history-tag { font-size: 11px; padding: 1px 5px; border-radius: 4px; display: inline-block; white-space: nowrap; }
         .tag-holiday { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; font-weight: bold; }
-        .tag-lunar { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
         .tag-info { background-color: #f5f5f5; color: #666; border: 1px solid #e0e0e0; }
-        
-        .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-top: 5px; font-size: 13px; }
         
         .edit-btn { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 14px; }
         .delete-btn { background: #ff7675; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 14px; margin-left: 8px;}
@@ -135,21 +101,17 @@
 
         .backup-btn { background: transparent; border: 1px solid #2ecc71; color: #2ecc71; border-radius: 20px; padding: 2px 8px; font-size: 12px; cursor: pointer; margin-left: 5px;}
         
-        .manage-area { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px; display: none; }
+        /* 管理與選單 */
         .manage-btn { background: none; border: none; color: #7f8c8d; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .player-tag { background: #f0f2f5; border: 1px solid #dcdfe6; border-radius: 20px; padding: 5px 12px; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; }
-        .player-delete { color: #f56c6c; cursor: pointer; font-weight: bold; font-size: 16px; line-height: 1; }
-        .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-
-        .filter-wrapper { display: flex; gap: 5px; align-items: center; }
-        .month-filter { border: 1px solid #ddd; background: #fff; padding: 2px 5px; border-radius: 6px; font-size: 13px; color: #555; }
-
-        /* 地點選單樣式 */
         .location-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; }
-        .location-card { background: white; width: 85%; max-width: 300px; padding: 20px; border-radius: 12px; }
-        .location-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; }
+        .location-card { background: white; width: 85%; max-width: 320px; padding: 20px; border-radius: 12px; max-height: 80vh; overflow-y: auto; }
+        .location-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .location-item:hover { background: #f5f5f5; }
-        .location-add { margin-top: 10px; text-align: center; color: #2ecc71; font-weight: bold; cursor: pointer; padding: 10px; border: 1px dashed #2ecc71; border-radius: 8px; }
+        .location-group-title { font-size: 12px; color: #999; margin-top: 10px; margin-bottom: 5px; font-weight: bold; }
+        .location-add { margin-top: 15px; text-align: center; padding: 10px; border: 1px dashed #aaa; border-radius: 8px; color: #666; cursor: pointer; font-size: 14px; }
+        
+        /* 隱藏/顯示控制 */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -166,55 +128,104 @@
     <div id="locationModal" class="location-menu" onclick="closeLocationMenu(event)">
         <div class="location-card">
             <h3 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px;">切換帳本</h3>
-            <div id="locationList"></div>
-            <div class="location-add" onclick="createNewLocation()">➕ 新增秘密基地</div>
+            
+            <div class="location-group-title">🏠 公開戰場</div>
+            <div id="publicLocationList">
+                <div class="location-item" onclick="switchLocation('default', '蕙儀家', 'group')">
+                    <span>蕙儀家 (預設)</span>
+                    <span id="check_default">✅</span>
+                </div>
+            </div>
+
+            <div class="location-group-title">🔒 私人金庫</div>
+            <div id="privateLocationList"></div>
+
+            <div style="display:flex; gap:10px;">
+                <div class="location-add" style="flex:1; border-color:#2ecc71; color:#2ecc71;" onclick="createNewLocation('group')">➕ 新增戰場</div>
+                <div class="location-add" style="flex:1; border-color:#e67e22; color:#e67e22;" onclick="createNewLocation('personal')">➕ 新增金庫</div>
+            </div>
         </div>
     </div>
 
     <div class="card" id="inputCard">
         <h3 id="inputTitle"><span>✏️ 新增戰績</span></h3>
         
-        <div class="row-date">
-            <label>日期</label>
+        <div style="margin-bottom: 12px;">
+            <label style="display:block; font-size:13px; color:#666; margin-bottom:5px; font-weight:bold;">日期</label>
             <input type="date" id="dateInput" class="input-style">
         </div>
-        
-        <div class="row-stats">
-            <div class="col-half">
-                <label>將數</label>
-                <input type="number" id="jiangInput" class="input-style" placeholder="0" value="1" inputmode="numeric">
+
+        <div id="groupInputArea" class="group-mode">
+            <div class="row-stats">
+                <div class="col-half">
+                    <label style="display:block; font-size:13px; color:#666; margin-bottom:5px; font-weight:bold;">將數</label>
+                    <input type="number" id="jiangInput" class="input-style" placeholder="0" value="1" inputmode="numeric">
+                </div>
+                <div class="col-half">
+                    <label style="display:block; font-size:13px; color:#666; margin-bottom:5px; font-weight:bold;">東錢</label>
+                    <input type="number" id="dongInput" class="input-style" placeholder="0" value="0" inputmode="numeric">
+                </div>
             </div>
-            <div class="col-half">
-                <label>東錢</label>
-                <input type="number" id="dongInput" class="input-style" placeholder="0" value="0" inputmode="numeric">
+            <div id="playersArea"></div>
+        </div>
+
+        <div id="personalInputArea" class="personal-mode hidden">
+            <div class="input-row">
+                <label>地點 / 局名</label>
+                <input type="text" id="personalLocInput" class="input-style" placeholder="例如：外面的局、過年場">
+            </div>
+            <div class="input-row">
+                <label>當日輸贏金額 (贏+ / 輸-)</label>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button class="sign-btn btn-plus" onclick="togglePersonalSign(this)" id="personalSignBtn">+</button>
+                    <input type="number" id="personalScoreInput" class="score-input-large" placeholder="0" inputmode="numeric">
+                </div>
+            </div>
+            <div class="input-row">
+                <label>備註 (選填)</label>
+                <input type="text" id="personalNoteInput" class="input-style" placeholder="例如：打300/100">
             </div>
         </div>
 
-        <div id="playersArea"></div>
         <p id="errorMsg" class="error-msg"></p>
         
         <button class="action-btn" id="saveBtn" onclick="saveData()">儲存紀錄</button>
         
-        <div style="display:flex; justify-content:space-between; margin-top:10px; align-items:center;">
+        <div id="groupManageControls" style="display:flex; justify-content:space-between; margin-top:10px; align-items:center;">
             <button class="manage-btn" onclick="togglePlayerManager()">⚙️ 管理選手</button>
             <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()" style="margin:0;">取消修改</button>
         </div>
+        <div id="personalCancelControls" class="hidden" style="text-align:right; margin-top:10px;">
+             <button class="cancel-btn" id="cancelBtnPersonal" onclick="cancelEdit()" style="margin:0; display:inline-block;">取消修改</button>
+        </div>
 
-        <div id="manageArea" class="manage-area">
+        <div id="manageArea" class="manage-area" style="margin-top:15px; border-top:1px dashed #ddd; padding-top:10px; display:none;">
             <div style="font-size:12px; color:#999; margin-bottom:5px;">點擊 ✕ 可刪除選手 (需密碼驗證)</div>
-            <div id="manageList" class="player-list"></div>
+            <div id="manageList" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
         </div>
     </div>
 
-    <div class="card">
-        <h3>🏆 英雄榜</h3>
-        <table>
+    <div class="card" id="statsCard">
+        <h3 id="statsTitle">🏆 英雄榜</h3>
+        <table id="groupStatsTable">
             <thead><tr><th width="15%">#</th><th width="40%">姓名</th><th width="45%">累積</th></tr></thead>
             <tbody id="summaryBody"><tr><td colspan="3">載入中...</td></tr></tbody>
         </table>
+        <div id="personalStatsView" class="hidden">
+            <div class="dashboard-grid">
+                <div class="dash-box" style="background: #fff3e0;">
+                    <div class="dash-label">生涯總損益</div>
+                    <div class="dash-value" id="personalTotalScore" style="color: #e67e22;">$0</div>
+                </div>
+                <div class="dash-box" style="background: #e8f5e9;">
+                    <div class="dash-label">總場次</div>
+                    <div class="dash-value" id="personalTotalCount" style="color: #2e7d32;">0</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="groupDetailStats">
         <h3>📊 統計數據</h3>
         <div class="dashboard-grid">
             <div class="dash-box" style="background: #e8f5e9;">
@@ -236,8 +247,8 @@
     <div class="card">
         <h3>
             <span>📜 紀錄</span>
-            <div class="filter-wrapper">
-                <input type="month" id="filterMonth" class="month-filter" onchange="render()">
+            <div style="display:flex; gap:5px; align-items:center;">
+                <input type="month" id="filterMonth" style="border:1px solid #ddd; background:#fff; padding:2px 5px; border-radius:6px; font-size:13px;" onchange="render()">
             </div>
         </h3>
         <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
@@ -266,22 +277,19 @@
         const db = firebase.database();
         
         // 全域變數
-        let currentLocId = 'default'; // 預設為蕙儀家 (root)
+        let currentLocId = 'default'; 
+        let currentLocType = 'group'; // 'group' or 'personal'
         let recordsRef, playersRef;
         let localRecords = [];
         let currentEditId = null;
         
-        // 預設密碼 (管理選手/刪除紀錄用)
         const SAFETY_PASSWORD = "8888"; 
-        
-        // 預設選手名單
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
         let allPlayers = [...DEFAULT_PLAYERS];
 
-        // 初始化：預設載入「蕙儀家」
-        initLocation('default');
+        // 初始化
+        initLocation('default', '蕙儀家', 'group');
 
-        // 監聽連線
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
             const dot = document.getElementById('dot');
@@ -292,34 +300,60 @@
             }
         });
 
-        // === 核心：切換地點邏輯 ===
-        function initLocation(locId, locName = "蕙儀家") {
-            // 解除舊的監聽
+        // === 核心：初始化與切換 ===
+        function initLocation(id, name, type) {
             if (recordsRef) recordsRef.off();
             if (playersRef) playersRef.off();
 
-            currentLocId = locId;
-            document.getElementById('currentLocationName').innerText = `📍 ${locName}`;
+            currentLocId = id;
+            currentLocType = type;
+            document.getElementById('currentLocationName').innerText = `📍 ${name}`;
 
             // 設定資料庫路徑
-            if (locId === 'default') {
-                // 蕙儀家使用舊的根目錄，保留原有資料
-                recordsRef = db.ref('records');
-                playersRef = db.ref('players');
-            } else {
-                // 其他地點使用子目錄
-                recordsRef = db.ref(`locations/${locId}/records`);
-                playersRef = db.ref(`locations/${locId}/players`);
-            }
+            let pathPrefix = id === 'default' ? '' : `locations/${id}/`;
+            recordsRef = db.ref(pathPrefix + 'records');
+            
+            // UI 切換
+            const groupArea = document.getElementById('groupInputArea');
+            const personalArea = document.getElementById('personalInputArea');
+            const groupStats = document.getElementById('groupStatsTable');
+            const personalStats = document.getElementById('personalStatsView');
+            const groupDetailStats = document.getElementById('groupDetailStats');
+            const groupManageCtrl = document.getElementById('groupManageControls');
+            const personalCancelCtrl = document.getElementById('personalCancelControls');
 
-            // 重新綁定監聽
-            setupListeners();
-            // 重置介面
+            if (type === 'group') {
+                playersRef = db.ref(pathPrefix + 'players');
+                setupGroupListeners();
+                
+                groupArea.classList.remove('hidden');
+                personalArea.classList.add('hidden');
+                groupStats.classList.remove('hidden');
+                personalStats.classList.add('hidden');
+                groupDetailStats.classList.remove('hidden'); // 顯示詳細統計
+                groupManageCtrl.style.display = 'flex';
+                personalCancelCtrl.classList.add('hidden');
+                document.getElementById('statsTitle').innerText = "🏆 英雄榜";
+                
+                initPlayerInputs(); // 重建輸入格
+            } else {
+                // 個人模式不需要 playersRef
+                setupPersonalListeners();
+                
+                groupArea.classList.add('hidden');
+                personalArea.classList.remove('hidden');
+                groupStats.classList.add('hidden');
+                personalStats.classList.remove('hidden');
+                groupDetailStats.classList.add('hidden'); // 隱藏詳細統計
+                groupManageCtrl.style.display = 'none';
+                personalCancelCtrl.classList.remove('hidden');
+                document.getElementById('statsTitle').innerText = "💰 我的金庫";
+            }
+            
             cancelEdit();
         }
 
-        function setupListeners() {
-            // 監聽選手
+        function setupGroupListeners() {
             playersRef.on('value', (snap) => {
                 const data = snap.val();
                 if (data) {
@@ -338,8 +372,14 @@
                 updateAllPlayerSelects(); 
                 renderManageList(); 
             });
+            listenToRecords();
+        }
 
-            // 監聽戰績
+        function setupPersonalListeners() {
+            listenToRecords();
+        }
+
+        function listenToRecords() {
             recordsRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 localRecords = [];
@@ -353,46 +393,387 @@
             });
         }
 
-        // === 地點選單功能 ===
+        // === 渲染邏輯 ===
+        function render() {
+            const filterValue = document.getElementById('filterMonth').value; 
+            const listDiv = document.getElementById('historyList');
+            listDiv.innerHTML = '';
+            
+            let displayRecords = localRecords;
+            if (filterValue) {
+                displayRecords = localRecords.filter(rec => rec.date.startsWith(filterValue));
+            }
+
+            if (displayRecords.length === 0) { 
+                listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">無紀錄</p>'; 
+            }
+
+            displayRecords.forEach(rec => {
+                let html = '';
+                let holidayTag = getHolidayTag(rec.date);
+
+                if (currentLocType === 'group') {
+                    // 群組模式顯示
+                    let detailsHtml = rec.details.map(p => {
+                        let colorClass = p.score > 0 ? 'win-text' : (p.score < 0 ? 'lose-text' : 'zero-text');
+                        let sign = p.score > 0 ? '+' : '';
+                        return `<div><span>${p.name}</span> <span class="${colorClass}">${sign}${p.score}</span></div>`;
+                    }).join('');
+                    
+                    let infoTags = "";
+                    if (rec.jiangCount) infoTags += `<span class="history-tag tag-info">🀄 ${rec.jiangCount}將</span>`;
+                    if (rec.dongQian) infoTags += `<span class="history-tag tag-info">💰 東${rec.dongQian}</span>`;
+
+                    html = `
+                        <div style="flex:1;">
+                            <div class="history-header">
+                                <span class="history-date">${rec.date}</span>
+                                ${holidayTag} ${infoTags}
+                            </div>
+                            <div class="history-scores">${detailsHtml}</div>
+                        </div>`;
+                } else {
+                    // 個人模式顯示
+                    let colorClass = rec.score > 0 ? 'win-text' : (rec.score < 0 ? 'lose-text' : 'zero-text');
+                    let sign = rec.score > 0 ? '+' : '';
+                    let noteHtml = rec.note ? `<div style="font-size:12px; color:#888;">📝 ${rec.note}</div>` : '';
+                    
+                    html = `
+                        <div style="flex:1;">
+                            <div class="history-header">
+                                <span class="history-date">${rec.date}</span>
+                                ${holidayTag}
+                                <span class="history-tag tag-info">📍 ${rec.location || '未知地點'}</span>
+                            </div>
+                            <div style="font-size:18px; font-weight:bold; margin-top:5px;" class="${colorClass}">
+                                ${sign}${rec.score}
+                            </div>
+                            ${noteHtml}
+                        </div>`;
+                }
+
+                let item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = html + `
+                    <div>
+                        <button class="edit-btn" onclick="editRecord('${rec.id}')">✎</button>
+                        <button class="delete-btn" onclick="deleteRecord('${rec.id}')">✕</button>
+                    </div>`;
+                listDiv.appendChild(item);
+            });
+
+            // 統計部分
+            if (currentLocType === 'group') {
+                renderGroupStats();
+            } else {
+                renderPersonalStats();
+            }
+        }
+
+        function renderGroupStats() {
+            let stats = {};
+            let monthlyData = {}; 
+            let yearlyJiang = {}; 
+            let grandTotalJiang = 0; 
+            let grandTotalDong = 0; 
+
+            localRecords.forEach(rec => {
+                // 總榜
+                rec.details.forEach(p => {
+                    if (!stats[p.name]) stats[p.name] = 0;
+                    stats[p.name] += p.score;
+                });
+                
+                // 統計數據
+                let dateObj = new Date(rec.date);
+                let year = dateObj.getFullYear();
+                let month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                let key = `${month}月`;
+                if (!monthlyData[key]) monthlyData[key] = { jiang: 0, dong: 0 };
+                if (!yearlyJiang[year]) yearlyJiang[year] = 0;
+
+                let j = parseInt(rec.jiangCount) || 0;
+                let d = parseInt(rec.dongQian) || 0;
+
+                monthlyData[key].jiang += j;
+                monthlyData[key].dong += d;
+                yearlyJiang[year] += j;
+                grandTotalJiang += j;
+                grandTotalDong += d;
+            });
+
+            // 渲染總榜
+            const summaryBody = document.getElementById('summaryBody');
+            summaryBody.innerHTML = '';
+            if (Object.keys(stats).length === 0) { summaryBody.innerHTML = '<tr><td colspan="3" style="color:#999;">無資料</td></tr>'; }
+            else {
+                let sortedStats = Object.entries(stats).sort(([,a], [,b]) => b - a);
+                sortedStats.forEach(([name, score], index) => {
+                    let colorClass = score > 0 ? 'win-text' : (score < 0 ? 'lose-text' : 'zero-text');
+                    let sign = score > 0 ? '+' : '';
+                    let rankContent = index + 1;
+                    let rankClass = "rank-other";
+                    if(index === 0) { rankContent = '🥇'; rankClass = "rank-1"; }
+                    else if(index === 1) { rankContent = '🥈'; rankClass = "rank-2"; }
+                    else if(index === 2) { rankContent = '🥉'; rankClass = "rank-3"; }
+                    if (index === sortedStats.length - 1 && sortedStats.length > 1) { rankContent = '老闆'; rankClass = 'rank-boss'; }
+                    summaryBody.innerHTML += `<tr><td><span class="rank-badge ${rankClass}">${rankContent}</span></td><td style="font-weight:500;">${name}</td><td class="${colorClass}">${sign}${score}</td></tr>`;
+                });
+            }
+
+            // 渲染統計
+            document.getElementById('grandTotalJiang').innerText = grandTotalJiang;
+            document.getElementById('grandTotalDong').innerText = "$" + grandTotalDong;
+            const statsBody = document.getElementById('monthlyStatsBody');
+            const yearFoot = document.getElementById('yearlyStatsFoot');
+            statsBody.innerHTML = '';
+            yearFoot.innerHTML = '';
+            let sortedKeys = Object.keys(monthlyData).sort().reverse();
+            if (sortedKeys.length === 0) { statsBody.innerHTML = '<tr><td colspan="3">無資料</td></tr>'; }
+            else {
+                sortedKeys.forEach(key => {
+                    let d = monthlyData[key];
+                    statsBody.innerHTML += `<tr><td>${key}</td><td>${d.jiang}</td><td>${d.dong}</td></tr>`;
+                });
+            }
+            let sortedYears = Object.keys(yearlyJiang).sort().reverse();
+            if(sortedYears.length > 0) {
+                yearFoot.innerHTML = `${sortedYears[0]}年總計：${yearlyJiang[sortedYears[0]]} 將`;
+            }
+        }
+
+        function renderPersonalStats() {
+            let totalScore = 0;
+            localRecords.forEach(rec => {
+                totalScore += (parseInt(rec.score) || 0);
+            });
+            const sign = totalScore > 0 ? '+' : '';
+            const color = totalScore > 0 ? '#e74c3c' : (totalScore < 0 ? '#27ae60' : '#666');
+            
+            const scoreEl = document.getElementById('personalTotalScore');
+            scoreEl.innerText = `${sign}$${totalScore}`;
+            scoreEl.style.color = color;
+            
+            document.getElementById('personalTotalCount').innerText = localRecords.length;
+        }
+
+        // === 儲存邏輯 ===
+        function saveData() {
+            if (currentEditId) {
+                if (!checkPassword()) { alert("❌ 密碼錯誤"); return; }
+            }
+
+            const date = document.getElementById('dateInput').value;
+            let recordData = {
+                date: date,
+                timestamp: Date.now()
+            };
+
+            if (currentLocType === 'group') {
+                const jiangCount = parseInt(document.getElementById('jiangInput').value) || 0;
+                const dongQian = parseInt(document.getElementById('dongInput').value) || 0;
+                const rows = document.querySelectorAll('.player-row');
+                let currentEntry = [];
+                let totalScore = 0;
+                let namesCheck = new Set();
+
+                for (let row of rows) {
+                    const select = row.querySelector('.name-select');
+                    const customInput = row.querySelector('.custom-name');
+                    const signBtn = row.querySelector('.sign-btn');
+                    const scoreInput = row.querySelector('.score-input');
+                    
+                    let name = select.style.display !== 'none' ? select.value : customInput.value.trim();
+                    if (name === "ADD_NEW") name = ""; 
+                    if (!name) { showError("⚠️ 請輸入/選擇選手"); return; }
+                    if (namesCheck.has(name)) { showError(`⚠️ 名字重複：${name}`); return; }
+                    namesCheck.add(name);
+
+                    let rawScore = parseInt(scoreInput.value);
+                    if (isNaN(rawScore)) { showError(`⚠️ 請輸入金額`); return; }
+                    let finalScore = Math.abs(rawScore) * (signBtn.innerText === '+' ? 1 : -1);
+
+                    currentEntry.push({ name: name, score: finalScore });
+                    totalScore += finalScore;
+                }
+
+                if (totalScore !== 0) { showError(`⚠️ 帳目不平！目前 ${totalScore}`); return; }
+                
+                recordData.jiangCount = jiangCount;
+                recordData.dongQian = dongQian;
+                recordData.details = currentEntry;
+
+            } else {
+                // 個人模式儲存
+                const loc = document.getElementById('personalLocInput').value.trim();
+                const scoreInput = document.getElementById('personalScoreInput');
+                const score = parseInt(scoreInput.value);
+                const signBtn = document.getElementById('personalSignBtn');
+                const note = document.getElementById('personalNoteInput').value.trim();
+
+                if (!loc) { showError("⚠️ 請輸入地點"); return; }
+                if (isNaN(score)) { showError("⚠️ 請輸入金額"); return; }
+                
+                let finalScore = Math.abs(score) * (signBtn.innerText === '+' ? 1 : -1);
+                
+                recordData.location = loc;
+                recordData.score = finalScore;
+                recordData.note = note;
+            }
+
+            if (currentEditId) {
+                recordsRef.child(currentEditId).update(recordData)
+                    .then(() => { alert("✅ 修改成功"); cancelEdit(); })
+                    .catch(err => alert("失敗: " + err.message));
+            } else {
+                recordsRef.push(recordData)
+                    .then(() => { resetForm(); alert("✅ 儲存成功"); })
+                    .catch(err => alert("失敗: " + err.message));
+            }
+        }
+
+        // === 編輯與刪除 ===
+        function editRecord(id) {
+            const record = localRecords.find(r => r.id === id);
+            if (!record) return;
+
+            document.getElementById('dateInput').value = record.date;
+
+            if (currentLocType === 'group') {
+                document.getElementById('jiangInput').value = record.jiangCount || 0;
+                document.getElementById('dongInput').value = record.dongQian || 0;
+                const rows = document.querySelectorAll('.player-row');
+                for (let i = 0; i < 4; i++) {
+                    if (i < record.details.length) {
+                        const p = record.details[i];
+                        const row = rows[i];
+                        const select = row.querySelector('.name-select');
+                        const custom = row.querySelector('.custom-name');
+                        const score = row.querySelector('.score-input');
+                        const btn = row.querySelector('.sign-btn');
+
+                        if (allPlayers.includes(p.name)) {
+                            select.value = p.name; select.style.display = 'block'; custom.style.display = 'none';
+                        } else {
+                            select.value = 'Other'; select.style.display = 'none'; custom.style.display = 'block'; custom.value = p.name;
+                        }
+                        score.value = Math.abs(p.score);
+                        btn.innerText = p.score < 0 ? '-' : '+';
+                        btn.className = p.score < 0 ? 'sign-btn btn-minus' : 'sign-btn btn-plus';
+                    }
+                }
+            } else {
+                document.getElementById('personalLocInput').value = record.location;
+                document.getElementById('personalScoreInput').value = Math.abs(record.score);
+                document.getElementById('personalNoteInput').value = record.note || '';
+                const btn = document.getElementById('personalSignBtn');
+                btn.innerText = record.score < 0 ? '-' : '+';
+                btn.className = record.score < 0 ? 'sign-btn btn-minus' : 'sign-btn btn-plus';
+            }
+
+            currentEditId = id;
+            document.getElementById('inputCard').classList.add('editing-mode');
+            document.getElementById('inputTitle').innerText = "✏️ 修改中...";
+            document.getElementById('saveBtn').innerText = "確認修改 (需密碼)";
+            document.getElementById('saveBtn').style.backgroundColor = "#f39c12";
+            document.getElementById('cancelBtn').style.display = "block";
+            if(currentLocType !== 'group') document.getElementById('cancelBtnPersonal').style.display = "inline-block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            currentEditId = null;
+            document.getElementById('inputCard').classList.remove('editing-mode');
+            document.getElementById('inputTitle').innerText = "✏️ 新增戰績";
+            document.getElementById('saveBtn').innerText = "儲存紀錄";
+            document.getElementById('saveBtn').style.backgroundColor = "";
+            document.getElementById('cancelBtn').style.display = "none";
+            document.getElementById('cancelBtnPersonal').style.display = "none";
+            document.getElementById('manageArea').style.display = 'none';
+            resetForm();
+        }
+
+        function resetForm() {
+            if (currentLocType === 'group') {
+                const rows = document.querySelectorAll('.player-row');
+                rows.forEach(row => {
+                    row.querySelector('.score-input').value = '';
+                    let btn = row.querySelector('.sign-btn');
+                    btn.innerText = '+'; btn.className = 'sign-btn btn-plus';
+                    const select = row.querySelector('.name-select');
+                    const custom = row.querySelector('.custom-name');
+                    select.value = ""; select.style.display = 'block'; custom.style.display = 'none';
+                });
+                document.getElementById('dongInput').value = 0;
+                document.getElementById('jiangInput').value = 1;
+            } else {
+                document.getElementById('personalLocInput').value = '';
+                document.getElementById('personalScoreInput').value = '';
+                document.getElementById('personalNoteInput').value = '';
+                let btn = document.getElementById('personalSignBtn');
+                btn.innerText = '+'; btn.className = 'sign-btn btn-plus';
+            }
+            showError("");
+        }
+
+        function togglePersonalSign(btn) {
+            if (btn.innerText === '+') { btn.innerText = '-'; btn.className = 'sign-btn btn-minus'; } 
+            else { btn.innerText = '+'; btn.className = 'sign-btn btn-plus'; }
+        }
+
+        function deleteRecord(id) {
+            if (!checkPassword()) { alert("❌ 密碼錯誤"); return; }
+            if(!confirm("⚠️ 確定要永久刪除此紀錄？")) return;
+            recordsRef.child(id).remove();
+            if (currentEditId === id) cancelEdit();
+        }
+
+        // === 地點選單 ===
         function showLocationMenu() {
             document.getElementById('locationModal').style.display = 'flex';
             renderLocationList();
         }
-
         function closeLocationMenu(e) {
-            if (e.target.id === 'locationModal') {
-                document.getElementById('locationModal').style.display = 'none';
-            }
+            if (e.target.id === 'locationModal') document.getElementById('locationModal').style.display = 'none';
         }
-
         function renderLocationList() {
-            const list = document.getElementById('locationList');
-            list.innerHTML = `
-                <div class="location-item" onclick="switchLocation('default', '蕙儀家')">
-                    <span>🏠 蕙儀家 (公開)</span>
-                    ${currentLocId === 'default' ? '✅' : ''}
-                </div>
-            `;
-
-            // 讀取所有其他地點
+            const privateList = document.getElementById('privateLocationList');
+            privateList.innerHTML = '';
+            
+            // 讀取其他地點
             db.ref('locations_meta').once('value', snap => {
                 const data = snap.val();
                 if (data) {
                     Object.keys(data).forEach(key => {
                         const loc = data[key];
-                        list.innerHTML += `
-                            <div class="location-item" onclick="verifyAndSwitch('${key}', '${loc.name}', '${loc.password}')">
-                                <span>🔒 ${loc.name}</span>
-                                ${currentLocId === key ? '✅' : ''}
+                        // 判斷是群組還是個人
+                        const type = loc.type || 'group'; 
+                        const icon = type === 'group' ? '⚔️' : '👤';
+                        
+                        let checked = currentLocId === key ? '✅' : '';
+                        let html = `
+                            <div class="location-item" onclick="verifyAndSwitch('${key}', '${loc.name}', '${loc.password}', '${type}')">
+                                <span>${icon} ${loc.name}</span>
+                                <span>${checked}</span>
                             </div>
                         `;
+                        
+                        // 這裡可以做分組，但為了簡單，全部列出來
+                        // 為了區分，我們只在這裡列出非預設的
+                        privateList.innerHTML += html;
                     });
+                } else {
+                    privateList.innerHTML = '<div style="padding:10px; color:#999; font-size:13px; text-align:center;">尚無私人金庫</div>';
                 }
             });
+            
+            // 設定預設的勾選狀態
+            const checkDefault = document.getElementById('check_default');
+            checkDefault.innerText = currentLocId === 'default' ? '✅' : '';
         }
 
-        function createNewLocation() {
-            const name = prompt("請輸入新地點名稱 (例如: 宥辰私局)");
+        function createNewLocation(type) {
+            const name = prompt(type === 'group' ? "請輸入新戰場名稱" : "請輸入新金庫名稱");
             if (!name) return;
             const password = prompt("請設定進入密碼：");
             if (!password) return;
@@ -400,39 +781,35 @@
             const newId = 'loc_' + Date.now();
             db.ref('locations_meta/' + newId).set({
                 name: name,
-                password: password
+                password: password,
+                type: type
             }).then(() => {
                 alert("✅ 建立成功！");
                 renderLocationList();
             });
         }
 
-        function verifyAndSwitch(id, name, password) {
-            if (currentLocId === id) {
-                document.getElementById('locationModal').style.display = 'none';
-                return;
-            }
+        function verifyAndSwitch(id, name, password, type) {
+            if (currentLocId === id) { document.getElementById('locationModal').style.display = 'none'; return; }
             const input = prompt(`請輸入「${name}」的密碼：`);
             if (input === password) {
-                initLocation(id, name);
-                document.getElementById('locationModal').style.display = 'none';
+                switchLocation(id, name, type);
             } else {
                 alert("❌ 密碼錯誤");
             }
         }
 
-        function switchLocation(id, name) {
-            initLocation(id, name);
+        function switchLocation(id, name, type) {
+            initLocation(id, name, type);
             document.getElementById('locationModal').style.display = 'none';
         }
 
-        // === 既有邏輯保持不變 ===
+        // === 輔助功能 ===
         document.getElementById('dateInput').valueAsDate = new Date();
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
         document.getElementById('filterMonth').value = `${year}-${month}`;
-        initPlayerInputs();
 
         function initPlayerInputs() {
             const container = document.getElementById('playersArea');
@@ -452,33 +829,23 @@
         }
 
         function updateAllPlayerSelects() {
+            if (currentLocType !== 'group') return;
             let optionsHtml = `<option value="" disabled selected>請選擇選手...</option>`;
-            allPlayers.forEach(name => {
-                optionsHtml += `<option value="${name}">${name}</option>`;
-            });
+            allPlayers.forEach(name => { optionsHtml += `<option value="${name}">${name}</option>`; });
             optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
             optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
-
             document.querySelectorAll('.name-select').forEach(select => {
-                const currentVal = select.value;
-                select.innerHTML = optionsHtml;
-                if (currentVal && (allPlayers.includes(currentVal) || currentVal === 'Other' || currentVal === 'ADD_NEW')) {
-                    select.value = currentVal;
-                }
+                const currentVal = select.value; select.innerHTML = optionsHtml;
+                if (currentVal && (allPlayers.includes(currentVal) || currentVal === 'Other' || currentVal === 'ADD_NEW')) select.value = currentVal;
             });
         }
 
         function togglePlayerManager() {
             const area = document.getElementById('manageArea');
-            if (area.style.display === 'block') {
-                area.style.display = 'none';
-            } else {
-                if (checkPassword()) {
-                    area.style.display = 'block';
-                    renderManageList();
-                } else {
-                    alert("❌ 密碼錯誤");
-                }
+            if (area.style.display === 'block') { area.style.display = 'none'; }
+            else {
+                if (checkPassword()) { area.style.display = 'block'; renderManageList(); }
+                else { alert("❌ 密碼錯誤"); }
             }
         }
 
@@ -486,43 +853,23 @@
             const list = document.getElementById('manageList');
             list.innerHTML = '';
             allPlayers.forEach(name => {
-                list.innerHTML += `
-                    <div class="player-tag">
-                        ${name} 
-                        <span class="player-delete" onclick="deletePlayerFromList('${name}')">✕</span>
-                    </div>`;
+                list.innerHTML += `<div class="player-tag">${name} <span class="player-delete" onclick="deletePlayerFromList('${name}')">✕</span></div>`;
             });
         }
 
         function deletePlayerFromList(name) {
-            if (confirm(`確定要刪除「${name}」嗎？\n以後選單就不會出現這個名字囉。`)) {
-                playersRef.child(name).remove();
-            }
+            if (confirm(`確定要刪除「${name}」嗎？`)) { playersRef.child(name).remove(); }
         }
 
         function handleNameChange(select) {
-            const wrapper = select.parentElement;
-            const custom = wrapper.querySelector('.custom-name');
-            const val = select.value;
-
-            if (val === 'Other') {
-                select.style.display = 'none';
-                custom.style.display = 'block';
-                custom.focus();
-            } else if (val === 'ADD_NEW') {
+            const wrapper = select.parentElement; const custom = wrapper.querySelector('.custom-name'); const val = select.value;
+            if (val === 'Other') { select.style.display = 'none'; custom.style.display = 'block'; custom.focus(); }
+            else if (val === 'ADD_NEW') {
                 const newName = prompt("請輸入新牌友的名字：");
                 if (newName && newName.trim() !== "") {
-                    playersRef.child(newName.trim()).set(true).then(() => {
-                        setTimeout(() => { select.value = newName.trim(); }, 100);
-                    });
-                } else {
-                    select.value = "";
-                }
-            } else {
-                custom.style.display = 'none';
-                select.style.display = 'block';
-                custom.value = '';
-            }
+                    playersRef.child(newName.trim()).set(true).then(() => { setTimeout(() => { select.value = newName.trim(); }, 100); });
+                } else { select.value = ""; }
+            } else { custom.style.display = 'none'; select.style.display = 'block'; custom.value = ''; }
         }
 
         function toggleSign(btn) {
@@ -530,343 +877,44 @@
             else { btn.innerText = '+'; btn.className = 'sign-btn btn-plus'; }
         }
 
-        function checkPassword() {
-            let p = prompt("請輸入安全密碼 (預設 8888)：");
-            return p === SAFETY_PASSWORD;
-        }
-
-        function saveData() {
-            if (currentEditId) {
-                if (!checkPassword()) { alert("❌ 密碼錯誤，拒絕修改"); return; }
-            }
-
-            const date = document.getElementById('dateInput').value;
-            const jiangCount = parseInt(document.getElementById('jiangInput').value) || 0;
-            const dongQian = parseInt(document.getElementById('dongInput').value) || 0;
-            const rows = document.querySelectorAll('.player-row');
-            
-            let currentEntry = [];
-            let totalScore = 0;
-            let namesCheck = new Set();
-
-            for (let row of rows) {
-                const select = row.querySelector('.name-select');
-                const customInput = row.querySelector('.custom-name');
-                const signBtn = row.querySelector('.sign-btn');
-                const scoreInput = row.querySelector('.score-input');
-                
-                let name = "";
-                if (select.style.display !== 'none') {
-                    name = select.value;
-                    if (name === "ADD_NEW") name = ""; 
-                } else {
-                    name = customInput.value.trim();
-                }
-
-                if (!name) { showError("⚠️ 請輸入/選擇選手名字"); return; }
-                if (namesCheck.has(name)) { showError(`⚠️ 名字重複：${name}`); return; }
-                namesCheck.add(name);
-
-                let rawScore = parseInt(scoreInput.value);
-                if (isNaN(rawScore)) { showError(`⚠️ 請輸入金額`); return; }
-                let finalScore = Math.abs(rawScore) * (signBtn.innerText === '+' ? 1 : -1);
-
-                currentEntry.push({ name: name, score: finalScore });
-                totalScore += finalScore;
-            }
-
-            if (totalScore !== 0) { showError(`⚠️ 帳目不平！目前總和 ${totalScore}`); return; }
-
-            const recordData = {
-                date: date,
-                timestamp: Date.now(),
-                jiangCount: jiangCount,
-                dongQian: dongQian,
-                details: currentEntry
-            };
-
-            if (currentEditId) {
-                recordsRef.child(currentEditId).update(recordData)
-                    .then(() => { alert("✅ 修改成功"); cancelEdit(); })
-                    .catch(err => alert("失敗: " + err.message));
-            } else {
-                recordsRef.push(recordData)
-                    .then(() => { resetForm(); alert("✅ 儲存成功"); })
-                    .catch(err => alert("失敗: " + err.message));
-            }
-        }
-
-        function editRecord(id) {
-            const record = localRecords.find(r => r.id === id);
-            if (!record) return;
-
-            document.getElementById('dateInput').value = record.date;
-            document.getElementById('jiangInput').value = record.jiangCount || 0;
-            document.getElementById('dongInput').value = record.dongQian || 0;
-
-            const rows = document.querySelectorAll('.player-row');
-            for (let i = 0; i < 4; i++) {
-                if (i < record.details.length) {
-                    const p = record.details[i];
-                    const row = rows[i];
-                    const select = row.querySelector('.name-select');
-                    const custom = row.querySelector('.custom-name');
-                    const score = row.querySelector('.score-input');
-                    const btn = row.querySelector('.sign-btn');
-
-                    if (allPlayers.includes(p.name)) {
-                        select.value = p.name; 
-                        select.style.display = 'block'; 
-                        custom.style.display = 'none';
-                    } else {
-                        select.value = 'Other'; 
-                        select.style.display = 'none'; 
-                        custom.style.display = 'block'; 
-                        custom.value = p.name;
-                    }
-
-                    score.value = Math.abs(p.score);
-                    if (p.score < 0) { btn.innerText = '-'; btn.className = 'sign-btn btn-minus'; }
-                    else { btn.innerText = '+'; btn.className = 'sign-btn btn-plus'; }
-                }
-            }
-
-            currentEditId = id;
-            document.getElementById('inputCard').classList.add('editing-mode');
-            document.getElementById('inputTitle').innerText = "✏️ 修改中...";
-            document.getElementById('saveBtn').innerText = "確認修改 (需密碼)";
-            document.getElementById('saveBtn').style.backgroundColor = "#f39c12";
-            document.getElementById('cancelBtn').style.display = "block";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function cancelEdit() {
-            currentEditId = null;
-            document.getElementById('inputCard').classList.remove('editing-mode');
-            document.getElementById('inputTitle').innerText = "✏️ 新增戰績";
-            document.getElementById('saveBtn').innerText = "儲存紀錄";
-            document.getElementById('saveBtn').style.backgroundColor = "";
-            document.getElementById('cancelBtn').style.display = "none";
-            document.getElementById('manageArea').style.display = 'none';
-            resetForm();
-        }
-
-        function resetForm() {
-            const rows = document.querySelectorAll('.player-row');
-            rows.forEach(row => {
-                row.querySelector('.score-input').value = '';
-                let btn = row.querySelector('.sign-btn');
-                btn.innerText = '+'; btn.className = 'sign-btn btn-plus';
-                
-                const select = row.querySelector('.name-select');
-                const custom = row.querySelector('.custom-name');
-                select.value = "";
-                select.style.display = 'block';
-                custom.style.display = 'none';
-            });
-            document.getElementById('dongInput').value = 0;
-            document.getElementById('jiangInput').value = 1;
-            showError("");
-        }
-
-        function deleteRecord(id) {
-            if (!checkPassword()) { alert("❌ 密碼錯誤"); return; }
-            if(!confirm("⚠️ 確定要永久刪除此紀錄？")) return;
-            recordsRef.child(id).remove();
-            if (currentEditId === id) cancelEdit();
-        }
-
+        function checkPassword() { return prompt("請輸入安全密碼 (預設 8888)：") === SAFETY_PASSWORD; }
+        function showError(msg) { const el = document.getElementById('errorMsg'); el.innerText = msg; el.style.display = msg ? 'block' : 'none'; }
+        
         function getHolidayTag(dateStr) {
             try {
-                const dateParts = dateStr.split('-');
-                const y = parseInt(dateParts[0]);
-                const m = parseInt(dateParts[1]);
-                const d = parseInt(dateParts[2]);
-                
+                const dateParts = dateStr.split('-'); const y = parseInt(dateParts[0]); const m = parseInt(dateParts[1]); const d = parseInt(dateParts[2]);
                 if (m === 2 && d === 14) return '<span class="history-tag tag-holiday">💘 情人節</span>';
-                if (m === 12 && d === 25) return '<span class="history-tag tag-holiday">🎄 聖誕節</span>';
                 if (m === 1 && d === 1) return '<span class="history-tag tag-holiday">🎉 元旦</span>';
-                if (m === 10 && d === 10) return '<span class="history-tag tag-holiday">🇹🇼 國慶</span>';
-
-                const lunar = Lunar.fromDate(new Date(y, m - 1, d));
-                const lMonth = lunar.getMonth();
-                const lDay = lunar.getDay();
-
+                const lunar = Lunar.fromDate(new Date(y, m - 1, d)); const lMonth = lunar.getMonth(); const lDay = lunar.getDay();
                 if (lMonth === 1 && lDay === 1) return '<span class="history-tag tag-holiday">🧧 春節</span>';
                 if (lMonth === 1 && lDay === 15) return '<span class="history-tag tag-holiday">🏮 元宵</span>';
                 if (lMonth === 5 && lDay === 5) return '<span class="history-tag tag-holiday">🐉 端午</span>';
-                if (lMonth === 7 && lDay === 7) return '<span class="history-tag tag-holiday">🎋 七夕</span>';
-                if (lMonth === 7 && lDay === 15) return '<span class="history-tag tag-holiday">👻 中元</span>';
                 if (lMonth === 8 && lDay === 15) return '<span class="history-tag tag-holiday">🥮 中秋</span>';
-                
-                const nextDay = Lunar.fromDate(new Date(y, m - 1, d + 1));
-                if (nextDay.getYear() !== lunar.getYear()) return '<span class="history-tag tag-holiday">🍲 除夕</span>';
-
                 if (lDay === 1) return '<span class="history-tag tag-lunar">🌑 初一</span>';
                 if (lDay === 15) return '<span class="history-tag tag-lunar">🌕 十五</span>';
-
                 return '';
-            } catch (e) {
-                return '';
-            }
-        }
-
-        function render() {
-            const filterValue = document.getElementById('filterMonth').value; 
-            const listDiv = document.getElementById('historyList');
-            listDiv.innerHTML = '';
-            
-            let displayRecords = localRecords;
-            if (filterValue) {
-                displayRecords = localRecords.filter(rec => rec.date.startsWith(filterValue));
-            }
-
-            if (displayRecords.length === 0) { 
-                listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">本月無紀錄</p>'; 
-            }
-
-            displayRecords.forEach(rec => {
-                let detailsHtml = rec.details.map(p => {
-                    let colorClass = p.score > 0 ? 'win-text' : (p.score < 0 ? 'lose-text' : 'zero-text');
-                    let sign = p.score > 0 ? '+' : '';
-                    return `<div><span>${p.name}</span> <span class="${colorClass}">${sign}${p.score}</span></div>`;
-                }).join('');
-
-                let holidayTag = getHolidayTag(rec.date);
-                let infoTags = "";
-                if (rec.jiangCount) infoTags += `<span class="history-tag tag-info">🀄 ${rec.jiangCount}將</span>`;
-                if (rec.dongQian) infoTags += `<span class="history-tag tag-info">💰 東${rec.dongQian}</span>`;
-
-                let item = document.createElement('div');
-                item.className = 'history-item';
-                item.innerHTML = `
-                    <div style="flex:1;">
-                        <div class="history-header">
-                            <span class="history-date">${rec.date}</span>
-                            ${holidayTag}
-                            ${infoTags}
-                        </div>
-                        <div class="history-scores">${detailsHtml}</div>
-                    </div>
-                    <div>
-                        <button class="edit-btn" onclick="editRecord('${rec.id}')">✎</button>
-                        <button class="delete-btn" onclick="deleteRecord('${rec.id}')">✕</button>
-                    </div>
-                `;
-                listDiv.appendChild(item);
-            });
-
-            // 總榜與統計 (維持計算全部資料)
-            let stats = {};
-            localRecords.forEach(rec => {
-                rec.details.forEach(p => {
-                    if (!stats[p.name]) stats[p.name] = 0;
-                    stats[p.name] += p.score;
-                });
-            });
-            const summaryBody = document.getElementById('summaryBody');
-            summaryBody.innerHTML = '';
-            
-            if (Object.keys(stats).length === 0) { summaryBody.innerHTML = '<tr><td colspan="3" style="color:#999;">無資料</td></tr>'; }
-            else {
-                let sortedStats = Object.entries(stats).sort(([,a], [,b]) => b - a);
-                
-                sortedStats.forEach(([name, score], index) => {
-                    let colorClass = score > 0 ? 'win-text' : (score < 0 ? 'lose-text' : 'zero-text');
-                    let sign = score > 0 ? '+' : '';
-                    
-                    let rankContent = index + 1;
-                    let rankClass = "rank-other";
-
-                    if(index === 0) { rankContent = '🥇'; rankClass = "rank-1"; }
-                    else if(index === 1) { rankContent = '🥈'; rankClass = "rank-2"; }
-                    else if(index === 2) { rankContent = '🥉'; rankClass = "rank-3"; }
-
-                    if (index === sortedStats.length - 1 && sortedStats.length > 1) {
-                        rankContent = '老闆';
-                        rankClass = 'rank-boss';
-                    }
-                    
-                    summaryBody.innerHTML += `<tr>
-                        <td><span class="rank-badge ${rankClass}">${rankContent}</span></td>
-                        <td style="font-weight:500;">${name}</td>
-                        <td class="${colorClass}">${sign}${score}</td>
-                    </tr>`;
-                });
-            }
-
-            let monthlyData = {}; 
-            let yearlyJiang = {}; 
-            let grandTotalJiang = 0; 
-            let grandTotalDong = 0; 
-
-            localRecords.forEach(rec => {
-                let dateObj = new Date(rec.date);
-                let year = dateObj.getFullYear();
-                let month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-                let key = `${month}月`;
-                if (!monthlyData[key]) monthlyData[key] = { jiang: 0, dong: 0 };
-                if (!yearlyJiang[year]) yearlyJiang[year] = 0;
-
-                let j = parseInt(rec.jiangCount) || 0;
-                let d = parseInt(rec.dongQian) || 0;
-
-                monthlyData[key].jiang += j;
-                monthlyData[key].dong += d;
-                yearlyJiang[year] += j;
-                
-                grandTotalJiang += j;
-                grandTotalDong += d;
-            });
-
-            document.getElementById('grandTotalJiang').innerText = grandTotalJiang;
-            document.getElementById('grandTotalDong').innerText = "$" + grandTotalDong;
-
-            const statsBody = document.getElementById('monthlyStatsBody');
-            const yearFoot = document.getElementById('yearlyStatsFoot');
-            statsBody.innerHTML = '';
-            yearFoot.innerHTML = '';
-
-            let sortedKeys = Object.keys(monthlyData).sort().reverse();
-            if (sortedKeys.length === 0) { statsBody.innerHTML = '<tr><td colspan="3">無資料</td></tr>'; }
-            else {
-                sortedKeys.forEach(key => {
-                    let d = monthlyData[key];
-                    statsBody.innerHTML += `<tr><td>${key}</td><td>${d.jiang}</td><td>${d.dong}</td></tr>`;
-                });
-            }
-            let sortedYears = Object.keys(yearlyJiang).sort().reverse();
-            if(sortedYears.length > 0) {
-                yearFoot.innerHTML = `${sortedYears[0]}年總計：${yearlyJiang[sortedYears[0]]} 將`;
-            }
-        }
-
-        function showError(msg) {
-            const el = document.getElementById('errorMsg');
-            el.innerText = msg; el.style.display = msg ? 'block' : 'none';
+            } catch (e) { return ''; }
         }
 
         function exportCSV() {
-            let csv = "\uFEFF日期,將數,東錢,玩家,金額\n";
+            let csv = currentLocType === 'group' ? "\uFEFF日期,將數,東錢,玩家,金額\n" : "\uFEFF日期,地點,金額,備註\n";
             localRecords.forEach(rec => {
-                rec.details.forEach(p => {
-                    csv += `${rec.date},${rec.jiangCount || 0},${rec.dongQian || 0},${p.name},${p.score}\n`;
-                });
+                if(currentLocType === 'group') {
+                    rec.details.forEach(p => { csv += `${rec.date},${rec.jiangCount || 0},${rec.dongQian || 0},${p.name},${p.score}\n`; });
+                } else {
+                    csv += `${rec.date},${rec.location},${rec.score},${rec.note || ''}\n`;
+                }
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `麻將_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+            link.download = `麻將_${currentLocType}_${new Date().toISOString().slice(0,10)}.csv`; link.click();
         }
 
         function backupData() {
             const jsonStr = JSON.stringify(localRecords, null, 2);
             const blob = new Blob([jsonStr], { type: 'application/json' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `麻將備份_${new Date().toISOString().slice(0,10)}.json`;
-            link.click();
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+            link.download = `麻將備份_${new Date().toISOString().slice(0,10)}.json`; link.click();
         }
     </script>
 </body>
