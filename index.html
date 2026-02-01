@@ -51,7 +51,6 @@
         .col-half { flex: 1; }
         .col-half label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
-        /* 統一輸入框樣式 */
         .input-style { 
             width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; 
             font-size: 16px; background: #f9f9f9; color: #333; line-height: normal;
@@ -217,7 +216,8 @@
         let localRecords = [];
         let currentEditId = null;
         
-        const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "學姊", "H", "盛安", "一中"];
+        // 更新後的名單：把「學姊」改成「蕙儀」
+        const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
         let allPlayers = [...DEFAULT_PLAYERS];
 
         db.ref('.info/connected').on('value', function(snap) {
