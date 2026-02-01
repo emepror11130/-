@@ -51,12 +51,14 @@
         .col-half { flex: 1; }
         .col-half label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
+        /* 統一輸入框樣式 */
         .input-style { 
             width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; 
             font-size: 16px; background: #f9f9f9; color: #333; line-height: normal;
             display: flex; align-items: center; justify-content: center;
         }
         
+        /* 日期輸入框 iOS 修正 */
         input[type="date"] { -webkit-appearance: none; appearance: none; display: flex; align-items: center; justify-content: center; line-height: normal; padding: 0; }
         input[type="date"]::-webkit-date-and-time-value { line-height: 1.5; padding-top: 2px; }
 
@@ -118,7 +120,6 @@
         .error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; display: none; margin-top: 10px; font-size: 14px;}
         .editing-mode { border: 2px solid #f39c12; }
 
-        /* 備份按鈕樣式 */
         .backup-btn { background: transparent; border: 1px solid #2ecc71; color: #2ecc71; border-radius: 20px; padding: 2px 8px; font-size: 12px; cursor: pointer; margin-left: 5px;}
     </style>
 </head>
@@ -138,11 +139,11 @@
         <div class="row-stats">
             <div class="col-half">
                 <label>將數</label>
-                <input type="number" id="jiangInput" class="input-style" placeholder="場" value="1" inputmode="numeric">
+                <input type="number" id="jiangInput" class="input-style" placeholder="0" value="1" inputmode="numeric">
             </div>
             <div class="col-half">
                 <label>東錢</label>
-                <input type="number" id="dongInput" class="input-style" placeholder="$" value="0" inputmode="numeric">
+                <input type="number" id="dongInput" class="input-style" placeholder="0" value="0" inputmode="numeric">
             </div>
         </div>
 
@@ -205,13 +206,12 @@
         };
         // ==========================================
 
-        // 初始化 Firebase (移除 Auth)
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const recordsRef = db.ref('records');
         const playersRef = db.ref('players'); 
 
-        // 安全設定：防誤刪密碼 (您可以自己改這裡的數字)
+        // 安全設定：防誤刪密碼
         const SAFETY_PASSWORD = "8888";
 
         let localRecords = [];
@@ -329,7 +329,6 @@
         }
 
         function saveData() {
-            // 如果是「修改」舊資料，先問密碼
             if (currentEditId) {
                 if (!checkPassword()) { alert("❌ 密碼錯誤，拒絕修改"); return; }
             }
@@ -391,8 +390,6 @@
         }
 
         function editRecord(id) {
-            // 按下修改按鈕時，暫時不問密碼，等按「儲存」時才問
-            // 或者您想按下去就問也可以，這邊設定是按儲存才問
             const record = localRecords.find(r => r.id === id);
             if (!record) return;
 
@@ -645,7 +642,7 @@
             link.click();
         }
 
-        // 新增功能：備份 JSON
+        // 備份功能
         function backupData() {
             const jsonStr = JSON.stringify(localRecords, null, 2);
             const blob = new Blob([jsonStr], { type: 'application/json' });
