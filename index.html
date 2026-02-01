@@ -126,6 +126,10 @@
         .player-tag { background: #f0f2f5; border: 1px solid #dcdfe6; border-radius: 20px; padding: 5px 12px; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; }
         .player-delete { color: #f56c6c; cursor: pointer; font-weight: bold; font-size: 16px; line-height: 1; }
         .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+        /* 月份篩選器樣式 */
+        .filter-wrapper { display: flex; gap: 5px; align-items: center; }
+        .month-filter { border: 1px solid #ddd; background: #fff; padding: 2px 5px; border-radius: 6px; font-size: 13px; color: #555; }
     </style>
 </head>
 <body>
@@ -197,12 +201,15 @@
 
     <div class="card">
         <h3>
-            📜 紀錄
-            <div>
-                <button class="backup-btn" onclick="backupData()">💾 備份</button>
-                <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:5px;">📥 Excel</button>
+            <span>📜 紀錄</span>
+            <div class="filter-wrapper">
+                <input type="month" id="filterMonth" class="month-filter" onchange="render()">
             </div>
         </h3>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+            <button class="backup-btn" onclick="backupData()">💾 備份</button>
+            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:5px;">📥 Excel</button>
+        </div>
         <div id="historyList"></div>
     </div>
 
@@ -231,9 +238,15 @@
         let localRecords = [];
         let currentEditId = null;
         
-        // 修正後的預設名單
+        // 名單順序
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
         let allPlayers = [...DEFAULT_PLAYERS];
+
+        // 初始化篩選器為當月
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        document.getElementById('filterMonth').value = `${year}-${month}`;
 
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
@@ -249,24 +262,10 @@
             const data = snap.val();
             if (data) {
                 const cloudPlayers = Object.keys(data);
-                // 確保 DEFAULT_PLAYERS 的人排在前面
                 const newPlayers = cloudPlayers.filter(p => !DEFAULT_PLAYERS.includes(p));
-                // 這裡做個過濾，確保 DEFAULT_PLAYERS 裡的人如果被雲端刪了，就不顯示
-                // 但為了符合「以雲端為主」的邏輯，我們只用 cloudPlayers
-                // 不過為了符合您的順序要求，我們嘗試排序：如果雲端有這些人，就優先排前面
                 let sortedPlayers = [];
-                // 1. 先放您指定順序的人 (如果雲端有)
-                DEFAULT_PLAYERS.forEach(p => {
-                    if (cloudPlayers.includes(p)) {
-                        sortedPlayers.push(p);
-                    }
-                });
-                // 2. 再放剩下的其他人
-                cloudPlayers.forEach(p => {
-                    if (!sortedPlayers.includes(p)) {
-                        sortedPlayers.push(p);
-                    }
-                });
+                DEFAULT_PLAYERS.forEach(p => { if (cloudPlayers.includes(p)) sortedPlayers.push(p); });
+                cloudPlayers.forEach(p => { if (!sortedPlayers.includes(p)) sortedPlayers.push(p); });
                 allPlayers = sortedPlayers;
             } else {
                 let updates = {};
@@ -571,11 +570,23 @@
         }
 
         function render() {
+            // === 核心修改：取得篩選月份 ===
+            const filterValue = document.getElementById('filterMonth').value; // 格式: "2026-02"
+
             const listDiv = document.getElementById('historyList');
             listDiv.innerHTML = '';
-            if (localRecords.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">無紀錄</p>'; }
+            
+            let displayRecords = localRecords;
+            // 如果有選月份，進行篩選
+            if (filterValue) {
+                displayRecords = localRecords.filter(rec => rec.date.startsWith(filterValue));
+            }
 
-            localRecords.forEach(rec => {
+            if (displayRecords.length === 0) { 
+                listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">本月無紀錄</p>'; 
+            }
+
+            displayRecords.forEach(rec => {
                 let detailsHtml = rec.details.map(p => {
                     let colorClass = p.score > 0 ? 'win-text' : (p.score < 0 ? 'lose-text' : 'zero-text');
                     let sign = p.score > 0 ? '+' : '';
@@ -606,6 +617,7 @@
                 listDiv.appendChild(item);
             });
 
+            // 以下是總榜與統計，維持計算所有資料 (localRecords)，不受篩選影響
             let stats = {};
             localRecords.forEach(rec => {
                 rec.details.forEach(p => {
