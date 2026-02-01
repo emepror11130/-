@@ -160,6 +160,10 @@
         /* 贏/輸顏色與邊框 */
         .year-card.win { border-left: 5px solid #e74c3c; }
         .year-card.lose { border-left: 5px solid #27ae60; }
+        
+        /* 地點統計項目 */
+        .loc-stat-item { display:flex; justify-content:space-between; padding:12px 15px; border-bottom:1px solid #eee; font-size:14px; }
+        .loc-stat-item:last-child { border-bottom:none; }
     </style>
 </head>
 <body>
@@ -316,6 +320,11 @@
                     <div class="dash-label">總場次</div>
                     <div class="dash-value" id="personalTotalCount" style="color: #2e7d32;">0</div>
                 </div>
+            </div>
+            
+            <div class="card" style="margin-top: 15px; padding: 0; overflow: hidden;">
+                <h4 style="margin:0; padding:12px 15px; background:#f9f9f9; border-bottom:1px solid #eee; font-size:14px;">📍 各地戰況</h4>
+                <div id="personalLocationStats"></div>
             </div>
         </div>
     </div>
@@ -860,6 +869,7 @@
             listDiv.innerHTML = '';
             
             let displayRecords = localRecords;
+            // 優先權：月份 > 年份
             if (filterMonth) { 
                 displayRecords = localRecords.filter(rec => rec.date.startsWith(filterMonth)); 
             } else if (filterYear !== 'ALL') {
@@ -956,15 +966,21 @@
             let sortedYears = Object.keys(yearlyJiang).sort().reverse(); if(sortedYears.length > 0) { yearFoot.innerHTML = `${sortedYears[0]}年總計：${yearlyJiang[sortedYears[0]]} 將`; }
         }
 
-        // 新版：年份摺疊 + 月份明細
+        // 新版：年份摺疊 + 月份明細 + 地點戰況
         function renderPersonalStats() {
             let totalScore = 0; 
             let yearlyData = {};
+            let locationStats = {}; // 地點戰況
 
             localRecords.forEach(rec => { 
                 let score = parseInt(rec.score) || 0;
                 totalScore += score; 
                 
+                // 地點統計
+                let loc = rec.location || '未知';
+                if (!locationStats[loc]) locationStats[loc] = 0;
+                locationStats[loc] += score;
+
                 let year = rec.date.substring(0, 4);
                 let month = rec.date.substring(5, 7);
                 
@@ -981,6 +997,21 @@
             document.getElementById('personalTotalScore').innerText = `${sign}$${totalScore}`;
             document.getElementById('personalTotalScore').style.color = color;
             document.getElementById('personalTotalCount').innerText = localRecords.length;
+
+            // 渲染地點戰況
+            const locContainer = document.getElementById('personalLocationStats');
+            let sortedLocs = Object.keys(locationStats).sort((a,b) => locationStats[b] - locationStats[a]); 
+            let locHtml = '';
+            if (sortedLocs.length === 0) locHtml = '<div style="padding:12px; text-align:center; color:#999; font-size:13px;">暫無戰績</div>';
+            else {
+                sortedLocs.forEach(loc => {
+                    let s = locationStats[loc];
+                    let lSign = s > 0 ? '+' : '';
+                    let lColor = s > 0 ? '#e74c3c' : (s < 0 ? '#27ae60' : '#333');
+                    locHtml += `<div class="loc-stat-item"><span>📍 ${loc}</span><span style="color:${lColor}; font-weight:bold;">${lSign}$${s}</span></div>`;
+                });
+            }
+            locContainer.innerHTML = locHtml;
 
             // 渲染摺疊卡片
             const container = document.getElementById('personalYearlyContainer');
