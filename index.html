@@ -106,14 +106,16 @@
         /* 管理與選單 */
         .manage-btn { background: none; border: none; color: #7f8c8d; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .location-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; }
-        .location-card { background: white; width: 85%; max-width: 320px; padding: 20px; border-radius: 12px; }
-        .location-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; }
-        .location-item:hover { background: #f0f0f0; }
+        .location-card { background: white; width: 85%; max-width: 320px; padding: 20px; border-radius: 12px; max-height: 80vh; overflow-y: auto; }
         
-        /* 隱形金庫登入區 */
-        .vault-login { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px; }
-        .vault-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; text-align: center; }
-        .vault-btn { width: 100%; padding: 12px; background: #2c3e50; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .location-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; }
+        .location-item:hover { background: #f0f0f0; }
+        .loc-name-area { flex: 1; cursor: pointer; }
+        .loc-delete { padding: 5px 10px; color: #ccc; font-size: 16px; cursor: pointer; }
+        .loc-delete:hover { color: #e74c3c; }
+
+        .location-group-title { font-size: 12px; color: #999; margin-top: 10px; margin-bottom: 5px; font-weight: bold; }
+        .location-add { margin-top: 15px; text-align: center; padding: 10px; border: 1px dashed #aaa; border-radius: 8px; color: #666; cursor: pointer; font-size: 14px; }
         
         /* 隱藏/顯示控制 */
         .hidden { display: none !important; }
@@ -139,19 +141,14 @@
         <div class="location-card">
             <h3 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px;">切換帳本</h3>
             
-            <div class="location-item" onclick="switchLocation('default', '蕙儀家', 'group')">
-                <span>🏠 蕙儀家 (公開)</span>
-                <span id="check_default">✅</span>
-            </div>
+            <div class="location-group-title">🏠 公開戰場 (無需密碼)</div>
+            <div id="publicLocationList"></div>
 
-            <div class="vault-login">
-                <div style="font-size:14px; font-weight:bold; color:#666; margin-bottom:10px; text-align:center;">🔑 登入/建立 私人金庫</div>
-                <input type="text" id="vaultId" class="vault-input" placeholder="金庫代號 (例如: yuchen)">
-                <input type="password" id="vaultPin" class="vault-input" placeholder="金庫密碼 (例如: 8888)" inputmode="numeric">
-                <button class="vault-btn" onclick="accessVault()">進入金庫</button>
-                <div style="font-size:11px; color:#999; margin-top:8px; text-align:center;">
-                    *若代號不存在，將自動以輸入的密碼建立新金庫。
-                </div>
+            <div class="location-group-title">🔒 私人金庫 (需密碼)</div>
+            <div id="privateLocationList"></div>
+
+            <div style="display:flex; gap:10px;">
+                <div class="location-add" style="flex:1; border-color:#e67e22; color:#e67e22;" onclick="createNewLocation('personal')">➕ 新增私人金庫</div>
             </div>
         </div>
     </div>
@@ -180,8 +177,10 @@
 
         <div id="personalInputArea" class="personal-mode hidden">
             <div class="input-row">
-                <label>地點 / 局名</label>
-                <input type="text" id="personalLocInput" class="input-style" placeholder="例如：外面的局、過年場">
+                <label>地點 / 局名 (可選公開戰場或自訂)</label>
+                <input type="text" id="personalLocInput" class="input-style" list="locationSuggestions" placeholder="例如：外面的局、蕙儀家">
+                <datalist id="locationSuggestions">
+                    </datalist>
             </div>
             <div class="input-row">
                 <label>當日輸贏金額 (贏+ / 輸-)</label>
@@ -290,8 +289,9 @@
         let recordsRef, playersRef;
         let localRecords = [];
         let currentEditId = null;
+        let publicLocationNames = ["蕙儀家"]; // 預設
         
-        const SAFETY_PASSWORD = "8888"; 
+        const GLOBAL_PASSWORD = "8888"; // 公開戰場的管理密碼
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
         let allPlayers = [...DEFAULT_PLAYERS];
 
@@ -307,36 +307,7 @@
             }
         });
 
-        // === 隱形金庫邏輯 ===
-        function accessVault() {
-            const vaultId = document.getElementById('vaultId').value.trim();
-            const vaultPin = document.getElementById('vaultPin').value.trim();
-
-            if (!vaultId || !vaultPin) { alert("請輸入代號與密碼"); return; }
-
-            // 檢查金庫是否存在
-            const vaultMetaRef = db.ref(`personal_vaults/${vaultId}/meta`);
-            vaultMetaRef.once('value', snap => {
-                const meta = snap.val();
-                if (meta) {
-                    // 金庫存在，驗證密碼
-                    if (meta.password === vaultPin) {
-                        switchLocation(vaultId, `${vaultId} 的金庫`, 'personal');
-                    } else {
-                        alert("❌ 密碼錯誤，拒絕存取");
-                    }
-                } else {
-                    // 金庫不存在，建立新的
-                    if (confirm(`代號「${vaultId}」尚未建立。\n是否要以密碼「${vaultPin}」建立新金庫？`)) {
-                        vaultMetaRef.set({ password: vaultPin }).then(() => {
-                            switchLocation(vaultId, `${vaultId} 的金庫`, 'personal');
-                        });
-                    }
-                }
-            });
-        }
-
-        // === 核心：初始化與切換 ===
+        // === 核心：切換地點邏輯 ===
         function initLocation(id, name, type) {
             if (recordsRef) recordsRef.off();
             if (playersRef) playersRef.off();
@@ -345,15 +316,10 @@
             currentLocType = type;
             document.getElementById('currentLocationName').innerText = `📍 ${name}`;
 
-            if (id === 'default') {
-                recordsRef = db.ref('records');
-                playersRef = db.ref('players');
-            } else {
-                // 私人金庫路徑
-                recordsRef = db.ref(`personal_vaults/${id}/records`);
-                playersRef = null; // 私人模式不需要玩家名單
-            }
-
+            let pathPrefix = id === 'default' ? '' : `locations/${id}/`;
+            recordsRef = db.ref(pathPrefix + 'records');
+            
+            // UI 切換
             const groupArea = document.getElementById('groupInputArea');
             const personalArea = document.getElementById('personalInputArea');
             const groupStats = document.getElementById('groupStatsTable');
@@ -363,26 +329,33 @@
             const personalCancelCtrl = document.getElementById('personalCancelControls');
 
             if (type === 'group') {
+                playersRef = db.ref(pathPrefix + 'players');
                 setupGroupListeners();
+                
                 groupArea.classList.remove('hidden');
                 personalArea.classList.add('hidden');
                 groupStats.classList.remove('hidden');
                 personalStats.classList.add('hidden');
-                groupDetailStats.classList.remove('hidden');
+                groupDetailStats.classList.remove('hidden'); 
                 groupManageCtrl.style.display = 'flex';
                 personalCancelCtrl.classList.add('hidden');
                 document.getElementById('statsTitle').innerText = "🏆 英雄榜";
-                initPlayerInputs();
+                
+                initPlayerInputs(); 
             } else {
-                listenToRecords();
+                setupPersonalListeners();
+                
                 groupArea.classList.add('hidden');
                 personalArea.classList.remove('hidden');
                 groupStats.classList.add('hidden');
                 personalStats.classList.remove('hidden');
-                groupDetailStats.classList.add('hidden');
+                groupDetailStats.classList.add('hidden'); 
                 groupManageCtrl.style.display = 'none';
                 personalCancelCtrl.classList.remove('hidden');
                 document.getElementById('statsTitle').innerText = "💰 我的金庫";
+                
+                // 更新地點建議名單
+                updateLocationSuggestions();
             }
             cancelEdit();
         }
@@ -409,6 +382,10 @@
             listenToRecords();
         }
 
+        function setupPersonalListeners() {
+            listenToRecords();
+        }
+
         function listenToRecords() {
             recordsRef.on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -423,20 +400,130 @@
             });
         }
 
+        // === 地點選單與管理 ===
         function showLocationMenu() {
             document.getElementById('locationModal').style.display = 'flex';
-            // 清空輸入框
-            document.getElementById('vaultId').value = '';
-            document.getElementById('vaultPin').value = '';
+            renderLocationList();
         }
 
         function closeLocationMenu(e) {
             if (e.target.id === 'locationModal') document.getElementById('locationModal').style.display = 'none';
         }
 
+        function renderLocationList() {
+            const publicList = document.getElementById('publicLocationList');
+            const privateList = document.getElementById('privateLocationList');
+            
+            // 預設蕙儀家
+            publicList.innerHTML = `
+                <div class="location-item">
+                    <div class="loc-name-area" onclick="switchLocation('default', '蕙儀家', 'group')">
+                        <span>🏠 蕙儀家 (預設)</span> ${currentLocId === 'default' ? '✅' : ''}
+                    </div>
+                </div>
+            `;
+            privateList.innerHTML = '';
+            publicLocationNames = ["蕙儀家"]; // 重置建議名單
+
+            // 讀取地點列表
+            db.ref('locations_meta').once('value', snap => {
+                const data = snap.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        const loc = data[key];
+                        const type = loc.type || 'group'; 
+                        
+                        // 收集公開戰場名字供建議使用
+                        if (type === 'group') {
+                            publicLocationNames.push(loc.name);
+                        }
+
+                        // 產生列表 HTML
+                        const icon = type === 'group' ? '🏠' : '🔒';
+                        const check = currentLocId === key ? '✅' : '';
+                        
+                        // 點擊區域 與 刪除按鈕
+                        const html = `
+                            <div class="location-item">
+                                <div class="loc-name-area" onclick="verifyAndSwitch('${key}', '${loc.name}', '${loc.password}', '${type}')">
+                                    <span>${icon} ${loc.name}</span> ${check}
+                                </div>
+                                <div class="loc-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</div>
+                            </div>
+                        `;
+
+                        if (type === 'group') {
+                            // publicList.innerHTML += html; // 暫時只開放新增私人金庫
+                        } else {
+                            privateList.innerHTML += html;
+                        }
+                    });
+                }
+                if (privateList.innerHTML === '') privateList.innerHTML = '<div style="padding:10px; color:#999; font-size:13px; text-align:center;">尚無私人金庫</div>';
+            });
+        }
+
+        function createNewLocation(type) {
+            const name = prompt(type === 'group' ? "請輸入新戰場名稱" : "請輸入新金庫名稱");
+            if (!name) return;
+            const password = prompt("請設定進入與刪除密碼：");
+            if (!password) return;
+
+            const newId = 'loc_' + Date.now();
+            db.ref('locations_meta/' + newId).set({
+                name: name,
+                password: password,
+                type: type
+            }).then(() => {
+                alert("✅ 建立成功！");
+                renderLocationList();
+            });
+        }
+
+        function deleteLocation(id, name, password) {
+            const input = prompt(`⚠️ 確定要刪除「${name}」嗎？\n請輸入當初設定的密碼以確認：`);
+            if (input === password) {
+                // 刪除 Meta 與 Data
+                db.ref('locations_meta/' + id).remove();
+                db.ref('locations/' + id).remove();
+                alert("🗑️ 已刪除");
+                // 如果刪除的是當前地點，回到預設
+                if (currentLocId === id) switchLocation('default', '蕙儀家', 'group');
+                else renderLocationList();
+            } else {
+                if(input !== null) alert("❌ 密碼錯誤");
+            }
+        }
+
+        function verifyAndSwitch(id, name, password, type) {
+            if (currentLocId === id) { document.getElementById('locationModal').style.display = 'none'; return; }
+            
+            // 公開戰場不用密碼，私人金庫要密碼
+            if (type === 'group') {
+                switchLocation(id, name, type);
+            } else {
+                const input = prompt(`請輸入「${name}」的密碼：`);
+                if (input === password) {
+                    switchLocation(id, name, type);
+                } else {
+                    alert("❌ 密碼錯誤");
+                }
+            }
+        }
+
         function switchLocation(id, name, type) {
             initLocation(id, name, type);
             document.getElementById('locationModal').style.display = 'none';
+        }
+
+        // 更新自動帶入建議
+        function updateLocationSuggestions() {
+            const datalist = document.getElementById('locationSuggestions');
+            datalist.innerHTML = '';
+            // 去除重複並加入
+            [...new Set(publicLocationNames)].forEach(name => {
+                datalist.innerHTML += `<option value="${name}">`;
+            });
         }
 
         // === 既有邏輯 ===
@@ -517,7 +604,7 @@
             else { btn.innerText = '+'; btn.className = 'sign-btn btn-plus'; }
         }
 
-        function checkPassword() { return prompt("請輸入安全密碼 (預設 8888)：") === SAFETY_PASSWORD; }
+        function checkPassword() { return prompt("請輸入安全密碼 (預設 8888)：") === GLOBAL_PASSWORD; }
         function showError(msg) { const el = document.getElementById('errorMsg'); el.innerText = msg; el.style.display = msg ? 'block' : 'none'; }
         
         function getHolidayTag(dateStr) {
@@ -537,7 +624,11 @@
         }
 
         function saveData() {
-            if (currentEditId) {
+            // 在私人金庫模式，修改資料也需要驗證該金庫密碼
+            // 簡化起見，修改紀錄時暫不要求二次密碼，假設進入金庫已驗證
+            // 若需嚴格，可在此處 checkPassword (但這裡需檢查該金庫的密碼，比較複雜)
+            // 公開戰場修改則檢查 8888
+            if (currentEditId && currentLocType === 'group') {
                 if (!checkPassword()) { alert("❌ 密碼錯誤"); return; }
             }
 
@@ -632,7 +723,7 @@
             currentEditId = id;
             document.getElementById('inputCard').classList.add('editing-mode');
             document.getElementById('inputTitle').innerText = "✏️ 修改中...";
-            document.getElementById('saveBtn').innerText = "確認修改 (需密碼)";
+            document.getElementById('saveBtn').innerText = "確認修改" + (currentLocType==='group' ? " (需密碼)" : "");
             document.getElementById('saveBtn').style.backgroundColor = "#f39c12";
             document.getElementById('cancelBtn').style.display = "block";
             if(currentLocType !== 'group') document.getElementById('cancelBtnPersonal').style.display = "inline-block";
@@ -640,7 +731,9 @@
         }
 
         function deleteRecord(id) {
-            if (!checkPassword()) { alert("❌ 密碼錯誤"); return; }
+            if (currentLocType === 'group') {
+                if (!checkPassword()) { alert("❌ 密碼錯誤"); return; }
+            }
             if(!confirm("⚠️ 確定要永久刪除此紀錄？")) return;
             recordsRef.child(id).remove();
             if (currentEditId === id) cancelEdit();
