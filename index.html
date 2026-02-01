@@ -22,7 +22,7 @@
             color: var(--text-main); 
             margin: 0; 
             padding: 12px; 
-            padding-bottom: 60px;
+            padding-bottom: 80px; /* 增加底部空間給批次工具列 */
         }
 
         /* 頂部導航 */
@@ -134,8 +134,17 @@
         .player-delete { color: #f56c6c; cursor: pointer; font-weight: bold; font-size: 16px; line-height: 1; }
         .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
         
-        /* 匯入模態框 */
         .import-textarea { width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 12px; }
+
+        /* 批次刪除樣式 */
+        .batch-checkbox { width: 20px; height: 20px; margin-right: 10px; accent-color: #e74c3c; }
+        .batch-toolbar { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: white; padding: 15px; border-top: 1px solid #eee; 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
+            display: flex; gap: 10px; z-index: 100;
+        }
+        .batch-action-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -327,12 +336,19 @@
                 <input type="month" id="filterMonth" style="border:1px solid #ddd; background:#fff; padding:2px 5px; border-radius:6px; font-size:13px;" onchange="render()">
             </div>
         </h3>
-        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:10px; gap:8px;">
+            <button class="backup-btn" onclick="toggleBatchMode()" style="color:#e74c3c; border-color:#e74c3c;">🗑️ 批次刪除</button>
             <button class="backup-btn" onclick="showImportModal()">📥 匯入</button>
             <button class="backup-btn" onclick="backupData()">💾 備份</button>
-            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:5px;">📥 Excel</button>
+            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:2px 8px; font-size:12px;">📥 Excel</button>
         </div>
         <div id="historyList"></div>
+    </div>
+
+    <div id="batchToolbar" class="batch-toolbar hidden">
+        <button class="batch-action-btn" style="background:#2ecc71; color:white;" onclick="toggleSelectAll()">✅ 全選</button>
+        <button class="batch-action-btn" style="background:#e74c3c; color:white;" onclick="deleteBatch()">🗑️ 刪除選取</button>
+        <button class="batch-action-btn" style="background:#95a5a6; color:white;" onclick="toggleBatchMode()">❌ 取消</button>
     </div>
 
     <script>
@@ -358,6 +374,7 @@
         let publicLocationsMeta = {};
         let myLocations = [];
         let myStakes = ["50/20", "100/20"];
+        let isBatchMode = false; // 批次模式狀態
 
         const SAFETY_PASSWORD = "8888"; 
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
@@ -389,7 +406,6 @@
             document.getElementById('pTaiSelect').innerHTML = taiHtml;
         }
 
-        // === 核心：初始化與切換 ===
         function initLocation(id, name, type) {
             if (recordsRef) recordsRef.off();
             if (playersRef) playersRef.off();
@@ -440,6 +456,8 @@
                 updatePersonalSelects();
             }
             cancelEdit();
+            isBatchMode = false; // 重置批次模式
+            document.getElementById('batchToolbar').classList.add('hidden');
         }
 
         function setupGroupListeners() {
@@ -478,15 +496,11 @@
         function updatePersonalSelects() {
             const locSelect = document.getElementById('personalLocSelect');
             const stakeSelect = document.getElementById('personalStakeSelect');
-            
             let locHtml = `<option value="" disabled selected>請選擇地點...</option>`;
             publicLocationNames.forEach(name => { locHtml += `<option value="${name}">🏠 ${name}</option>`; });
-            myLocations.forEach(name => {
-                if (!publicLocationNames.includes(name)) { locHtml += `<option value="${name}">📍 ${name}</option>`; }
-            });
+            myLocations.forEach(name => { if (!publicLocationNames.includes(name)) { locHtml += `<option value="${name}">📍 ${name}</option>`; } });
             locHtml += `<option value="CUSTOM" style="color:#e67e22;">✏️ 自訂地點...</option>`;
             locSelect.innerHTML = locHtml;
-
             let stakeHtml = `<option value="" disabled selected>請選擇大小...</option>`;
             myStakes.forEach(s => { stakeHtml += `<option value="${s}">${s}</option>`; });
             stakeHtml += `<option value="CUSTOM" style="color:#e67e22;">✏️ 自訂大小...</option>`;
@@ -496,11 +510,8 @@
         function handlePersonalSelect(type) {
             const select = document.getElementById(`personal${type}Select`);
             const customInput = document.getElementById(`personal${type}Custom`);
-            if (select.value === 'CUSTOM') {
-                select.style.display = 'none'; customInput.style.display = 'block'; customInput.focus(); customInput.value = '';
-            } else {
-                select.style.display = 'block'; customInput.style.display = 'none';
-            }
+            if (select.value === 'CUSTOM') { select.style.display = 'none'; customInput.style.display = 'block'; customInput.focus(); customInput.value = ''; }
+            else { select.style.display = 'block'; customInput.style.display = 'none'; }
         }
 
         function listenToRecords() {
@@ -508,9 +519,7 @@
                 const data = snapshot.val();
                 localRecords = [];
                 if (data) {
-                    Object.keys(data).forEach(key => {
-                        localRecords.push({ id: key, ...data[key] });
-                    });
+                    Object.keys(data).forEach(key => { localRecords.push({ id: key, ...data[key] }); });
                     localRecords.sort((a, b) => b.timestamp - a.timestamp);
                 }
                 render();
@@ -532,7 +541,6 @@
             }
         }
 
-        // === 地點管理功能 ===
         function toggleLocManager() {
             const area = document.getElementById('manageLocArea');
             area.style.display = area.style.display === 'block' ? 'none' : 'block';
@@ -541,37 +549,30 @@
         function renderManageLocList() {
             const list = document.getElementById('manageLocList');
             list.innerHTML = '';
-            
             Object.keys(publicLocationsMeta).forEach(key => {
                 const loc = publicLocationsMeta[key];
                 if (key !== 'default') { 
                     list.innerHTML += `<div class="player-tag" style="border-color:#e67e22; color:#e67e22;">🏠 ${loc.name} <span class="player-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</span></div>`;
                 }
             });
-
             myLocations.forEach(name => {
                 list.innerHTML += `<div class="player-tag">📍 ${name} <span class="player-delete" onclick="deleteCustomLocation('${name}')">✕</span></div>`;
             });
         }
 
         function deleteCustomLocation(name) {
-            if (confirm(`確定要從選單移除「${name}」嗎？`)) {
-                settingsRef.child('myLocations/' + name).remove();
-            }
+            if (confirm(`確定要從選單移除「${name}」嗎？`)) { settingsRef.child('myLocations/' + name).remove(); }
         }
 
-        // === 地點選單與管理 ===
         function showLocationMenu() { document.getElementById('locationModal').style.display = 'flex'; renderLocationList(); }
         function closeLocationMenu(e) { if (e.target.id === 'locationModal') document.getElementById('locationModal').style.display = 'none'; }
 
         function renderLocationList() {
             const publicList = document.getElementById('publicLocationList');
             const privateList = document.getElementById('privateLocationList');
-            
             publicList.innerHTML = `<div class="location-item"><div class="loc-name-area" onclick="switchLocation('default', '蕙儀家', 'group')"><span>🏠 蕙儀家 (預設)</span> ${currentLocId === 'default' ? '✅' : ''}</div></div>`;
             privateList.innerHTML = '';
-            publicLocationNames = ["蕙儀家"]; 
-            publicLocationsMeta = {}; 
+            publicLocationNames = ["蕙儀家"]; publicLocationsMeta = {}; 
 
             db.ref('locations_meta').once('value', snap => {
                 const data = snap.val();
@@ -579,28 +580,15 @@
                     Object.keys(data).forEach(key => {
                         const loc = data[key];
                         const type = loc.type || 'group'; 
-                        
-                        if (type === 'group') {
-                            publicLocationNames.push(loc.name);
-                            publicLocationsMeta[key] = loc; 
-                        }
-
+                        if (type === 'group') { publicLocationNames.push(loc.name); publicLocationsMeta[key] = loc; }
                         const icon = type === 'group' ? '🏠' : '🔒';
                         const check = currentLocId === key ? '✅' : '';
                         const html = `<div class="location-item"><div class="loc-name-area" onclick="verifyAndSwitch('${key}', '${loc.name}', '${loc.password}', '${type}')"><span>${icon} ${loc.name}</span> ${check}</div><div class="loc-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</div></div>`;
-                        
-                        if (type === 'group') {
-                            publicList.innerHTML += html; 
-                        } else {
-                            privateList.innerHTML += html;
-                        }
+                        if (type === 'group') { publicList.innerHTML += html; } else { privateList.innerHTML += html; }
                     });
                 }
                 if (privateList.innerHTML === '') privateList.innerHTML = '<div style="padding:10px; color:#999; font-size:13px; text-align:center;">尚無私人金庫</div>';
-                if (currentLocType === 'personal') {
-                    updatePersonalSelects();
-                    renderManageLocList(); 
-                }
+                if (currentLocType === 'personal') { updatePersonalSelects(); renderManageLocList(); }
             });
         }
 
@@ -616,9 +604,7 @@
         function deleteLocation(id, name, password) {
             const input = prompt(`⚠️ 確定要刪除「${name}」嗎？\n請輸入當初設定的密碼以確認：`);
             if (input === password) {
-                db.ref('locations_meta/' + id).remove();
-                db.ref('locations/' + id).remove();
-                alert("🗑️ 已刪除");
+                db.ref('locations_meta/' + id).remove(); db.ref('locations/' + id).remove(); alert("🗑️ 已刪除");
                 if (currentLocId === id) switchLocation('default', '蕙儀家', 'group'); else renderLocationList();
             } else { if(input !== null) alert("❌ 密碼錯誤"); }
         }
@@ -633,11 +619,9 @@
         }
 
         function switchLocation(id, name, type) {
-            initLocation(id, name, type);
-            document.getElementById('locationModal').style.display = 'none';
+            initLocation(id, name, type); document.getElementById('locationModal').style.display = 'none';
         }
 
-        // === 既有邏輯 ===
         document.getElementById('dateInput').valueAsDate = new Date();
         const now = new Date();
         const year = now.getFullYear();
@@ -729,14 +713,10 @@
                     currentEntry.push({ name: name, score: finalScore }); totalScore += finalScore;
                 }
                 if (totalScore !== 0) { showError(`⚠️ 帳目不平！目前 ${totalScore}`); return; }
-                
                 const hlWinner = document.getElementById('hlWinnerSelect').value;
                 const hlHand = document.getElementById('hlHandSelect').value;
                 const hlTai = document.getElementById('hlTaiSelect').value;
-                if (hlWinner && hlHand) {
-                    recordData.highlight = { player: hlWinner, hand: hlHand, tai: parseInt(hlTai) || 0 };
-                }
-
+                if (hlWinner && hlHand) { recordData.highlight = { player: hlWinner, hand: hlHand, tai: parseInt(hlTai) || 0 }; }
                 recordData.jiangCount = jiangCount; recordData.dongQian = dongQian; recordData.details = currentEntry;
             } else {
                 const locSelect = document.getElementById('personalLocSelect'); const locCustom = document.getElementById('personalLocCustom');
@@ -747,11 +727,9 @@
                 const scoreInput = document.getElementById('personalScoreInput'); const score = parseInt(scoreInput.value); const signBtn = document.getElementById('personalSignBtn');
                 if (isNaN(score)) { showError("⚠️ 請輸入金額"); return; }
                 let finalScore = Math.abs(score) * (signBtn.innerText === '+' ? 1 : -1);
-                
                 const pHand = document.getElementById('pHandSelect').value;
                 const pTai = document.getElementById('pTaiSelect').value;
                 if (pHand) recordData.highlight = { hand: pHand, tai: parseInt(pTai) || 0 };
-
                 recordData.location = loc; recordData.score = finalScore; recordData.note = stake;
                 if (locSelect.style.display === 'none' && !myLocations.includes(loc)) settingsRef.child('myLocations/' + loc).set(true);
                 if (stakeSelect.style.display === 'none' && stake && !myStakes.includes(stake)) settingsRef.child('myStakes/' + stake).set(true);
@@ -780,26 +758,18 @@
                     }
                 }
                 toggleHighlightInputs(); if(record.highlight) document.getElementById('hlWinnerSelect').value = record.highlight.player;
-
             } else {
                 const locSelect = document.getElementById('personalLocSelect'); const locCustom = document.getElementById('personalLocCustom');
                 const stakeSelect = document.getElementById('personalStakeSelect'); const stakeCustom = document.getElementById('personalStakeCustom');
                 let isKnownLoc = false; Array.from(locSelect.options).forEach(opt => { if(opt.value === record.location) isKnownLoc = true; });
                 if (isKnownLoc) { locSelect.value = record.location; locSelect.style.display = 'block'; locCustom.style.display = 'none'; }
                 else { locSelect.value = 'CUSTOM'; locCustom.value = record.location; locSelect.style.display = 'none'; locCustom.style.display = 'block'; }
-
                 let stakeVal = record.note || ''; let isKnownStake = false; Array.from(stakeSelect.options).forEach(opt => { if(opt.value === stakeVal) isKnownStake = true; });
                 if (isKnownStake) { stakeSelect.value = stakeVal; stakeSelect.style.display = 'block'; stakeCustom.style.display = 'none'; }
                 else { stakeSelect.value = 'CUSTOM'; stakeCustom.value = stakeVal; stakeSelect.style.display = 'none'; stakeCustom.style.display = 'block'; }
-
-                if (record.highlight) {
-                    document.getElementById('pHandSelect').value = record.highlight.hand;
-                    document.getElementById('pTaiSelect').value = record.highlight.tai;
-                }
-
+                if (record.highlight) { document.getElementById('pHandSelect').value = record.highlight.hand; document.getElementById('pTaiSelect').value = record.highlight.tai; }
                 document.getElementById('personalScoreInput').value = Math.abs(record.score);
-                const btn = document.getElementById('personalSignBtn');
-                btn.innerText = record.score < 0 ? '-' : '+'; btn.className = record.score < 0 ? 'sign-btn btn-minus' : 'sign-btn btn-plus';
+                const btn = document.getElementById('personalSignBtn'); btn.innerText = record.score < 0 ? '-' : '+'; btn.className = record.score < 0 ? 'sign-btn btn-minus' : 'sign-btn btn-plus';
             }
             currentEditId = id; document.getElementById('inputCard').classList.add('editing-mode'); document.getElementById('inputTitle').innerText = "✏️ 修改中..."; document.getElementById('saveBtn').innerText = "確認修改"; document.getElementById('saveBtn').style.backgroundColor = "#f39c12"; document.getElementById('cancelBtn').style.display = "block"; if(currentLocType !== 'group') document.getElementById('cancelBtnPersonal').style.display = "inline-block"; window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -842,12 +812,14 @@
 
             displayRecords.forEach(rec => {
                 let html = ''; let holidayTag = getHolidayTag(rec.date);
-                
                 let highlightTag = '';
                 if (rec.highlight && rec.highlight.hand) {
                     const playerStr = rec.highlight.player ? `${rec.highlight.player}: ` : '';
                     highlightTag = `<div style="margin-top:4px;"><span class="history-tag tag-highlight">🏆 ${playerStr}${rec.highlight.hand} ${rec.highlight.tai}台</span></div>`;
                 }
+                
+                // 批次刪除勾選框
+                let checkboxHtml = isBatchMode ? `<input type="checkbox" class="batch-checkbox" value="${rec.id}">` : '';
 
                 if (currentLocType === 'group') {
                     let detailsHtml = rec.details.map(p => {
@@ -855,16 +827,51 @@
                         return `<div><span>${p.name}</span> <span class="${colorClass}">${sign}${p.score}</span></div>`;
                     }).join('');
                     let infoTags = ""; if (rec.jiangCount) infoTags += `<span class="history-tag tag-info">🀄 ${rec.jiangCount}將</span>`; if (rec.dongQian) infoTags += `<span class="history-tag tag-info">💰 東${rec.dongQian}</span>`;
-                    html = `<div style="flex:1;"><div class="history-header"><span class="history-date">${rec.date}</span> ${holidayTag} ${infoTags}</div><div class="history-scores">${detailsHtml}</div>${highlightTag}</div>`;
+                    html = `<div style="display:flex; align-items:center;">${checkboxHtml}<div style="flex:1;"><div class="history-header"><span class="history-date">${rec.date}</span> ${holidayTag} ${infoTags}</div><div class="history-scores">${detailsHtml}</div>${highlightTag}</div></div>`;
                 } else {
                     let colorClass = rec.score > 0 ? 'win-text' : (rec.score < 0 ? 'lose-text' : 'zero-text'); let sign = rec.score > 0 ? '+' : ''; let noteHtml = rec.note ? `<div style="font-size:12px; color:#888;">📏 ${rec.note}</div>` : '';
-                    html = `<div style="flex:1;"><div class="history-header"><span class="history-date">${rec.date}</span> ${holidayTag} <span class="history-tag tag-info">📍 ${rec.location}</span></div><div style="font-size:18px; font-weight:bold; margin-top:5px;" class="${colorClass}">${sign}${rec.score}</div>${noteHtml}${highlightTag}</div>`;
+                    html = `<div style="display:flex; align-items:center;">${checkboxHtml}<div style="flex:1;"><div class="history-header"><span class="history-date">${rec.date}</span> ${holidayTag} <span class="history-tag tag-info">📍 ${rec.location}</span></div><div style="font-size:18px; font-weight:bold; margin-top:5px;" class="${colorClass}">${sign}${rec.score}</div>${noteHtml}${highlightTag}</div></div>`;
                 }
-                let item = document.createElement('div'); item.className = 'history-item'; item.innerHTML = html + `<div><button class="edit-btn" onclick="editRecord('${rec.id}')">✎</button><button class="delete-btn" onclick="deleteRecord('${rec.id}')">✕</button></div>`;
+                let item = document.createElement('div'); item.className = 'history-item'; 
+                // 在批次模式下隱藏編輯按鈕
+                let actionButtons = isBatchMode ? '' : `<div><button class="edit-btn" onclick="editRecord('${rec.id}')">✎</button><button class="delete-btn" onclick="deleteRecord('${rec.id}')">✕</button></div>`;
+                item.innerHTML = html + actionButtons;
                 listDiv.appendChild(item);
             });
 
             if (currentLocType === 'group') renderGroupStats(); else renderPersonalStats();
+        }
+
+        // === 批次刪除功能 ===
+        function toggleBatchMode() {
+            isBatchMode = !isBatchMode;
+            document.getElementById('batchToolbar').classList.toggle('hidden');
+            render();
+        }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.batch-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+        }
+
+        function deleteBatch() {
+            const checkboxes = document.querySelectorAll('.batch-checkbox:checked');
+            if (checkboxes.length === 0) { alert("請先勾選要刪除的項目"); return; }
+            
+            // 驗證密碼
+            if (currentLocType === 'group') { if (!checkPassword()) { alert("❌ 密碼錯誤"); return; } }
+            // 私人模式預設進入時已驗證，此處可免密碼或再次驗證
+            
+            if (!confirm(`⚠️ 確定要刪除這 ${checkboxes.length} 筆紀錄嗎？`)) return;
+
+            const updates = {};
+            checkboxes.forEach(cb => { updates[cb.value] = null; });
+            
+            recordsRef.update(updates).then(() => {
+                alert("🗑️ 刪除成功！");
+                toggleBatchMode();
+            });
         }
 
         function renderGroupStats() {
@@ -932,7 +939,6 @@
                 const data = JSON.parse(jsonText);
                 if (!Array.isArray(data)) { alert("格式錯誤：必須是 JSON 陣列 [ ... ]"); return; }
                 
-                // 確認是否為私人模式
                 if (currentLocType === 'personal') {
                     data.forEach(item => {
                         recordsRef.push({
@@ -944,14 +950,13 @@
                         });
                     });
                 } else {
-                    // 公開模式匯入邏輯 (略，因為您的檔案是私人戰績)
                     alert("⚠️ 這是私人戰績，請先切換到私人金庫再匯入！");
                     return;
                 }
                 
                 alert("✅ 成功匯入 " + data.length + " 筆資料！");
                 document.getElementById('importModal').style.display='none';
-                document.getElementById('importJsonArea').value = ''; // 清空
+                document.getElementById('importJsonArea').value = ''; 
             } catch (e) {
                 alert("❌ JSON 解析失敗：" + e.message);
             }
