@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>🀄 雀神雲端記帳</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -10,159 +10,71 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            --bg-color: #1e6f50; /* 麻將桌綠 */
-            --card-bg: #ffffff;
-            --primary-color: #f1c40f; /* 金色 */
-            --win-color: #e74c3c; /* 紅色贏 */
-            --lose-color: #27ae60; /* 綠色輸 */
-            --text-main: #2c3e50;
-            --text-light: #7f8c8d;
-        }
+        /* 全域設定 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { --bg-color: #1e6f50; --card-bg: #ffffff; --win-color: #e74c3c; --lose-color: #27ae60; --text-main: #2c3e50; }
 
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
             background-color: var(--bg-color); 
             color: var(--text-main); 
             margin: 0; 
-            padding: 20px 10px 80px 10px; /* 底部留白給按鈕 */
-            max-width: 600px; 
-            margin-left: auto; 
-            margin-right: auto;
+            padding: 10px; 
+            padding-bottom: 50px;
         }
 
-        h1 { 
-            text-align: center; 
-            color: #fff; 
-            margin-bottom: 5px; 
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+        h1 { text-align: center; color: #fff; margin: 10px 0; font-size: 20px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
-        /* 狀態列 */
-        #status { 
-            text-align: center; 
-            font-size: 13px; 
-            color: rgba(255,255,255,0.8); 
-            margin-bottom: 20px; 
-            background: rgba(0,0,0,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: inline-block;
-            position: relative;
-            left: 50%;
-            transform: translateX(-50%);
-        }
+        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.9); margin-bottom: 10px; }
         .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .connected { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
 
-        /* 卡片通用樣式 */
-        .card { 
-            background: var(--card-bg); 
-            padding: 20px; 
-            border-radius: 16px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
-            margin-bottom: 20px; 
-            transition: transform 0.2s, border-color 0.3s;
-            border: 2px solid transparent;
-        }
+        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; width: 100%; }
+        .card h3 { margin: 0 0 10px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; color: var(--bg-color); font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* 標題樣式 */
-        .card h3 {
-            margin-top: 0;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-            color: var(--bg-color);
-            font-size: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        /* 總計看板 (新功能) */
+        .dashboard-grid { display: flex; gap: 10px; margin-bottom: 15px; }
+        .dash-box { flex: 1; padding: 10px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .dash-label { font-size: 12px; color: #666; margin-bottom: 4px; }
+        .dash-value { font-size: 18px; font-weight: bold; }
 
-        /* 編輯模式高亮 */
-        .editing-mode { border-color: #f39c12; transform: scale(1.02); }
+        /* 輸入區 */
+        .top-inputs { display: flex; gap: 8px; margin-bottom: 10px; }
+        .input-group { flex: 1; }
+        .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 2px; text-align: center;}
+        .input-style { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; background: #f9f9f9; text-align: center; height: 38px; }
 
-        /* 輸入區佈局 */
-        .top-inputs { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 12px; color: var(--text-light); margin-bottom: 4px; font-weight: bold; }
-        .input-style { 
-            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 16px; box-sizing: border-box; background: #f9f9f9; text-align: center;
-        }
+        .player-row { display: flex; gap: 5px; margin-bottom: 8px; align-items: center; }
+        .name-wrapper { flex: 4; }
+        .name-select, .custom-name { width: 100%; padding: 0 8px; height: 42px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; background: white; appearance: none; -webkit-appearance: none; }
+        
+        .sign-btn { flex: 0 0 36px; height: 36px; width: 36px; font-size: 20px; font-weight: bold; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .btn-plus { background-color: #fff; color: var(--win-color); border: 1px solid var(--win-color); }
+        .btn-minus { background-color: var(--lose-color); color: white; border: 1px solid var(--lose-color); }
 
-        /* 玩家輸入行 */
-        .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-        .name-select, .custom-name { 
-            flex: 2; padding: 12px; border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 16px; background: white; -webkit-appearance: none;
-        }
-        .score-input { 
-            flex: 1.5; padding: 12px; border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 18px; text-align: center; font-weight: bold; color: var(--text-main);
-        }
+        .score-input { flex: 2.5; padding: 8px; height: 42px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; text-align: center; font-weight: bold; color: var(--text-main); width: 100%; }
 
-        /* 正負按鈕優化 */
-        .sign-btn { 
-            flex: 0 0 45px; height: 45px; font-size: 24px; font-weight: bold; 
-            border: none; border-radius: 50%; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s;
-        }
-        .btn-plus { background-color: #fff; color: var(--win-color); border: 2px solid var(--win-color); }
-        .btn-minus { background-color: var(--lose-color); color: white; border: 2px solid var(--lose-color); }
-        .btn-plus:active, .btn-minus:active { transform: scale(0.9); }
+        .action-btn { width: 100%; padding: 12px; background-color: var(--text-main); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .cancel-btn { width: 100%; padding: 10px; background-color: #95a5a6; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
-        /* 儲存按鈕 */
-        .action-btn { 
-            width: 100%; padding: 15px; background-color: var(--text-main); color: white; 
-            border: none; border-radius: 12px; font-size: 18px; font-weight: bold; 
-            cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(44, 62, 80, 0.3);
-        }
-        .action-btn:active { transform: scale(0.98); }
-        .cancel-btn { 
-            width: 100%; padding: 12px; background-color: #95a5a6; color: white; 
-            border: none; border-radius: 12px; font-size: 16px; cursor: pointer; 
-            margin-top: 8px; display: none; 
-        }
-
-        /* 表格優化 */
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
-        th { background-color: #f8f9fa; color: #888; font-weight: 600; padding: 10px; text-align: center; border-bottom: 1px solid #eee; }
-        td { padding: 12px 5px; text-align: center; border-bottom: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; table-layout: fixed; }
+        th { background-color: #f8f9fa; color: #888; font-weight: 600; padding: 8px 4px; text-align: center; font-size: 13px; }
+        td { padding: 10px 4px; text-align: center; border-bottom: 1px solid #eee; word-wrap: break-word; }
         
         .win-text { color: var(--win-color); font-weight: bold; }
         .lose-text { color: var(--lose-color); font-weight: bold; }
-        .zero-text { color: #ccc; }
         
-        /* 排名樣式 */
-        .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; background: #eee; font-size: 12px; }
-        .rank-1 { background: #f1c40f; color: white; box-shadow: 0 2px 5px rgba(241, 196, 15, 0.4); }
-        .rank-2 { background: #95a5a6; color: white; }
-        .rank-3 { background: #d35400; color: white; }
-
-        /* 歷史紀錄卡片優化 */
-        .history-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 12px 0; border-bottom: 1px solid #eee; 
-        }
-        .history-date { font-size: 12px; color: #999; margin-bottom: 4px; }
-        .history-info { display: flex; gap: 10px; font-size: 12px; color: #555; background: #f0f0f0; padding: 2px 8px; border-radius: 4px; display: inline-block;}
-        .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; margin-top: 8px; font-size: 14px; }
-        .history-actions button { margin-left: 5px; }
-
-        .edit-btn { background: #f39c12; color: white; border: none; padding: 5px 10px; border-radius: 6px; }
-        .delete-btn { background: #ff7675; color: white; border: none; padding: 5px 10px; border-radius: 6px; }
-
-        /* 統計區塊 */
-        .stat-box { background: #eafcf4; border-radius: 8px; padding: 10px; margin-top: 5px; border: 1px solid #c8e6c9; }
-        .yearly-total { text-align: center; font-weight: bold; color: var(--bg-color); font-size: 16px; margin-top: 10px; padding-top: 10px; border-top: 2px dashed #ccc; }
-
-        /* 錯誤訊息 */
-        .error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; display: none; margin-top: 10px; }
+        .rank-badge { display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 50%; background: #eee; font-size: 11px; }
+        .rank-1 { background: #f1c40f; color: white; }
+        
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .history-date { font-size: 12px; color: #999; margin-bottom: 2px; }
+        .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; margin-top: 4px; font-size: 13px; }
+        
+        .edit-btn { background: #f39c12; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 14px; }
+        .delete-btn { background: #ff7675; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 14px; margin-left: 5px;}
+        .error-msg { background: #ffebee; color: #c62828; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; display: none; margin-top: 8px; font-size: 14px;}
+        .editing-mode { border: 2px solid #f39c12; }
     </style>
 </head>
 <body>
@@ -171,61 +83,67 @@
     <div id="status"><span class="online-dot" id="dot"></span><span id="statusText">連線中...</span></div>
 
     <div class="card" id="inputCard">
-        <h3 id="inputTitle">
-            <span>✏️ 新增戰績</span>
-            <span style="font-size:12px; color:#999; font-weight:normal;">今天手氣如何？</span>
-        </h3>
-        
+        <h3 id="inputTitle"><span>✏️ 新增戰績</span></h3>
         <div class="top-inputs">
-            <div class="input-group">
+            <div class="input-group" style="flex:1.2;">
                 <label>日期</label>
                 <input type="date" id="dateInput" class="input-style">
             </div>
             <div class="input-group">
                 <label>將數</label>
-                <input type="number" id="jiangInput" class="input-style" placeholder="場" value="1">
+                <input type="number" id="jiangInput" class="input-style" placeholder="場" value="1" inputmode="numeric">
             </div>
             <div class="input-group">
                 <label>東錢</label>
-                <input type="number" id="dongInput" class="input-style" placeholder="$" value="0">
+                <input type="number" id="dongInput" class="input-style" placeholder="$" value="0" inputmode="numeric">
             </div>
         </div>
-
         <div id="playersArea"></div>
         <p id="errorMsg" class="error-msg"></p>
-        
         <button class="action-btn" id="saveBtn" onclick="saveData()">儲存紀錄</button>
         <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">取消修改</button>
     </div>
 
     <div class="card">
-        <h3>🏆 英雄榜 (總戰績)</h3>
+        <h3>🏆 英雄榜</h3>
         <table>
-            <thead><tr><th width="15%">排名</th><th width="40%">姓名</th><th width="45%">累積金額</th></tr></thead>
+            <thead><tr><th width="15%">#</th><th width="40%">姓名</th><th width="45%">累積</th></tr></thead>
             <tbody id="summaryBody"><tr><td colspan="3">載入中...</td></tr></tbody>
         </table>
     </div>
 
     <div class="card">
         <h3>📊 統計數據</h3>
+        
+        <div class="dashboard-grid">
+            <div class="dash-box" style="background: #e8f5e9;">
+                <div class="dash-label">歷史總將數</div>
+                <div class="dash-value" style="color: #2e7d32;" id="grandTotalJiang">0</div>
+            </div>
+            <div class="dash-box" style="background: #fff3e0;">
+                <div class="dash-label">歷史總東錢</div>
+                <div class="dash-value" style="color: #ef6c00;" id="grandTotalDong">$0</div>
+            </div>
+        </div>
+
         <table>
             <thead><tr><th>月份</th><th>場次</th><th>東錢</th></tr></thead>
             <tbody id="monthlyStatsBody"><tr><td colspan="3">計算中...</td></tr></tbody>
         </table>
-        <div id="yearlyStatsFoot" class="yearly-total"></div>
+        <div id="yearlyStatsFoot" style="text-align:center; margin-top:10px; font-weight:bold; color:#1e6f50; font-size: 13px;"></div>
     </div>
 
     <div class="card">
         <h3>
-            📜 歷史紀錄
-            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:4px 10px; font-size:12px; cursor:pointer;">📥 匯出 Excel</button>
+            📜 紀錄
+            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:2px 8px; font-size:12px;">📥 Excel</button>
         </h3>
         <div id="historyList"></div>
     </div>
 
     <script>
         // ==========================================
-        // ▼ 您的 Firebase 設定 (已自動填入) ▼
+        // ▼ 您的 Firebase 設定 ▼
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBuqMMuRwgysCZrSJagYmZLd2OOciJC1Rc",
@@ -244,18 +162,16 @@
         let localRecords = [];
         let currentEditId = null;
 
-        // 連線狀態
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
             const dot = document.getElementById('dot');
             if (snap.val() === true) {
-                statusText.innerText = "已連線雲端"; dot.classList.add('connected');
+                statusText.innerText = "已連線"; dot.classList.add('connected');
             } else {
-                statusText.innerText = "斷線重連中..."; dot.classList.remove('connected');
+                statusText.innerText = "連線中..."; dot.classList.remove('connected');
             }
         });
 
-        // 監聽資料
         recordsRef.on('value', (snapshot) => {
             const data = snapshot.val();
             localRecords = [];
@@ -275,16 +191,16 @@
         function initPlayerInputs() {
             const container = document.getElementById('playersArea');
             let html = '';
-            let optionsHtml = `<option value="" disabled selected>選擇玩家</option>`;
+            let optionsHtml = `<option value="" disabled selected>選擇</option>`;
             PREDEFINED_NAMES.forEach(name => optionsHtml += `<option value="${name}">${name}</option>`);
-            optionsHtml += `<option value="Other">自行輸入...</option>`;
+            optionsHtml += `<option value="Other">自訂...</option>`;
 
             for (let i = 1; i <= 4; i++) {
                 html += `
                 <div class="player-row">
-                    <div style="flex:2;">
+                    <div class="name-wrapper">
                         <select class="name-select" onchange="handleNameChange(this)">${optionsHtml}</select>
-                        <input type="text" class="custom-name" placeholder="輸入名字">
+                        <input type="text" class="custom-name" placeholder="名字">
                     </div>
                     <button class="sign-btn btn-plus" onclick="toggleSign(this)">+</button>
                     <input type="number" class="score-input" placeholder="0" inputmode="numeric">
@@ -322,12 +238,12 @@
                 const scoreInput = row.querySelector('.score-input');
                 
                 let name = select.style.display !== 'none' ? select.value : customInput.value.trim();
-                if (!name || name === "Other") { showError("⚠️ 請輸入玩家名字"); return; }
+                if (!name || name === "Other") { showError("⚠️ 請輸入名字"); return; }
                 if (namesCheck.has(name)) { showError(`⚠️ 名字重複：${name}`); return; }
                 namesCheck.add(name);
 
                 let rawScore = parseInt(scoreInput.value);
-                if (isNaN(rawScore)) { showError(`⚠️ 請輸入 ${name} 的金額`); return; }
+                if (isNaN(rawScore)) { showError(`⚠️ 請輸入金額`); return; }
                 let finalScore = Math.abs(rawScore) * (signBtn.innerText === '+' ? 1 : -1);
 
                 currentEntry.push({ name: name, score: finalScore });
@@ -346,12 +262,12 @@
 
             if (currentEditId) {
                 recordsRef.child(currentEditId).update(recordData)
-                    .then(() => { alert("✅ 修改成功！"); cancelEdit(); })
-                    .catch(err => alert("修改失敗: " + err.message));
+                    .then(() => { alert("✅ 修改成功"); cancelEdit(); })
+                    .catch(err => alert("失敗: " + err.message));
             } else {
                 recordsRef.push(recordData)
-                    .then(() => { resetForm(); alert("✅ 儲存成功！"); })
-                    .catch(err => alert("儲存失敗: " + err.message));
+                    .then(() => { resetForm(); alert("✅ 儲存成功"); })
+                    .catch(err => alert("失敗: " + err.message));
             }
         }
 
@@ -387,7 +303,7 @@
 
             currentEditId = id;
             document.getElementById('inputCard').classList.add('editing-mode');
-            document.getElementById('inputTitle').innerHTML = "<span>✏️ 修改戰績中...</span>";
+            document.getElementById('inputTitle').innerText = "✏️ 修改中...";
             document.getElementById('saveBtn').innerText = "確認修改";
             document.getElementById('saveBtn').style.backgroundColor = "#f39c12";
             document.getElementById('cancelBtn').style.display = "block";
@@ -397,7 +313,7 @@
         function cancelEdit() {
             currentEditId = null;
             document.getElementById('inputCard').classList.remove('editing-mode');
-            document.getElementById('inputTitle').innerHTML = "<span>✏️ 新增戰績</span><span style='font-size:12px; color:#999; font-weight:normal;'>今天手氣如何？</span>";
+            document.getElementById('inputTitle').innerText = "✏️ 新增戰績";
             document.getElementById('saveBtn').innerText = "儲存紀錄";
             document.getElementById('saveBtn').style.backgroundColor = "";
             document.getElementById('cancelBtn').style.display = "none";
@@ -417,16 +333,15 @@
         }
 
         function deleteRecord(id) {
-            if(!confirm("確定刪除此紀錄？")) return;
+            if(!confirm("確定刪除？")) return;
             recordsRef.child(id).remove();
             if (currentEditId === id) cancelEdit();
         }
 
         function render() {
-            // 渲染歷史 (改為 List 樣式)
             const listDiv = document.getElementById('historyList');
             listDiv.innerHTML = '';
-            if (localRecords.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">尚無紀錄</p>'; }
+            if (localRecords.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">無紀錄</p>'; }
 
             localRecords.forEach(rec => {
                 let detailsHtml = rec.details.map(p => {
@@ -439,14 +354,10 @@
                 item.className = 'history-item';
                 item.innerHTML = `
                     <div style="flex:1;">
-                        <div class="history-date">${rec.date}</div>
-                        <div style="margin-bottom:5px;">
-                            ${rec.jiangCount ? `<span class="history-info">🀄 ${rec.jiangCount}將</span>` : ''}
-                            ${rec.dongQian ? `<span class="history-info">💰 東${rec.dongQian}</span>` : ''}
-                        </div>
+                        <div class="history-date">${rec.date} ${rec.jiangCount ? `| ${rec.jiangCount}將` : ''}</div>
                         <div class="history-scores">${detailsHtml}</div>
                     </div>
-                    <div class="history-actions">
+                    <div>
                         <button class="edit-btn" onclick="editRecord('${rec.id}')">✎</button>
                         <button class="delete-btn" onclick="deleteRecord('${rec.id}')">✕</button>
                     </div>
@@ -454,7 +365,7 @@
                 listDiv.appendChild(item);
             });
 
-            // 渲染總榜
+            // 總結算
             let stats = {};
             localRecords.forEach(rec => {
                 rec.details.forEach(p => {
@@ -465,33 +376,33 @@
             const summaryBody = document.getElementById('summaryBody');
             summaryBody.innerHTML = '';
             
-            if (Object.keys(stats).length === 0) { summaryBody.innerHTML = '<tr><td colspan="3" style="color:#999;">暫無資料</td></tr>'; }
+            if (Object.keys(stats).length === 0) { summaryBody.innerHTML = '<tr><td colspan="3" style="color:#999;">無資料</td></tr>'; }
             else {
                 Object.entries(stats).sort(([,a], [,b]) => b - a).forEach(([name, score], index) => {
                     let colorClass = score > 0 ? 'win-text' : (score < 0 ? 'lose-text' : 'zero-text');
                     let sign = score > 0 ? '+' : '';
-                    let rankClass = index < 3 ? `rank-${index+1}` : 'rank-other';
                     let rankText = index + 1;
                     if(index === 0) rankText = '🥇';
                     
                     summaryBody.innerHTML += `<tr>
-                        <td><span class="rank-badge ${rankClass}">${rankText}</span></td>
+                        <td><span class="rank-badge ${index === 0 ? 'rank-1' : ''}">${rankText}</span></td>
                         <td style="font-weight:500;">${name}</td>
-                        <td class="${colorClass}" style="font-size:16px;">${sign}${score}</td>
+                        <td class="${colorClass}">${sign}${score}</td>
                     </tr>`;
                 });
             }
 
-            // 月度與年度統計
+            // 統計計算 (月度 + 總歷史)
             let monthlyData = {}; 
             let yearlyJiang = {}; 
+            let grandTotalJiang = 0; // 歷史總將數
+            let grandTotalDong = 0; // 歷史總東錢
 
             localRecords.forEach(rec => {
                 let dateObj = new Date(rec.date);
                 let year = dateObj.getFullYear();
                 let month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-                let key = `${year}-${month}`;
-
+                let key = `${month}月`;
                 if (!monthlyData[key]) monthlyData[key] = { jiang: 0, dong: 0 };
                 if (!yearlyJiang[year]) yearlyJiang[year] = 0;
 
@@ -501,7 +412,15 @@
                 monthlyData[key].jiang += j;
                 monthlyData[key].dong += d;
                 yearlyJiang[year] += j;
+                
+                // 累加歷史總額
+                grandTotalJiang += j;
+                grandTotalDong += d;
             });
+
+            // 更新總計看板 DOM
+            document.getElementById('grandTotalJiang').innerText = grandTotalJiang;
+            document.getElementById('grandTotalDong').innerText = "$" + grandTotalDong;
 
             const statsBody = document.getElementById('monthlyStatsBody');
             const yearFoot = document.getElementById('yearlyStatsFoot');
@@ -509,17 +428,16 @@
             yearFoot.innerHTML = '';
 
             let sortedKeys = Object.keys(monthlyData).sort().reverse();
-            if (sortedKeys.length === 0) { statsBody.innerHTML = '<tr><td colspan="3">暫無資料</td></tr>'; }
+            if (sortedKeys.length === 0) { statsBody.innerHTML = '<tr><td colspan="3">無資料</td></tr>'; }
             else {
                 sortedKeys.forEach(key => {
                     let d = monthlyData[key];
-                    statsBody.innerHTML += `<tr><td>${key}</td><td>${d.jiang} 將</td><td>$${d.dong}</td></tr>`;
+                    statsBody.innerHTML += `<tr><td>${key}</td><td>${d.jiang}</td><td>${d.dong}</td></tr>`;
                 });
             }
-
             let sortedYears = Object.keys(yearlyJiang).sort().reverse();
             if(sortedYears.length > 0) {
-                yearFoot.innerHTML = `📅 ${sortedYears[0]} 年度總結：共 <span style="color:#e67e22; font-size:18px;">${yearlyJiang[sortedYears[0]]}</span> 將`;
+                yearFoot.innerHTML = `${sortedYears[0]}年總計：${yearlyJiang[sortedYears[0]]} 將`;
             }
         }
 
@@ -538,7 +456,7 @@
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `麻將戰績_${new Date().toISOString().slice(0,10)}.csv`;
+            link.download = `麻將_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
         }
     </script>
