@@ -21,6 +21,7 @@
             --lose-color: #27ae60; 
             --text-main: #2c3e50; 
             --gray-light: #f8f9fa;
+            --gold-color: #ffd700; /* 新增金色 */
         }
 
         body { 
@@ -147,7 +148,22 @@
         .rank-2 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
         .rank-3 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
         .rank-other { background: #eee; font-size: 12px; color: #666; }
-        .rank-boss { background: #2c3e50; color: #f1c40f; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        
+        /* 全新黑金老闆樣式 */
+        .rank-boss { 
+            background: linear-gradient(135deg, #2c3e50, #000000); /* 黑底漸層 */
+            color: var(--gold-color); /* 金色文字 */
+            font-size: 11px; 
+            padding: 3px 8px; 
+            border-radius: 12px; 
+            font-weight: 800; 
+            border: 1px solid var(--gold-color); /* 金色邊框 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* 霸氣陰影 */
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
 
         .dashboard-grid { display: flex; gap: 12px; margin-bottom: 8px; }
         .dash-box { 
@@ -223,32 +239,41 @@
         }
         .batch-action-btn { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-        /* === 高級排版：年份卡片 === */
+        /* === 高級排版：年份卡片 (已修正對齊) === */
         .year-card { 
             background: #fff; border-radius: 14px; margin-bottom: 12px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; 
-            border: 1px solid #eee; transition: box-shadow 0.2s;
+            /* 移除原本的 border，改用 box-shadow 或偽元素來處理邊框 */
+            position: relative; /* 為偽元素定位 */
+            transition: box-shadow 0.2s;
         }
         .year-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
         
         .year-header { 
             padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; 
-            cursor: pointer; background: #fff; 
+            cursor: pointer; background: #fff; border-bottom: 1px solid #eee; /* 加上底線區隔 */
         }
         .year-title { font-size: 17px; font-weight: 700; color: #2c3e50; display: flex; align-items: center; gap: 10px; }
         .year-arrow { font-size: 12px; color: #bdc3c7; transition: transform 0.3s; }
         .year-expanded .year-arrow { transform: rotate(180deg); color: var(--text-main); }
         .year-score { font-size: 17px; font-weight: 800; font-family: 'Roboto Mono', monospace; }
         
-        /* 贏/輸顏色邊框 */
-        .year-card.win { border-left: 6px solid #e74c3c; }
-        .year-card.lose { border-left: 6px solid #27ae60; }
+        /* 贏/輸顏色邊框 (使用偽元素實現完美對齊) */
+        .year-card::before {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; left: 0;
+            width: 6px; /* 邊框寬度 */
+            z-index: 1;
+        }
+        .year-card.win::before { background-color: #e74c3c; }
+        .year-card.lose::before { background-color: #27ae60; }
         
-        /* === 高級排版：月份列表 Grid 系統 === */
-        .month-list { display: none; background: #fff; border-top: 1px solid #f0f0f0; }
+        /* === 高級排版：月份列表 Grid 系統 (已優化對齊) === */
+        .month-list { display: none; background: #fff; } /* 移除 border-top，由 year-header 處理 */
         .month-item { 
             display: grid; 
-            grid-template-columns: 1fr 60px 90px; /* 月份 | 場次 | 金額 */
+            grid-template-columns: 1fr 70px 100px; /* 微調欄位寬度 */
             align-items: center;
             padding: 14px 20px; 
             border-bottom: 1px solid #f9f9f9; 
@@ -259,6 +284,7 @@
 
         .month-name { color: #555; font-weight: 500; }
         .month-count { color: #95a5a6; font-size: 13px; text-align: center; background: #f0f2f5; padding: 2px 8px; border-radius: 12px; }
+        /* 加上 font-variant-numeric: tabular-nums 以確保數字等寬對齊 */
         .month-score { font-weight: 700; text-align: right; font-family: 'Roboto Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
 
         /* 地點統計項目 */
@@ -993,7 +1019,6 @@
             listDiv.innerHTML = '';
             
             let displayRecords = localRecords;
-            // 優先權：月份 > 年份
             if (filterMonth) { 
                 displayRecords = localRecords.filter(rec => rec.date.startsWith(filterMonth)); 
             } else if (filterYear !== 'ALL') {
@@ -1079,7 +1104,7 @@
                     let colorClass = score > 0 ? 'win-text' : (score < 0 ? 'lose-text' : 'zero-text'); let sign = score > 0 ? '+' : '';
                     let rankContent = index + 1; let rankClass = "rank-other";
                     if(index === 0) { rankContent = '🥇'; rankClass = "rank-1"; } else if(index === 1) { rankContent = '🥈'; rankClass = "rank-2"; } else if(index === 2) { rankContent = '🥉'; rankClass = "rank-3"; }
-                    if (index === sortedStats.length - 1 && sortedStats.length > 1) { rankContent = '老闆'; rankClass = 'rank-boss'; }
+                    if (index === sortedStats.length - 1 && sortedStats.length > 1) { rankContent = '👑 老闆'; rankClass = 'rank-boss'; }
                     summaryBody.innerHTML += `<tr><td><span class="rank-badge ${rankClass}">${rankContent}</span></td><td style="font-weight:500;">${name}</td><td class="${colorClass}">${sign}${score}</td></tr>`;
                 });
             }
