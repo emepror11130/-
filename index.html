@@ -57,7 +57,6 @@
             display: flex; align-items: center; justify-content: center;
         }
         
-        /* 日期輸入框 iOS 修正 */
         input[type="date"] { -webkit-appearance: none; appearance: none; display: flex; align-items: center; justify-content: center; line-height: normal; padding: 0; }
         input[type="date"]::-webkit-date-and-time-value { line-height: 1.5; padding-top: 2px; }
 
@@ -120,6 +119,18 @@
         .editing-mode { border: 2px solid #f39c12; }
 
         .backup-btn { background: transparent; border: 1px solid #2ecc71; color: #2ecc71; border-radius: 20px; padding: 2px 8px; font-size: 12px; cursor: pointer; margin-left: 5px;}
+        
+        /* 選手管理區塊樣式 */
+        .manage-area { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px; display: none; }
+        .manage-btn { background: none; border: none; color: #7f8c8d; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .manage-btn:hover { color: #2c3e50; }
+        
+        .player-tag { 
+            background: #f0f2f5; border: 1px solid #dcdfe6; border-radius: 20px; padding: 5px 12px; 
+            font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; 
+        }
+        .player-delete { color: #f56c6c; cursor: pointer; font-weight: bold; font-size: 16px; line-height: 1; }
+        .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -148,8 +159,18 @@
 
         <div id="playersArea"></div>
         <p id="errorMsg" class="error-msg"></p>
+        
         <button class="action-btn" id="saveBtn" onclick="saveData()">儲存紀錄</button>
-        <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">取消修改</button>
+        
+        <div style="display:flex; justify-content:space-between; margin-top:10px; align-items:center;">
+            <button class="manage-btn" onclick="togglePlayerManager()">⚙️ 管理選手</button>
+            <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()" style="margin:0;">取消修改</button>
+        </div>
+
+        <div id="manageArea" class="manage-area">
+            <div style="font-size:12px; color:#999; margin-bottom:5px;">點擊 ✕ 可刪除選手 (需密碼驗證)</div>
+            <div id="manageList" class="player-list"></div>
+        </div>
     </div>
 
     <div class="card">
@@ -210,15 +231,11 @@
         const recordsRef = db.ref('records');
         const playersRef = db.ref('players'); 
 
-        // 安全設定：防誤刪密碼
         const SAFETY_PASSWORD = "8888";
 
         let localRecords = [];
         let currentEditId = null;
-        
-        // 更新後的名單：把「學姊」改成「蕙儀」
-        const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
-        let allPlayers = [...DEFAULT_PLAYERS];
+        let allPlayers = []; // 完全依賴雲端資料
 
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
@@ -230,18 +247,21 @@
             }
         });
 
+        // 監聽玩家名單 (核心修改：完全同步雲端)
         playersRef.on('value', (snap) => {
             const data = snap.val();
             if (data) {
-                const cloudPlayers = Object.keys(data);
-                const newPlayers = cloudPlayers.filter(p => !DEFAULT_PLAYERS.includes(p));
-                allPlayers = [...DEFAULT_PLAYERS, ...newPlayers];
+                // 如果雲端有資料，就用雲端的 (這樣刪除才會生效)
+                allPlayers = Object.keys(data);
             } else {
+                // 只有第一次(雲端是空的時候)才寫入預設值
                 let updates = {};
-                DEFAULT_PLAYERS.forEach(name => updates[name] = true);
+                ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"].forEach(n => updates[n] = true);
                 playersRef.update(updates);
+                allPlayers = Object.keys(updates);
             }
             updateAllPlayerSelects(); 
+            renderManageList(); // 更新管理列表
         });
 
         recordsRef.on('value', (snapshot) => {
@@ -293,6 +313,39 @@
             });
         }
 
+        // 管理選手功能
+        function togglePlayerManager() {
+            const area = document.getElementById('manageArea');
+            if (area.style.display === 'block') {
+                area.style.display = 'none';
+            } else {
+                if (checkPassword()) {
+                    area.style.display = 'block';
+                    renderManageList();
+                } else {
+                    alert("❌ 密碼錯誤");
+                }
+            }
+        }
+
+        function renderManageList() {
+            const list = document.getElementById('manageList');
+            list.innerHTML = '';
+            allPlayers.forEach(name => {
+                list.innerHTML += `
+                    <div class="player-tag">
+                        ${name} 
+                        <span class="player-delete" onclick="deletePlayerFromList('${name}')">✕</span>
+                    </div>`;
+            });
+        }
+
+        function deletePlayerFromList(name) {
+            if (confirm(`確定要刪除「${name}」嗎？\n以後選單就不會出現這個名字囉。`)) {
+                playersRef.child(name).remove();
+            }
+        }
+
         function handleNameChange(select) {
             const wrapper = select.parentElement;
             const custom = wrapper.querySelector('.custom-name');
@@ -324,13 +377,13 @@
         }
 
         function checkPassword() {
-            let p = prompt("請輸入安全密碼以繼續 (預設 8888)：");
+            let p = prompt("請輸入安全密碼 (預設 8888)：");
             return p === SAFETY_PASSWORD;
         }
 
         function saveData() {
             if (currentEditId) {
-                if (!checkPassword()) { alert("❌ 密碼錯誤，拒絕修改"); return; }
+                if (!checkPassword()) { alert("❌ 密碼錯誤"); return; }
             }
 
             const date = document.getElementById('dateInput').value;
@@ -440,6 +493,10 @@
             document.getElementById('saveBtn').innerText = "儲存紀錄";
             document.getElementById('saveBtn').style.backgroundColor = "";
             document.getElementById('cancelBtn').style.display = "none";
+            
+            // 隱藏管理區
+            document.getElementById('manageArea').style.display = 'none';
+            
             resetForm();
         }
 
@@ -462,7 +519,7 @@
         }
 
         function deleteRecord(id) {
-            if (!checkPassword()) { alert("❌ 密碼錯誤，無法刪除"); return; }
+            if (!checkPassword()) { alert("❌ 密碼錯誤"); return; }
             if(!confirm("⚠️ 確定要永久刪除此紀錄？")) return;
             recordsRef.child(id).remove();
             if (currentEditId === id) cancelEdit();
@@ -642,7 +699,6 @@
             link.click();
         }
 
-        // 備份功能
         function backupData() {
             const jsonStr = JSON.stringify(localRecords, null, 2);
             const blob = new Blob([jsonStr], { type: 'application/json' });
