@@ -43,7 +43,7 @@
         
         .card h3 { margin: 0 0 12px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; color: var(--bg-color); font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* === 輸入區修正 === */
+        /* === 輸入區 === */
         .row-date { margin-bottom: 12px; }
         .row-date label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
@@ -51,71 +51,35 @@
         .col-half { flex: 1; }
         .col-half label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
-        /* 統一輸入框樣式 */
         .input-style { 
-            width: 100%; 
-            height: 44px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            background: #f9f9f9; 
-            color: #333;
-            /* 讓文字垂直置中的關鍵 */
-            padding: 0 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 16px; background: #f9f9f9; color: #333; line-height: normal;
+            display: flex; align-items: center; justify-content: center;
         }
+        
+        input[type="date"] { -webkit-appearance: none; appearance: none; display: flex; align-items: center; justify-content: center; line-height: normal; padding: 0; }
+        input[type="date"]::-webkit-date-and-time-value { line-height: 1.5; padding-top: 2px; }
 
-        /* 針對日期輸入框的特殊修正 (解決 iOS 偏上問題) */
-        input[type="date"] {
-            -webkit-appearance: none;
-            appearance: none;
-            display: flex; /* 使用 Flexbox 強制內容置中 */
-            align-items: center;
-            justify-content: center;
-            line-height: normal; /* 重置行高 */
-            padding-top: 0;
-            padding-bottom: 0;
-        }
-        /* 修正 iOS 內部的 date 值 */
-        input[type="date"]::-webkit-date-and-time-value {
-            line-height: 1.5; /* 調整行高比例 */
-            padding-top: 2px; /* 微調 */
-        }
-
-        /* 玩家行 */
         .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
         .name-wrapper { flex: 1; min-width: 0; position: relative; } 
         
         .name-select, .custom-name { 
-            width: 100%; height: 44px; padding: 0 10px; 
-            border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 15px; background: white; 
-            appearance: none; -webkit-appearance: none; 
-            color: #333;
+            width: 100%; height: 44px; padding: 0 10px; border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 15px; background: white; appearance: none; -webkit-appearance: none; color: #333;
         }
         .name-select {
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 8px center;
-            background-size: 16px;
+            background-repeat: no-repeat; background-position: right 8px center; background-size: 16px;
         }
 
         .sign-btn { 
-            flex: 0 0 40px; height: 40px; width: 40px; 
-            font-size: 24px; font-weight: bold; border: none; border-radius: 50%; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex: 0 0 40px; height: 40px; width: 40px; font-size: 24px; font-weight: bold; border: none; border-radius: 50%; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .btn-plus { background-color: #fff; color: var(--win-color); border: 1.5px solid var(--win-color); }
         .btn-minus { background-color: var(--lose-color); color: white; border: 1.5px solid var(--lose-color); }
 
-        .score-input { 
-            width: 80px; height: 44px; padding: 0 5px; 
-            border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 16px; text-align: center; font-weight: bold; color: var(--text-main); 
-        }
+        .score-input { width: 80px; height: 44px; padding: 0 5px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; text-align: center; font-weight: bold; color: var(--text-main); }
 
         .action-btn { width: 100%; padding: 14px; background-color: var(--text-main); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .cancel-btn { width: 100%; padding: 10px; background-color: #95a5a6; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
@@ -139,13 +103,12 @@
         .dash-label { font-size: 11px; color: #666; margin-bottom: 2px; }
         .dash-value { font-size: 18px; font-weight: bold; line-height: 1.2; }
 
-        /* 歷史紀錄與節日標籤樣式 */
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
         .history-header { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .history-date { font-size: 13px; color: #333; font-weight: 500; }
         .history-tag { font-size: 11px; padding: 1px 5px; border-radius: 4px; display: inline-block; white-space: nowrap; }
-        .tag-holiday { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; font-weight: bold; } /* 節日紅 */
-        .tag-lunar { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; } /* 初一十五藍 */
+        .tag-holiday { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; font-weight: bold; }
+        .tag-lunar { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
         .tag-info { background-color: #f5f5f5; color: #666; border: 1px solid #e0e0e0; }
         
         .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-top: 5px; font-size: 13px; }
@@ -154,6 +117,9 @@
         .delete-btn { background: #ff7675; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 14px; margin-left: 8px;}
         .error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; display: none; margin-top: 10px; font-size: 14px;}
         .editing-mode { border: 2px solid #f39c12; }
+
+        /* 備份按鈕樣式 */
+        .backup-btn { background: transparent; border: 1px solid #2ecc71; color: #2ecc71; border-radius: 20px; padding: 2px 8px; font-size: 12px; cursor: pointer; margin-left: 5px;}
     </style>
 </head>
 <body>
@@ -216,7 +182,10 @@
     <div class="card">
         <h3>
             📜 紀錄
-            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:2px 8px; font-size:12px;">📥 Excel</button>
+            <div>
+                <button class="backup-btn" onclick="backupData()">💾 備份</button>
+                <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:5px;">📥 Excel</button>
+            </div>
         </h3>
         <div id="historyList"></div>
     </div>
@@ -236,10 +205,14 @@
         };
         // ==========================================
 
+        // 初始化 Firebase (移除 Auth)
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const recordsRef = db.ref('records');
         const playersRef = db.ref('players'); 
+
+        // 安全設定：防誤刪密碼 (您可以自己改這裡的數字)
+        const SAFETY_PASSWORD = "8888";
 
         let localRecords = [];
         let currentEditId = null;
@@ -350,7 +323,17 @@
             else { btn.innerText = '+'; btn.className = 'sign-btn btn-plus'; }
         }
 
+        function checkPassword() {
+            let p = prompt("請輸入安全密碼以繼續 (預設 8888)：");
+            return p === SAFETY_PASSWORD;
+        }
+
         function saveData() {
+            // 如果是「修改」舊資料，先問密碼
+            if (currentEditId) {
+                if (!checkPassword()) { alert("❌ 密碼錯誤，拒絕修改"); return; }
+            }
+
             const date = document.getElementById('dateInput').value;
             const jiangCount = parseInt(document.getElementById('jiangInput').value) || 0;
             const dongQian = parseInt(document.getElementById('dongInput').value) || 0;
@@ -408,6 +391,8 @@
         }
 
         function editRecord(id) {
+            // 按下修改按鈕時，暫時不問密碼，等按「儲存」時才問
+            // 或者您想按下去就問也可以，這邊設定是按儲存才問
             const record = localRecords.find(r => r.id === id);
             if (!record) return;
 
@@ -445,7 +430,7 @@
             currentEditId = id;
             document.getElementById('inputCard').classList.add('editing-mode');
             document.getElementById('inputTitle').innerText = "✏️ 修改中...";
-            document.getElementById('saveBtn').innerText = "確認修改";
+            document.getElementById('saveBtn').innerText = "確認修改 (需密碼)";
             document.getElementById('saveBtn').style.backgroundColor = "#f39c12";
             document.getElementById('cancelBtn').style.display = "block";
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -480,12 +465,12 @@
         }
 
         function deleteRecord(id) {
-            if(!confirm("確定刪除？")) return;
+            if (!checkPassword()) { alert("❌ 密碼錯誤，無法刪除"); return; }
+            if(!confirm("⚠️ 確定要永久刪除此紀錄？")) return;
             recordsRef.child(id).remove();
             if (currentEditId === id) cancelEdit();
         }
 
-        // 節日計算核心
         function getHolidayTag(dateStr) {
             try {
                 const dateParts = dateStr.split('-');
@@ -493,18 +478,15 @@
                 const m = parseInt(dateParts[1]);
                 const d = parseInt(dateParts[2]);
                 
-                // 1. 國曆固定節日
                 if (m === 2 && d === 14) return '<span class="history-tag tag-holiday">💘 情人節</span>';
                 if (m === 12 && d === 25) return '<span class="history-tag tag-holiday">🎄 聖誕節</span>';
                 if (m === 1 && d === 1) return '<span class="history-tag tag-holiday">🎉 元旦</span>';
                 if (m === 10 && d === 10) return '<span class="history-tag tag-holiday">🇹🇼 國慶</span>';
 
-                // 2. 農曆轉換
                 const lunar = Lunar.fromDate(new Date(y, m - 1, d));
                 const lMonth = lunar.getMonth();
                 const lDay = lunar.getDay();
 
-                // 3. 農曆節日
                 if (lMonth === 1 && lDay === 1) return '<span class="history-tag tag-holiday">🧧 春節</span>';
                 if (lMonth === 1 && lDay === 15) return '<span class="history-tag tag-holiday">🏮 元宵</span>';
                 if (lMonth === 5 && lDay === 5) return '<span class="history-tag tag-holiday">🐉 端午</span>';
@@ -512,17 +494,14 @@
                 if (lMonth === 7 && lDay === 15) return '<span class="history-tag tag-holiday">👻 中元</span>';
                 if (lMonth === 8 && lDay === 15) return '<span class="history-tag tag-holiday">🥮 中秋</span>';
                 
-                // 除夕
                 const nextDay = Lunar.fromDate(new Date(y, m - 1, d + 1));
                 if (nextDay.getYear() !== lunar.getYear()) return '<span class="history-tag tag-holiday">🍲 除夕</span>';
 
-                // 4. 初一十五
                 if (lDay === 1) return '<span class="history-tag tag-lunar">🌑 初一</span>';
                 if (lDay === 15) return '<span class="history-tag tag-lunar">🌕 十五</span>';
 
                 return '';
             } catch (e) {
-                console.error("節日計算錯誤", e);
                 return '';
             }
         }
@@ -663,6 +642,16 @@
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = `麻將_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        // 新增功能：備份 JSON
+        function backupData() {
+            const jsonStr = JSON.stringify(localRecords, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `麻將備份_${new Date().toISOString().slice(0,10)}.json`;
             link.click();
         }
     </script>
