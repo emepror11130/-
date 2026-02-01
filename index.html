@@ -63,7 +63,6 @@
         .highlight-section { background: #fffcf5; border: 1px solid #fae588; border-radius: 10px; padding: 10px; margin-top: 15px; margin-bottom: 5px; }
         .highlight-toggle { color: #f39c12; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-top: 10px; }
         .highlight-inputs { display: none; margin-top: 10px; }
-        
         .mem-select { width: 100%; height: 44px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: 15px; padding: 0 10px; color: #333; }
 
         /* 個人模式樣式 */
@@ -71,7 +70,6 @@
         .personal-mode label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         .personal-mode .score-input-large { width: 100%; height: 50px; font-size: 24px; text-align: center; border: 2px solid #ddd; border-radius: 10px; font-weight: bold; color: var(--text-main); }
         .personal-mode .score-input-large:focus { border-color: var(--bg-color); outline: none; }
-        
         .personal-select { width: 100%; height: 44px; padding: 0 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; background: white; appearance: none; -webkit-appearance: none; color: #333; }
         .personal-custom { width: 100%; height: 44px; padding: 0 10px; border: 1px solid #3498db; border-radius: 8px; font-size: 15px; display: none; }
 
@@ -138,13 +136,30 @@
 
         /* 批次刪除樣式 */
         .batch-checkbox { width: 20px; height: 20px; margin-right: 10px; accent-color: #e74c3c; }
-        .batch-toolbar { 
-            position: fixed; bottom: 0; left: 0; right: 0; 
-            background: white; padding: 15px; border-top: 1px solid #eee; 
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
-            display: flex; gap: 10px; z-index: 100;
-        }
+        .batch-toolbar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; border-top: 1px solid #eee; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; gap: 10px; z-index: 100; }
         .batch-action-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; }
+
+        /* 高級排版：年份卡片 */
+        .year-card { background: #fff; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #eee; }
+        .year-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fdfdfd; transition: background 0.2s; }
+        .year-header:hover { background: #f5f5f5; }
+        .year-title { font-size: 16px; font-weight: bold; color: #333; display: flex; align-items: center; gap: 8px; }
+        .year-arrow { font-size: 12px; color: #999; transition: transform 0.3s; }
+        .year-expanded .year-arrow { transform: rotate(180deg); }
+        .year-score { font-size: 16px; font-weight: bold; }
+        
+        /* 月份列表 */
+        .month-list { display: none; border-top: 1px solid #eee; background: #fff; }
+        .month-item { display: flex; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .month-item:last-child { border-bottom: none; }
+        .month-name { color: #555; }
+        .month-stats { display: flex; gap: 15px; }
+        .month-count { color: #999; font-size: 12px; }
+        .month-score { font-weight: bold; min-width: 60px; text-align: right; }
+        
+        /* 贏/輸顏色與邊框 */
+        .year-card.win { border-left: 5px solid #e74c3c; }
+        .year-card.lose { border-left: 5px solid #27ae60; }
     </style>
 </head>
 <body>
@@ -329,12 +344,8 @@
         <div id="yearlyStatsFoot" style="text-align:center; margin-top:10px; font-weight:bold; color:#1e6f50; font-size: 13px;"></div>
     </div>
     
-    <div class="card" id="personalMonthlyStats" class="hidden">
-        <h3>📊 月份損益表</h3>
-        <table>
-            <thead><tr><th>月份</th><th>場次</th><th>損益</th></tr></thead>
-            <tbody id="personalMonthlyBody"><tr><td colspan="3">計算中...</td></tr></tbody>
-        </table>
+    <div class="card" id="personalMonthlyStats" class="hidden" style="background:transparent; box-shadow:none; padding:0;">
+        <div id="personalYearlyContainer"></div>
     </div>
 
     <div class="card">
@@ -435,7 +446,7 @@
             const groupStats = document.getElementById('groupStatsTable');
             const personalStats = document.getElementById('personalStatsView');
             const groupDetailStats = document.getElementById('groupDetailStats');
-            const personalMonthlyStats = document.getElementById('personalMonthlyStats'); // 新增
+            const personalMonthlyStats = document.getElementById('personalMonthlyStats'); 
             const groupManageCtrl = document.getElementById('groupManageControls');
             const personalCancelCtrl = document.getElementById('personalCancelControls');
 
@@ -448,7 +459,7 @@
                 groupStats.classList.remove('hidden');
                 personalStats.classList.add('hidden');
                 groupDetailStats.classList.remove('hidden'); 
-                personalMonthlyStats.classList.add('hidden'); // 隱藏個人月報
+                personalMonthlyStats.classList.add('hidden'); 
                 groupManageCtrl.style.display = 'flex';
                 personalCancelCtrl.classList.add('hidden');
                 document.getElementById('statsTitle').innerText = "🏆 英雄榜";
@@ -463,7 +474,7 @@
                 groupStats.classList.add('hidden');
                 personalStats.classList.remove('hidden');
                 groupDetailStats.classList.add('hidden'); 
-                personalMonthlyStats.classList.remove('hidden'); // 顯示個人月報
+                personalMonthlyStats.classList.remove('hidden'); 
                 groupManageCtrl.style.display = 'none';
                 personalCancelCtrl.classList.remove('hidden');
                 document.getElementById('statsTitle').innerText = "💰 我的金庫";
@@ -537,7 +548,7 @@
                     Object.keys(data).forEach(key => { localRecords.push({ id: key, ...data[key] }); });
                     localRecords.sort((a, b) => b.timestamp - a.timestamp);
                 }
-                updateYearFilter(); // 更新年份選單
+                updateYearFilter(); 
                 render();
             });
         }
@@ -554,17 +565,16 @@
             sortedYears.forEach(y => html += `<option value="${y}">${y}年</option>`);
             yearSelect.innerHTML = html;
             
-            // 嘗試保留選擇，若無則預設全部
             if(sortedYears.includes(currentVal)) yearSelect.value = currentVal;
         }
 
         function handleYearFilter() {
-            document.getElementById('filterMonth').value = ''; // 清空月份
+            document.getElementById('filterMonth').value = ''; 
             render();
         }
 
         function handleMonthFilter() {
-            document.getElementById('filterYear').value = 'ALL'; // 清空年份
+            document.getElementById('filterYear').value = 'ALL'; 
             render();
         }
 
@@ -850,7 +860,6 @@
             listDiv.innerHTML = '';
             
             let displayRecords = localRecords;
-            // 優先權：月份 > 年份
             if (filterMonth) { 
                 displayRecords = localRecords.filter(rec => rec.date.startsWith(filterMonth)); 
             } else if (filterYear !== 'ALL') {
@@ -947,39 +956,87 @@
             let sortedYears = Object.keys(yearlyJiang).sort().reverse(); if(sortedYears.length > 0) { yearFoot.innerHTML = `${sortedYears[0]}年總計：${yearlyJiang[sortedYears[0]]} 將`; }
         }
 
+        // 新版：年份摺疊 + 月份明細
         function renderPersonalStats() {
             let totalScore = 0; 
-            let monthlyData = {};
+            let yearlyData = {};
 
             localRecords.forEach(rec => { 
                 let score = parseInt(rec.score) || 0;
                 totalScore += score; 
                 
-                // 月份統計
-                let monthKey = rec.date.substring(0, 7); // YYYY-MM
-                if (!monthlyData[monthKey]) monthlyData[monthKey] = { count: 0, score: 0 };
-                monthlyData[monthKey].count += 1;
-                monthlyData[monthKey].score += score;
+                let year = rec.date.substring(0, 4);
+                let month = rec.date.substring(5, 7);
+                
+                if (!yearlyData[year]) yearlyData[year] = { total: 0, months: {} };
+                yearlyData[year].total += score;
+                
+                if (!yearlyData[year].months[month]) yearlyData[year].months[month] = { count: 0, score: 0 };
+                yearlyData[year].months[month].count += 1;
+                yearlyData[year].months[month].score += score;
             });
 
+            // 更新總資產看板
             const sign = totalScore > 0 ? '+' : ''; const color = totalScore > 0 ? '#e74c3c' : (totalScore < 0 ? '#27ae60' : '#666');
-            const scoreEl = document.getElementById('personalTotalScore'); scoreEl.innerText = `${sign}$${totalScore}`; scoreEl.style.color = color;
+            document.getElementById('personalTotalScore').innerText = `${sign}$${totalScore}`;
+            document.getElementById('personalTotalScore').style.color = color;
             document.getElementById('personalTotalCount').innerText = localRecords.length;
 
-            // 渲染個人月份表
-            const tbody = document.getElementById('personalMonthlyBody');
-            tbody.innerHTML = '';
-            let sortedMonths = Object.keys(monthlyData).sort().reverse();
-            if (sortedMonths.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">無資料</td></tr>';
-            } else {
-                sortedMonths.forEach(m => {
-                    let d = monthlyData[m];
-                    let mSign = d.score > 0 ? '+' : '';
-                    let mColor = d.score > 0 ? '#e74c3c' : (d.score < 0 ? '#27ae60' : '#333');
-                    tbody.innerHTML += `<tr><td>${m}</td><td>${d.count}</td><td style="color:${mColor}; font-weight:bold;">${mSign}${d.score}</td></tr>`;
-                });
+            // 渲染摺疊卡片
+            const container = document.getElementById('personalYearlyContainer');
+            container.innerHTML = '';
+            
+            let sortedYears = Object.keys(yearlyData).sort().reverse();
+            if (sortedYears.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">尚無資料</div>';
+                return;
             }
+
+            sortedYears.forEach(year => {
+                let yData = yearlyData[year];
+                let ySign = yData.total > 0 ? '+' : '';
+                let yClass = yData.total > 0 ? 'win' : (yData.total < 0 ? 'lose' : '');
+                let yColor = yData.total > 0 ? '#e74c3c' : (yData.total < 0 ? '#27ae60' : '#333');
+                
+                let monthsHtml = '';
+                let sortedMonths = Object.keys(yData.months).sort().reverse();
+                
+                sortedMonths.forEach(m => {
+                    let mData = yData.months[m];
+                    let mSign = mData.score > 0 ? '+' : '';
+                    let mColor = mData.score > 0 ? '#e74c3c' : (mData.score < 0 ? '#27ae60' : '#333');
+                    
+                    monthsHtml += `
+                        <div class="month-item">
+                            <span class="month-name">${m}月</span>
+                            <div class="month-stats">
+                                <span class="month-count">${mData.count}場</span>
+                                <span class="month-score" style="color:${mColor}">${mSign}$${mData.score}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="year-card ${yClass}">
+                        <div class="year-header" onclick="toggleYear(this)">
+                            <div class="year-title">
+                                <span class="year-arrow">▼</span> ${year}年
+                            </div>
+                            <div class="year-score" style="color:${yColor}">${ySign}$${yData.total}</div>
+                        </div>
+                        <div class="month-list">
+                            ${monthsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleYear(header) {
+            header.classList.toggle('year-expanded');
+            const content = header.nextElementSibling;
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
         }
 
         function exportCSV() {
