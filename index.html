@@ -2,83 +2,230 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🀄 麻將雲端記帳本 (連線版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🀄 雀神雲端記帳</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f9; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-        h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        
-        .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-        .name-wrapper { flex: 2; display: flex; }
-        .name-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; background: white; }
-        .custom-name { width: 100%; padding: 10px; border: 1px solid #3498db; border-radius: 6px; font-size: 16px; display: none; }
-        
-        .sign-btn { flex: 0 0 45px; height: 42px; font-size: 24px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; }
-        .btn-plus { background-color: #e74c3c; color: white; }
-        .btn-minus { background-color: #27ae60; color: white; }
+        :root {
+            --bg-color: #1e6f50; /* 麻將桌綠 */
+            --card-bg: #ffffff;
+            --primary-color: #f1c40f; /* 金色 */
+            --win-color: #e74c3c; /* 紅色贏 */
+            --lose-color: #27ae60; /* 綠色輸 */
+            --text-main: #2c3e50;
+            --text-light: #7f8c8d;
+        }
 
-        .score-input { flex: 1.5; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; text-align: center; }
-        .action-btn { width: 100%; padding: 14px; background-color: #2c3e50; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .delete-btn { background-color: #e74c3c; color: white; border:none; padding: 6px 12px; border-radius: 4px; cursor: pointer;}
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 20px 10px 80px 10px; /* 底部留白給按鈕 */
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto;
+        }
+
+        h1 { 
+            text-align: center; 
+            color: #fff; 
+            margin-bottom: 5px; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* 狀態列 */
+        #status { 
+            text-align: center; 
+            font-size: 13px; 
+            color: rgba(255,255,255,0.8); 
+            margin-bottom: 20px; 
+            background: rgba(0,0,0,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .connected { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+
+        /* 卡片通用樣式 */
+        .card { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+            margin-bottom: 20px; 
+            transition: transform 0.2s, border-color 0.3s;
+            border: 2px solid transparent;
+        }
+
+        /* 標題樣式 */
+        .card h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            color: var(--bg-color);
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 編輯模式高亮 */
+        .editing-mode { border-color: #f39c12; transform: scale(1.02); }
+
+        /* 輸入區佈局 */
+        .top-inputs { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; color: var(--text-light); margin-bottom: 4px; font-weight: bold; }
+        .input-style { 
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 16px; box-sizing: border-box; background: #f9f9f9; text-align: center;
+        }
+
+        /* 玩家輸入行 */
+        .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+        .name-select, .custom-name { 
+            flex: 2; padding: 12px; border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 16px; background: white; -webkit-appearance: none;
+        }
+        .score-input { 
+            flex: 1.5; padding: 12px; border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 18px; text-align: center; font-weight: bold; color: var(--text-main);
+        }
+
+        /* 正負按鈕優化 */
+        .sign-btn { 
+            flex: 0 0 45px; height: 45px; font-size: 24px; font-weight: bold; 
+            border: none; border-radius: 50%; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s;
+        }
+        .btn-plus { background-color: #fff; color: var(--win-color); border: 2px solid var(--win-color); }
+        .btn-minus { background-color: var(--lose-color); color: white; border: 2px solid var(--lose-color); }
+        .btn-plus:active, .btn-minus:active { transform: scale(0.9); }
+
+        /* 儲存按鈕 */
+        .action-btn { 
+            width: 100%; padding: 15px; background-color: var(--text-main); color: white; 
+            border: none; border-radius: 12px; font-size: 18px; font-weight: bold; 
+            cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(44, 62, 80, 0.3);
+        }
+        .action-btn:active { transform: scale(0.98); }
+        .cancel-btn { 
+            width: 100%; padding: 12px; background-color: #95a5a6; color: white; 
+            border: none; border-radius: 12px; font-size: 16px; cursor: pointer; 
+            margin-top: 8px; display: none; 
+        }
+
+        /* 表格優化 */
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #888; font-weight: 600; padding: 10px; text-align: center; border-bottom: 1px solid #eee; }
+        td { padding: 12px 5px; text-align: center; border-bottom: 1px solid #eee; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px; }
-        th { background-color: #f8f9fa; color: #666; font-weight: 600; padding: 12px 8px; text-align: center; border-bottom: 2px solid #eee; }
-        td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #eee; }
+        .win-text { color: var(--win-color); font-weight: bold; }
+        .lose-text { color: var(--lose-color); font-weight: bold; }
+        .zero-text { color: #ccc; }
         
-        .win-text { color: #e74c3c; font-weight: bold; }
-        .lose-text { color: #27ae60; font-weight: bold; }
-        .zero-text { color: #95a5a6; }
-        .error-msg { color: #e74c3c; text-align: center; font-weight: bold; margin-top: 10px; display: none; background: #fadbd8; padding: 10px; border-radius: 6px; }
-        
-        #status { text-align: center; font-size: 12px; color: #888; margin-bottom: 10px; }
-        .online-dot { height: 10px; width: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .connected { background-color: #2ecc71; }
+        /* 排名樣式 */
+        .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; background: #eee; font-size: 12px; }
+        .rank-1 { background: #f1c40f; color: white; box-shadow: 0 2px 5px rgba(241, 196, 15, 0.4); }
+        .rank-2 { background: #95a5a6; color: white; }
+        .rank-3 { background: #d35400; color: white; }
+
+        /* 歷史紀錄卡片優化 */
+        .history-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px 0; border-bottom: 1px solid #eee; 
+        }
+        .history-date { font-size: 12px; color: #999; margin-bottom: 4px; }
+        .history-info { display: flex; gap: 10px; font-size: 12px; color: #555; background: #f0f0f0; padding: 2px 8px; border-radius: 4px; display: inline-block;}
+        .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; margin-top: 8px; font-size: 14px; }
+        .history-actions button { margin-left: 5px; }
+
+        .edit-btn { background: #f39c12; color: white; border: none; padding: 5px 10px; border-radius: 6px; }
+        .delete-btn { background: #ff7675; color: white; border: none; padding: 5px 10px; border-radius: 6px; }
+
+        /* 統計區塊 */
+        .stat-box { background: #eafcf4; border-radius: 8px; padding: 10px; margin-top: 5px; border: 1px solid #c8e6c9; }
+        .yearly-total { text-align: center; font-weight: bold; color: var(--bg-color); font-size: 16px; margin-top: 10px; padding-top: 10px; border-top: 2px dashed #ccc; }
+
+        /* 錯誤訊息 */
+        .error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; display: none; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <h1>🀄 麻將雲端記帳</h1>
+    <h1>🀄 雀神記帳本</h1>
     <div id="status"><span class="online-dot" id="dot"></span><span id="statusText">連線中...</span></div>
 
-    <div class="card">
-        <h3>✏️ 新增戰績</h3>
-        <div style="margin-bottom: 15px;">
-            <label style="font-weight:bold;">日期：</label>
-            <input type="date" id="dateInput" style="padding: 8px; border:1px solid #ddd; border-radius:4px;">
+    <div class="card" id="inputCard">
+        <h3 id="inputTitle">
+            <span>✏️ 新增戰績</span>
+            <span style="font-size:12px; color:#999; font-weight:normal;">今天手氣如何？</span>
+        </h3>
+        
+        <div class="top-inputs">
+            <div class="input-group">
+                <label>日期</label>
+                <input type="date" id="dateInput" class="input-style">
+            </div>
+            <div class="input-group">
+                <label>將數</label>
+                <input type="number" id="jiangInput" class="input-style" placeholder="場" value="1">
+            </div>
+            <div class="input-group">
+                <label>東錢</label>
+                <input type="number" id="dongInput" class="input-style" placeholder="$" value="0">
+            </div>
         </div>
 
         <div id="playersArea"></div>
         <p id="errorMsg" class="error-msg"></p>
-        <button class="action-btn" onclick="addRecord()">➕ 雲端同步儲存</button>
+        
+        <button class="action-btn" id="saveBtn" onclick="saveData()">儲存紀錄</button>
+        <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()">取消修改</button>
     </div>
 
     <div class="card">
-        <h3>🏆 總結算排行榜</h3>
+        <h3>🏆 英雄榜 (總戰績)</h3>
         <table>
-            <thead><tr><th width="20%">排名</th><th width="40%">姓名</th><th width="40%">總戰績</th></tr></thead>
+            <thead><tr><th width="15%">排名</th><th width="40%">姓名</th><th width="45%">累積金額</th></tr></thead>
             <tbody id="summaryBody"><tr><td colspan="3">載入中...</td></tr></tbody>
         </table>
     </div>
 
     <div class="card">
-        <h3>📜 雲端歷史紀錄</h3>
-        <button onclick="exportCSV()" style="background-color: #3498db; color:white; border:none; padding:8px 12px; border-radius:4px; font-size: 14px; margin-bottom: 10px;">📥 匯出 Excel</button>
-        <div style="overflow-x:auto;">
-            <table id="historyTable">
-                <thead><tr><th width="25%">日期</th><th width="60%">戰況</th><th width="15%">刪除</th></tr></thead>
-                <tbody id="historyBody"></tbody>
-            </table>
-        </div>
+        <h3>📊 統計數據</h3>
+        <table>
+            <thead><tr><th>月份</th><th>場次</th><th>東錢</th></tr></thead>
+            <tbody id="monthlyStatsBody"><tr><td colspan="3">計算中...</td></tr></tbody>
+        </table>
+        <div id="yearlyStatsFoot" class="yearly-total"></div>
+    </div>
+
+    <div class="card">
+        <h3>
+            📜 歷史紀錄
+            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:4px 10px; font-size:12px; cursor:pointer;">📥 匯出 Excel</button>
+        </h3>
+        <div id="historyList"></div>
     </div>
 
     <script>
         // ==========================================
-        // ▼ 您的 Firebase 設定 ▼
+        // ▼ 您的 Firebase 設定 (已自動填入) ▼
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBuqMMuRwgysCZrSJagYmZLd2OOciJC1Rc",
@@ -90,40 +237,32 @@
             measurementId: "G-H7T8N8YCG1"
         };
         // ==========================================
-        // ▲ 設定結束 ▲
-        // ==========================================
 
-        // 初始化 Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const recordsRef = db.ref('records');
         let localRecords = [];
+        let currentEditId = null;
 
-        // 監聽連線狀態
+        // 連線狀態
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
             const dot = document.getElementById('dot');
             if (snap.val() === true) {
-                statusText.innerText = "已連線至雲端資料庫";
-                dot.classList.add('connected');
+                statusText.innerText = "已連線雲端"; dot.classList.add('connected');
             } else {
-                statusText.innerText = "連線中斷，嘗試重連...";
-                dot.classList.remove('connected');
+                statusText.innerText = "斷線重連中..."; dot.classList.remove('connected');
             }
         });
 
-        // 監聽資料變更
+        // 監聽資料
         recordsRef.on('value', (snapshot) => {
             const data = snapshot.val();
             localRecords = [];
             if (data) {
                 Object.keys(data).forEach(key => {
-                    localRecords.push({
-                        id: key,
-                        ...data[key]
-                    });
+                    localRecords.push({ id: key, ...data[key] });
                 });
-                // 依照日期降序排列
                 localRecords.sort((a, b) => b.timestamp - a.timestamp);
             }
             render();
@@ -138,17 +277,17 @@
             let html = '';
             let optionsHtml = `<option value="" disabled selected>選擇玩家</option>`;
             PREDEFINED_NAMES.forEach(name => optionsHtml += `<option value="${name}">${name}</option>`);
-            optionsHtml += `<option value="Other">✏️ 其他</option>`;
+            optionsHtml += `<option value="Other">自行輸入...</option>`;
 
             for (let i = 1; i <= 4; i++) {
                 html += `
                 <div class="player-row">
-                    <div class="name-wrapper">
+                    <div style="flex:2;">
                         <select class="name-select" onchange="handleNameChange(this)">${optionsHtml}</select>
                         <input type="text" class="custom-name" placeholder="輸入名字">
                     </div>
                     <button class="sign-btn btn-plus" onclick="toggleSign(this)">+</button>
-                    <input type="number" class="score-input" placeholder="金額" inputmode="numeric">
+                    <input type="number" class="score-input" placeholder="0" inputmode="numeric">
                 </div>`;
             }
             container.innerHTML = html;
@@ -166,9 +305,12 @@
             else { btn.innerText = '+'; btn.className = 'sign-btn btn-plus'; }
         }
 
-        function addRecord() {
+        function saveData() {
             const date = document.getElementById('dateInput').value;
+            const jiangCount = parseInt(document.getElementById('jiangInput').value) || 0;
+            const dongQian = parseInt(document.getElementById('dongInput').value) || 0;
             const rows = document.querySelectorAll('.player-row');
+            
             let currentEntry = [];
             let totalScore = 0;
             let namesCheck = new Set();
@@ -180,7 +322,7 @@
                 const scoreInput = row.querySelector('.score-input');
                 
                 let name = select.style.display !== 'none' ? select.value : customInput.value.trim();
-                if (!name || name === "Other") { showError("⚠️ 請完整輸入所有名字"); return; }
+                if (!name || name === "Other") { showError("⚠️ 請輸入玩家名字"); return; }
                 if (namesCheck.has(name)) { showError(`⚠️ 名字重複：${name}`); return; }
                 namesCheck.add(name);
 
@@ -194,48 +336,125 @@
 
             if (totalScore !== 0) { showError(`⚠️ 帳目不平！目前總和 ${totalScore}`); return; }
 
-            // 寫入 Firebase
-            recordsRef.push({
+            const recordData = {
                 date: date,
                 timestamp: Date.now(),
+                jiangCount: jiangCount,
+                dongQian: dongQian,
                 details: currentEntry
-            }).then(() => {
-                rows.forEach(row => {
-                    row.querySelector('.score-input').value = '';
-                    let btn = row.querySelector('.sign-btn');
-                    btn.innerText = '+'; btn.className = 'sign-btn btn-plus';
-                });
-                showError("");
-                alert("✅ 雲端同步成功！");
-            }).catch(error => {
-                alert("❌ 上傳失敗：" + error.message);
+            };
+
+            if (currentEditId) {
+                recordsRef.child(currentEditId).update(recordData)
+                    .then(() => { alert("✅ 修改成功！"); cancelEdit(); })
+                    .catch(err => alert("修改失敗: " + err.message));
+            } else {
+                recordsRef.push(recordData)
+                    .then(() => { resetForm(); alert("✅ 儲存成功！"); })
+                    .catch(err => alert("儲存失敗: " + err.message));
+            }
+        }
+
+        function editRecord(id) {
+            const record = localRecords.find(r => r.id === id);
+            if (!record) return;
+
+            document.getElementById('dateInput').value = record.date;
+            document.getElementById('jiangInput').value = record.jiangCount || 0;
+            document.getElementById('dongInput').value = record.dongQian || 0;
+
+            const rows = document.querySelectorAll('.player-row');
+            for (let i = 0; i < 4; i++) {
+                if (i < record.details.length) {
+                    const p = record.details[i];
+                    const row = rows[i];
+                    const select = row.querySelector('.name-select');
+                    const custom = row.querySelector('.custom-name');
+                    const score = row.querySelector('.score-input');
+                    const btn = row.querySelector('.sign-btn');
+
+                    if (PREDEFINED_NAMES.includes(p.name)) {
+                        select.value = p.name; select.style.display = 'block'; custom.style.display = 'none';
+                    } else {
+                        select.value = 'Other'; select.style.display = 'none'; custom.style.display = 'block'; custom.value = p.name;
+                    }
+
+                    score.value = Math.abs(p.score);
+                    if (p.score < 0) { btn.innerText = '-'; btn.className = 'sign-btn btn-minus'; }
+                    else { btn.innerText = '+'; btn.className = 'sign-btn btn-plus'; }
+                }
+            }
+
+            currentEditId = id;
+            document.getElementById('inputCard').classList.add('editing-mode');
+            document.getElementById('inputTitle').innerHTML = "<span>✏️ 修改戰績中...</span>";
+            document.getElementById('saveBtn').innerText = "確認修改";
+            document.getElementById('saveBtn').style.backgroundColor = "#f39c12";
+            document.getElementById('cancelBtn').style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            currentEditId = null;
+            document.getElementById('inputCard').classList.remove('editing-mode');
+            document.getElementById('inputTitle').innerHTML = "<span>✏️ 新增戰績</span><span style='font-size:12px; color:#999; font-weight:normal;'>今天手氣如何？</span>";
+            document.getElementById('saveBtn').innerText = "儲存紀錄";
+            document.getElementById('saveBtn').style.backgroundColor = "";
+            document.getElementById('cancelBtn').style.display = "none";
+            resetForm();
+        }
+
+        function resetForm() {
+            const rows = document.querySelectorAll('.player-row');
+            rows.forEach(row => {
+                row.querySelector('.score-input').value = '';
+                let btn = row.querySelector('.sign-btn');
+                btn.innerText = '+'; btn.className = 'sign-btn btn-plus';
             });
+            document.getElementById('dongInput').value = 0;
+            document.getElementById('jiangInput').value = 1;
+            showError("");
         }
 
         function deleteRecord(id) {
-            if(!confirm("確定要刪除這筆紀錄嗎？(所有人的畫面都會刪除)")) return;
+            if(!confirm("確定刪除此紀錄？")) return;
             recordsRef.child(id).remove();
+            if (currentEditId === id) cancelEdit();
         }
 
         function render() {
-            // 渲染歷史
-            const tbody = document.getElementById('historyBody');
-            tbody.innerHTML = '';
-            if (localRecords.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="color:#999;">暫無雲端資料</td></tr>'; }
-            
+            // 渲染歷史 (改為 List 樣式)
+            const listDiv = document.getElementById('historyList');
+            listDiv.innerHTML = '';
+            if (localRecords.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">尚無紀錄</p>'; }
+
             localRecords.forEach(rec => {
                 let detailsHtml = rec.details.map(p => {
                     let colorClass = p.score > 0 ? 'win-text' : (p.score < 0 ? 'lose-text' : 'zero-text');
                     let sign = p.score > 0 ? '+' : '';
-                    return `<div style="display:flex; justify-content:space-between; max-width:180px; margin:0 auto;">
-                        <span>${p.name}</span><span class="${colorClass}">${sign}${p.score}</span>
-                    </div>`;
+                    return `<div><span>${p.name}</span> <span class="${colorClass}">${sign}${p.score}</span></div>`;
                 }).join('');
-                let row = `<tr><td style="font-size:13px; color:#666;">${rec.date}</td><td>${detailsHtml}</td><td><button class="delete-btn" onclick="deleteRecord('${rec.id}')">x</button></td></tr>`;
-                tbody.innerHTML += row;
+
+                let item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <div style="flex:1;">
+                        <div class="history-date">${rec.date}</div>
+                        <div style="margin-bottom:5px;">
+                            ${rec.jiangCount ? `<span class="history-info">🀄 ${rec.jiangCount}將</span>` : ''}
+                            ${rec.dongQian ? `<span class="history-info">💰 東${rec.dongQian}</span>` : ''}
+                        </div>
+                        <div class="history-scores">${detailsHtml}</div>
+                    </div>
+                    <div class="history-actions">
+                        <button class="edit-btn" onclick="editRecord('${rec.id}')">✎</button>
+                        <button class="delete-btn" onclick="deleteRecord('${rec.id}')">✕</button>
+                    </div>
+                `;
+                listDiv.appendChild(item);
             });
 
-            // 渲染統計
+            // 渲染總榜
             let stats = {};
             localRecords.forEach(rec => {
                 rec.details.forEach(p => {
@@ -243,18 +462,65 @@
                     stats[p.name] += p.score;
                 });
             });
-            
             const summaryBody = document.getElementById('summaryBody');
             summaryBody.innerHTML = '';
-            if (Object.keys(stats).length === 0) { summaryBody.innerHTML = '<tr><td colspan="3" style="color:#999;">暫無資料</td></tr>'; return; }
+            
+            if (Object.keys(stats).length === 0) { summaryBody.innerHTML = '<tr><td colspan="3" style="color:#999;">暫無資料</td></tr>'; }
+            else {
+                Object.entries(stats).sort(([,a], [,b]) => b - a).forEach(([name, score], index) => {
+                    let colorClass = score > 0 ? 'win-text' : (score < 0 ? 'lose-text' : 'zero-text');
+                    let sign = score > 0 ? '+' : '';
+                    let rankClass = index < 3 ? `rank-${index+1}` : 'rank-other';
+                    let rankText = index + 1;
+                    if(index === 0) rankText = '🥇';
+                    
+                    summaryBody.innerHTML += `<tr>
+                        <td><span class="rank-badge ${rankClass}">${rankText}</span></td>
+                        <td style="font-weight:500;">${name}</td>
+                        <td class="${colorClass}" style="font-size:16px;">${sign}${score}</td>
+                    </tr>`;
+                });
+            }
 
-            Object.entries(stats).sort(([,a], [,b]) => b - a).forEach(([name, score], index) => {
-                let colorClass = score > 0 ? 'win-text' : (score < 0 ? 'lose-text' : 'zero-text');
-                let sign = score > 0 ? '+' : '';
-                let rank = index + 1;
-                if(index===0) rank='🥇'; if(index===1) rank='🥈'; if(index===2) rank='🥉';
-                summaryBody.innerHTML += `<tr><td>${rank}</td><td style="font-weight:500;">${name}</td><td class="${colorClass}" style="font-size:16px;">${sign}${score}</td></tr>`;
+            // 月度與年度統計
+            let monthlyData = {}; 
+            let yearlyJiang = {}; 
+
+            localRecords.forEach(rec => {
+                let dateObj = new Date(rec.date);
+                let year = dateObj.getFullYear();
+                let month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                let key = `${year}-${month}`;
+
+                if (!monthlyData[key]) monthlyData[key] = { jiang: 0, dong: 0 };
+                if (!yearlyJiang[year]) yearlyJiang[year] = 0;
+
+                let j = parseInt(rec.jiangCount) || 0;
+                let d = parseInt(rec.dongQian) || 0;
+
+                monthlyData[key].jiang += j;
+                monthlyData[key].dong += d;
+                yearlyJiang[year] += j;
             });
+
+            const statsBody = document.getElementById('monthlyStatsBody');
+            const yearFoot = document.getElementById('yearlyStatsFoot');
+            statsBody.innerHTML = '';
+            yearFoot.innerHTML = '';
+
+            let sortedKeys = Object.keys(monthlyData).sort().reverse();
+            if (sortedKeys.length === 0) { statsBody.innerHTML = '<tr><td colspan="3">暫無資料</td></tr>'; }
+            else {
+                sortedKeys.forEach(key => {
+                    let d = monthlyData[key];
+                    statsBody.innerHTML += `<tr><td>${key}</td><td>${d.jiang} 將</td><td>$${d.dong}</td></tr>`;
+                });
+            }
+
+            let sortedYears = Object.keys(yearlyJiang).sort().reverse();
+            if(sortedYears.length > 0) {
+                yearFoot.innerHTML = `📅 ${sortedYears[0]} 年度總結：共 <span style="color:#e67e22; font-size:18px;">${yearlyJiang[sortedYears[0]]}</span> 將`;
+            }
         }
 
         function showError(msg) {
@@ -263,16 +529,16 @@
         }
 
         function exportCSV() {
-            let csv = "\uFEFF日期,玩家,金額\n";
+            let csv = "\uFEFF日期,將數,東錢,玩家,金額\n";
             localRecords.forEach(rec => {
                 rec.details.forEach(p => {
-                    csv += `${rec.date},${p.name},${p.score}\n`;
+                    csv += `${rec.date},${rec.jiangCount || 0},${rec.dongQian || 0},${p.name},${p.score}\n`;
                 });
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `麻將雲端戰績_${new Date().toISOString().slice(0,10)}.csv`;
+            link.download = `麻將戰績_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
         }
     </script>
