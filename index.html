@@ -120,15 +120,10 @@
 
         .backup-btn { background: transparent; border: 1px solid #2ecc71; color: #2ecc71; border-radius: 20px; padding: 2px 8px; font-size: 12px; cursor: pointer; margin-left: 5px;}
         
-        /* 選手管理區塊樣式 */
         .manage-area { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px; display: none; }
         .manage-btn { background: none; border: none; color: #7f8c8d; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .manage-btn:hover { color: #2c3e50; }
-        
-        .player-tag { 
-            background: #f0f2f5; border: 1px solid #dcdfe6; border-radius: 20px; padding: 5px 12px; 
-            font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; 
-        }
+        .player-tag { background: #f0f2f5; border: 1px solid #dcdfe6; border-radius: 20px; padding: 5px 12px; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; }
         .player-delete { color: #f56c6c; cursor: pointer; font-weight: bold; font-size: 16px; line-height: 1; }
         .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     </style>
@@ -213,7 +208,7 @@
 
     <script>
         // ==========================================
-        // ▼ 您的 Firebase 設定 ▼
+        // ▼ Firebase 設定 ▼
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBuqMMuRwgysCZrSJagYmZLd2OOciJC1Rc",
@@ -235,7 +230,10 @@
 
         let localRecords = [];
         let currentEditId = null;
-        let allPlayers = []; // 完全依賴雲端資料
+        
+        // 修正後的預設名單
+        const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
+        let allPlayers = [...DEFAULT_PLAYERS];
 
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
@@ -247,21 +245,37 @@
             }
         });
 
-        // 監聽玩家名單 (核心修改：完全同步雲端)
         playersRef.on('value', (snap) => {
             const data = snap.val();
             if (data) {
-                // 如果雲端有資料，就用雲端的 (這樣刪除才會生效)
-                allPlayers = Object.keys(data);
+                const cloudPlayers = Object.keys(data);
+                // 確保 DEFAULT_PLAYERS 的人排在前面
+                const newPlayers = cloudPlayers.filter(p => !DEFAULT_PLAYERS.includes(p));
+                // 這裡做個過濾，確保 DEFAULT_PLAYERS 裡的人如果被雲端刪了，就不顯示
+                // 但為了符合「以雲端為主」的邏輯，我們只用 cloudPlayers
+                // 不過為了符合您的順序要求，我們嘗試排序：如果雲端有這些人，就優先排前面
+                let sortedPlayers = [];
+                // 1. 先放您指定順序的人 (如果雲端有)
+                DEFAULT_PLAYERS.forEach(p => {
+                    if (cloudPlayers.includes(p)) {
+                        sortedPlayers.push(p);
+                    }
+                });
+                // 2. 再放剩下的其他人
+                cloudPlayers.forEach(p => {
+                    if (!sortedPlayers.includes(p)) {
+                        sortedPlayers.push(p);
+                    }
+                });
+                allPlayers = sortedPlayers;
             } else {
-                // 只有第一次(雲端是空的時候)才寫入預設值
                 let updates = {};
-                ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"].forEach(n => updates[n] = true);
+                DEFAULT_PLAYERS.forEach(n => updates[n] = true);
                 playersRef.update(updates);
-                allPlayers = Object.keys(updates);
+                allPlayers = DEFAULT_PLAYERS;
             }
             updateAllPlayerSelects(); 
-            renderManageList(); // 更新管理列表
+            renderManageList(); 
         });
 
         recordsRef.on('value', (snapshot) => {
@@ -313,7 +327,6 @@
             });
         }
 
-        // 管理選手功能
         function togglePlayerManager() {
             const area = document.getElementById('manageArea');
             if (area.style.display === 'block') {
@@ -383,7 +396,7 @@
 
         function saveData() {
             if (currentEditId) {
-                if (!checkPassword()) { alert("❌ 密碼錯誤"); return; }
+                if (!checkPassword()) { alert("❌ 密碼錯誤，拒絕修改"); return; }
             }
 
             const date = document.getElementById('dateInput').value;
@@ -493,10 +506,7 @@
             document.getElementById('saveBtn').innerText = "儲存紀錄";
             document.getElementById('saveBtn').style.backgroundColor = "";
             document.getElementById('cancelBtn').style.display = "none";
-            
-            // 隱藏管理區
             document.getElementById('manageArea').style.display = 'none';
-            
             resetForm();
         }
 
