@@ -412,8 +412,21 @@
         const HAND_TYPES = ["平胡", "碰碰胡", "混一色", "清一色", "三暗刻", "四暗刻", "五暗刻", "門清自摸", "全求人", "大三元", "小三元", "大四喜", "小四喜", "字一色", "七搶一", "八仙過海", "天胡", "地胡", "人胡", "流局"];
         let allPlayers = [...DEFAULT_PLAYERS];
 
-        initLocation('default', '蕙儀家', 'group');
+        // 啟動時讀取 LocalStorage
+        const savedLocId = localStorage.getItem('mj_last_loc_id');
+        const savedLocName = localStorage.getItem('mj_last_loc_name');
+        const savedLocType = localStorage.getItem('mj_last_loc_type');
+
+        if (savedLocId && savedLocName && savedLocType) {
+            initLocation(savedLocId, savedLocName, savedLocType);
+        } else {
+            initLocation('default', '蕙儀家', 'group');
+        }
+        
         initSelectOptions(); 
+        
+        // 預載公開戰場列表
+        renderLocationList();
 
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
@@ -680,7 +693,13 @@
         }
 
         function switchLocation(id, name, type) {
-            initLocation(id, name, type); document.getElementById('locationModal').style.display = 'none';
+            // 寫入 LocalStorage
+            localStorage.setItem('mj_last_loc_id', id);
+            localStorage.setItem('mj_last_loc_name', name);
+            localStorage.setItem('mj_last_loc_type', type);
+
+            initLocation(id, name, type); 
+            document.getElementById('locationModal').style.display = 'none';
         }
 
         document.getElementById('dateInput').valueAsDate = new Date();
@@ -869,7 +888,6 @@
             listDiv.innerHTML = '';
             
             let displayRecords = localRecords;
-            // 優先權：月份 > 年份
             if (filterMonth) { 
                 displayRecords = localRecords.filter(rec => rec.date.startsWith(filterMonth)); 
             } else if (filterYear !== 'ALL') {
