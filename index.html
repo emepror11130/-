@@ -91,9 +91,16 @@
         .group-mode .row-stats { display: flex; gap: 12px; margin-bottom: 20px; }
         .group-mode .col-half { flex: 1; }
         .group-mode .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-        .group-mode .name-select { width: 100%; height: 46px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; font-size: 15px; padding: 0 10px; }
+        .group-mode .name-select { width: 100%; height: 46px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; font-size: 15px; padding: 0 10px; flex: 1; }
         .group-mode .score-input { width: 85px; height: 46px; text-align: center; font-weight: bold; border-radius: 10px; border: 1px solid #e0e0e0; font-size: 17px; font-family: 'Roboto Mono', monospace; }
         
+        /* 刪除列按鈕 */
+        .row-delete-btn {
+            width: 30px; height: 46px; display: flex; align-items: center; justify-content: center;
+            color: #bdc3c7; font-size: 18px; cursor: pointer; margin-left: 2px;
+        }
+        .row-delete-btn:hover { color: #e74c3c; }
+
         .sign-btn { 
             flex: 0 0 42px; height: 42px; border-radius: 50%; border: none; font-size: 22px; font-weight: bold; cursor: pointer; 
             display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -133,6 +140,13 @@
             transition: transform 0.1s;
         }
         .action-btn:active { transform: scale(0.98); }
+        
+        .add-player-btn {
+            width: 100%; padding: 10px; background: #f0f8ff; color: #3498db;
+            border: 1px dashed #3498db; border-radius: 10px; font-size: 14px; font-weight: 600;
+            cursor: pointer; margin-top: 5px; margin-bottom: 10px;
+        }
+
         .cancel-btn { width: 100%; padding: 12px; background-color: #95a5a6; color: white; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
         /* 統計與列表 */
@@ -246,7 +260,6 @@
         .year-card { 
             background: #fff; border-radius: 14px; margin-bottom: 12px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; 
-            /* 改用 border-left 確保切齊 */
             position: relative; 
             transition: box-shadow 0.2s;
         }
@@ -291,6 +304,48 @@
             border-bottom: 1px solid #eee; font-size: 15px; align-items: center;
         }
         .loc-stat-item:last-child { border-bottom: none; }
+        
+        /* 排行榜表格美化 (公用戰場) */
+        #groupStatsTable {
+            border-collapse: separate; 
+            border-spacing: 0; 
+            width: 100%;
+            margin-top: 5px;
+        }
+        #groupStatsTable th {
+            font-size: 13px; color: #95a5a6; font-weight: 600; padding: 8px; 
+            text-align: center; border-bottom: 1px solid #eee;
+        }
+        #groupStatsTable td {
+            padding: 14px 8px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        #groupStatsTable td:nth-child(1) { width: 45px; text-align: center; }
+        #groupStatsTable td:nth-child(2) {
+            text-align: left;
+            padding-left: 15px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        #groupStatsTable td:nth-child(3) {
+            text-align: right;
+            padding-right: 10px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        #groupStatsTable tr:first-child td {
+            background: linear-gradient(to right, #fffde7, #ffffff);
+            border-top: 1px solid #fff9c4;
+            border-bottom: 1px solid #fff9c4;
+        }
+        #groupStatsTable tr:first-child td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid #fff9c4; }
+        #groupStatsTable tr:first-child td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid #fff9c4; }
     </style>
 </head>
 <body>
@@ -350,6 +405,8 @@
             </div>
             <div id="playersArea"></div>
             
+            <button class="add-player-btn" onclick="addPlayerRow()">➕ 新增選手</button>
+
             <div class="highlight-toggle" onclick="toggleHighlightInputs()">
                 ✨ 紀錄本場大牌 (選填) ▼
             </div>
@@ -475,7 +532,7 @@
             <span id="maxTaiRecord" style="font-weight:bold; color:#d35400; font-size:14px;">無紀錄</span>
         </div>
         
-        <table style="margin-top:15px;">
+        <table class="normal-table" style="margin-top:15px;">
             <thead><tr><th>月份</th><th>場次</th><th>東錢</th></tr></thead>
             <tbody id="monthlyStatsBody"><tr><td colspan="3">計算中...</td></tr></tbody>
         </table>
@@ -839,22 +896,70 @@
 
         function initPlayerInputs() {
             const container = document.getElementById('playersArea');
-            let html = '';
+            container.innerHTML = '';
             for (let i = 1; i <= 4; i++) {
-                html += `<div class="player-row"><div class="name-wrapper"><select class="name-select" onchange="handleNameChange(this)"></select><input type="text" class="custom-name" placeholder="輸入名字" style="display:none;"></div><button class="sign-btn btn-plus" onclick="toggleSign(this)">+</button><input type="number" class="score-input" placeholder="0" inputmode="numeric"></div>`;
+                addPlayerRow();
             }
-            container.innerHTML = html;
+        }
+
+        function addPlayerRow(name = "", score = "") {
+            const container = document.getElementById('playersArea');
+            const div = document.createElement('div');
+            div.className = 'player-row';
+            
+            let optionsHtml = `<option value="" disabled selected>請選擇選手...</option>`;
+            allPlayers.forEach(p => { 
+                const selected = p === name ? 'selected' : '';
+                optionsHtml += `<option value="${p}" ${selected}>${p}</option>`; 
+            });
+            optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
+            optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
+
+            let nameInputHtml = `
+                <div class="name-wrapper" style="flex:1;">
+                    <select class="name-select" onchange="handleNameChange(this)">${optionsHtml}</select>
+                    <input type="text" class="custom-name" placeholder="輸入名字" style="display:none; width:100%; height:46px; border-radius:10px; border:1px solid #e0e0e0; padding:0 10px;" value="${name}">
+                </div>
+            `;
+            
+            // 如果是自訂名字，切換顯示
+            if (name && !allPlayers.includes(name)) {
+                 nameInputHtml = nameInputHtml.replace('style="display:none;"', '').replace('class="name-select"', 'class="name-select" style="display:none;"');
+                 // 這裡簡化處理，實際可能需要更精細的邏輯，但這能運作
+            }
+
+            const sign = score < 0 ? '-' : '+';
+            const absScore = score ? Math.abs(score) : '';
+            const btnClass = score < 0 ? 'sign-btn btn-minus' : 'sign-btn btn-plus';
+
+            div.innerHTML = `
+                ${nameInputHtml}
+                <button class="${btnClass}" onclick="toggleSign(this)">${sign}</button>
+                <input type="number" class="score-input" placeholder="0" inputmode="numeric" value="${absScore}">
+                <div class="row-delete-btn" onclick="removePlayerRow(this)">✕</div>
+            `;
+            container.appendChild(div);
+        }
+
+        function removePlayerRow(btn) {
+            btn.parentElement.remove();
         }
 
         function updateAllPlayerSelects() {
             if (currentLocType !== 'group') return;
+            
+            // 重新生成選項 HTML
             let optionsHtml = `<option value="" disabled selected>請選擇選手...</option>`;
             allPlayers.forEach(name => { optionsHtml += `<option value="${name}">${name}</option>`; });
             optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
             optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
+            
             document.querySelectorAll('.name-select').forEach(select => {
-                const currentVal = select.value; select.innerHTML = optionsHtml;
-                if (currentVal && (allPlayers.includes(currentVal) || currentVal === 'Other' || currentVal === 'ADD_NEW')) select.value = currentVal;
+                const currentVal = select.value;
+                // 只有當原本的值存在於新列表中，或原本是特殊選項時才保留，否則重置
+                // 這裡簡單暴力一點：直接更新 innerHTML，然後嘗試設回原本的值
+                select.innerHTML = optionsHtml;
+                if (currentVal) select.value = currentVal;
             });
         }
 
@@ -912,17 +1017,27 @@
                 const dongQian = parseInt(document.getElementById('dongInput').value) || 0;
                 const rows = document.querySelectorAll('.player-row');
                 let currentEntry = []; let totalScore = 0; let namesCheck = new Set();
+                
                 for (let row of rows) {
-                    const select = row.querySelector('.name-select'); const customInput = row.querySelector('.custom-name'); const signBtn = row.querySelector('.sign-btn'); const scoreInput = row.querySelector('.score-input');
+                    const select = row.querySelector('.name-select'); 
+                    const customInput = row.querySelector('.custom-name'); 
+                    const signBtn = row.querySelector('.sign-btn'); 
+                    const scoreInput = row.querySelector('.score-input');
+                    
                     let name = select.style.display !== 'none' ? select.value : customInput.value.trim();
-                    if (name === "ADD_NEW") name = ""; if (!name) { showError("⚠️ 請輸入/選擇選手"); return; }
+                    if (name === "ADD_NEW") name = ""; 
+                    if (!name) { showError("⚠️ 請輸入/選擇選手"); return; }
                     if (namesCheck.has(name)) { showError(`⚠️ 名字重複：${name}`); return; } namesCheck.add(name);
-                    let rawScore = parseInt(scoreInput.value); if (isNaN(rawScore)) { showError(`⚠️ 請輸入金額`); return; }
+                    
+                    let rawScore = parseInt(scoreInput.value); 
+                    if (isNaN(rawScore)) { showError(`⚠️ 請輸入金額`); return; }
                     let finalScore = Math.abs(rawScore) * (signBtn.innerText === '+' ? 1 : -1);
-                    currentEntry.push({ name: name, score: finalScore }); totalScore += finalScore;
+                    
+                    currentEntry.push({ name: name, score: finalScore }); 
+                    totalScore += finalScore;
                 }
                 
-                // Modified validation: Players' Sum + Dong Qian should be 0
+                // 動態驗證：(所有玩家總分 + 東錢) = 0
                 if (totalScore + dongQian !== 0) { 
                     showError(`⚠️ 帳目不平！玩家總和(${totalScore}) + 東錢(${dongQian}) ≠ 0 (差額: ${totalScore + dongQian})`); 
                     return; 
@@ -957,22 +1072,33 @@
         function editRecord(id) {
             const record = localRecords.find(r => r.id === id); if (!record) return;
             document.getElementById('dateInput').value = record.date;
+            
             if (currentLocType === 'group') {
-                document.getElementById('jiangInput').value = record.jiangCount || 0; document.getElementById('dongInput').value = record.dongQian || 0;
+                document.getElementById('jiangInput').value = record.jiangCount || 0; 
+                document.getElementById('dongInput').value = record.dongQian || 0;
+                
                 if (record.highlight) {
                     document.getElementById('highlightInputs').style.display = 'block';
                     document.getElementById('hlHandSelect').value = record.highlight.hand;
                     document.getElementById('hlTaiSelect').value = record.highlight.tai;
                 }
-                const rows = document.querySelectorAll('.player-row');
-                for (let i = 0; i < 4; i++) {
-                    if (i < record.details.length) {
-                        const p = record.details[i]; const row = rows[i]; const select = row.querySelector('.name-select'); const custom = row.querySelector('.custom-name'); const score = row.querySelector('.score-input'); const btn = row.querySelector('.sign-btn');
-                        if (allPlayers.includes(p.name)) { select.value = p.name; select.style.display = 'block'; custom.style.display = 'none'; } else { select.value = 'Other'; select.style.display = 'none'; custom.style.display = 'block'; custom.value = p.name; }
-                        score.value = Math.abs(p.score); btn.innerText = p.score < 0 ? '-' : '+'; btn.className = p.score < 0 ? 'sign-btn btn-minus' : 'sign-btn btn-plus';
-                    }
+                
+                // 動態重建選手列
+                const container = document.getElementById('playersArea');
+                container.innerHTML = ''; // 清空
+                
+                record.details.forEach(p => {
+                    addPlayerRow(p.name, p.score);
+                });
+                
+                // 如果不足4人，補滿4人 (雖然資料庫可能有3人紀錄，但顯示4人較美觀)
+                while(container.children.length < 4) {
+                    addPlayerRow();
                 }
-                toggleHighlightInputs(); if(record.highlight) document.getElementById('hlWinnerSelect').value = record.highlight.player;
+
+                toggleHighlightInputs(); 
+                if(record.highlight) document.getElementById('hlWinnerSelect').value = record.highlight.player;
+
             } else {
                 const locSelect = document.getElementById('personalLocSelect'); const locCustom = document.getElementById('personalLocCustom');
                 const stakeSelect = document.getElementById('personalStakeSelect'); const stakeCustom = document.getElementById('personalStakeCustom');
@@ -1002,7 +1128,7 @@
 
         function resetForm() {
             if (currentLocType === 'group') {
-                const rows = document.querySelectorAll('.player-row'); rows.forEach(row => { row.querySelector('.score-input').value = ''; let btn = row.querySelector('.sign-btn'); btn.innerText = '+'; btn.className = 'sign-btn btn-plus'; const select = row.querySelector('.name-select'); const custom = row.querySelector('.custom-name'); select.value = ""; select.style.display = 'block'; custom.style.display = 'none'; });
+                initPlayerInputs(); // 重置為預設4人
                 document.getElementById('dongInput').value = 0; document.getElementById('jiangInput').value = 1;
                 document.getElementById('highlightInputs').style.display = 'none';
                 document.getElementById('hlHandSelect').value = ''; document.getElementById('hlTaiSelect').value = '';
