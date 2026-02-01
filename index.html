@@ -10,7 +10,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.2.37/lunar.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -135,22 +135,70 @@
         .action-btn:active { transform: scale(0.98); }
         .cancel-btn { width: 100%; padding: 12px; background-color: #95a5a6; color: white; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
-        /* 統計與列表 */
-        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; font-size: 14px; table-layout: fixed; }
-        th { background-color: #f1f3f5; color: #7f8c8d; font-weight: 600; padding: 10px; text-align: center; font-size: 13px; border-radius: 6px; }
-        td { padding: 12px 6px; text-align: center; border-bottom: 1px solid #f0f0f0; word-wrap: break-word; }
+        /* === 排行榜表格美化 (公用戰場) === */
+        #groupStatsTable {
+            border-collapse: separate; 
+            border-spacing: 0; 
+            width: 100%;
+            margin-top: 5px;
+        }
+        #groupStatsTable th {
+            font-size: 13px; color: #95a5a6; font-weight: 600; padding: 8px; 
+            text-align: center; border-bottom: 1px solid #eee;
+        }
+        #groupStatsTable td {
+            padding: 14px 8px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f8f9fa;
+        }
         
+        /* 排名欄位 */
+        #groupStatsTable td:nth-child(1) { width: 45px; text-align: center; }
+        
+        /* 名字欄位 (加大、靠左) */
+        #groupStatsTable td:nth-child(2) {
+            text-align: left;
+            padding-left: 15px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        /* 分數欄位 (加大、等寬數字) */
+        #groupStatsTable td:nth-child(3) {
+            text-align: right;
+            padding-right: 10px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* 第一名特效 */
+        #groupStatsTable tr:first-child td {
+            background: linear-gradient(to right, #fffde7, #ffffff);
+            border-top: 1px solid #fff9c4;
+            border-bottom: 1px solid #fff9c4;
+        }
+        #groupStatsTable tr:first-child td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid #fff9c4; }
+        #groupStatsTable tr:first-child td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid #fff9c4; }
+
+        /* 一般表格樣式 (用於月報表等) */
+        .normal-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; font-size: 14px; }
+        .normal-table th { background-color: #f1f3f5; color: #7f8c8d; font-weight: 600; padding: 10px; text-align: center; border-radius: 6px; }
+        .normal-table td { padding: 10px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+
         .win-text { color: var(--win-color); font-weight: bold; }
         .lose-text { color: var(--lose-color); font-weight: bold; }
         
         /* 排名徽章 */
-        .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 14px; font-weight: bold; }
-        .rank-1 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
-        .rank-2 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
-        .rank-3 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
-        .rank-other { background: #eee; font-size: 12px; color: #666; }
+        .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 14px; font-weight: bold; text-align: center; }
+        .rank-1 { font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.15); transform: scale(1.2); }
+        .rank-2 { font-size: 22px; text-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+        .rank-3 { font-size: 20px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
+        .rank-other { background: #eee; font-size: 12px; color: #666; width: 20px; height: 20px; line-height: 20px; }
         
-        /* === 修正後的「老闆」樣式：簡約白底金框 === */
+        /* === 老闆徽章：白底金框 === */
         .rank-badge.rank-boss { 
             width: auto !important;
             height: auto !important;
@@ -246,7 +294,6 @@
         .year-card { 
             background: #fff; border-radius: 14px; margin-bottom: 12px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; 
-            /* 改用 border-left 確保切齊 */
             position: relative; 
             transition: box-shadow 0.2s;
         }
@@ -475,7 +522,7 @@
             <span id="maxTaiRecord" style="font-weight:bold; color:#d35400; font-size:14px;">無紀錄</span>
         </div>
         
-        <table style="margin-top:15px;">
+        <table class="normal-table" style="margin-top:15px;">
             <thead><tr><th>月份</th><th>場次</th><th>東錢</th></tr></thead>
             <tbody id="monthlyStatsBody"><tr><td colspan="3">計算中...</td></tr></tbody>
         </table>
