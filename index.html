@@ -22,7 +22,7 @@
             color: var(--text-main); 
             margin: 0; 
             padding: 12px; 
-            padding-bottom: 80px; /* 增加底部空間給批次工具列 */
+            padding-bottom: 80px; 
         }
 
         /* 頂部導航 */
@@ -328,12 +328,23 @@
         </table>
         <div id="yearlyStatsFoot" style="text-align:center; margin-top:10px; font-weight:bold; color:#1e6f50; font-size: 13px;"></div>
     </div>
+    
+    <div class="card" id="personalMonthlyStats" class="hidden">
+        <h3>📊 月份損益表</h3>
+        <table>
+            <thead><tr><th>月份</th><th>場次</th><th>損益</th></tr></thead>
+            <tbody id="personalMonthlyBody"><tr><td colspan="3">計算中...</td></tr></tbody>
+        </table>
+    </div>
 
     <div class="card">
         <h3>
             <span>📜 紀錄</span>
             <div style="display:flex; gap:5px; align-items:center;">
-                <input type="month" id="filterMonth" style="border:1px solid #ddd; background:#fff; padding:2px 5px; border-radius:6px; font-size:13px;" onchange="render()">
+                <select id="filterYear" style="border:1px solid #ddd; background:#fff; padding:2px 5px; border-radius:6px; font-size:13px;" onchange="handleYearFilter()">
+                    <option value="ALL">全部年份</option>
+                </select>
+                <input type="month" id="filterMonth" style="border:1px solid #ddd; background:#fff; padding:2px 5px; border-radius:6px; font-size:13px;" onchange="handleMonthFilter()">
             </div>
         </h3>
         <div style="display:flex; justify-content:flex-end; margin-bottom:10px; gap:8px;">
@@ -374,7 +385,7 @@
         let publicLocationsMeta = {};
         let myLocations = [];
         let myStakes = ["50/20", "100/20"];
-        let isBatchMode = false; // 批次模式狀態
+        let isBatchMode = false;
 
         const SAFETY_PASSWORD = "8888"; 
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
@@ -406,6 +417,7 @@
             document.getElementById('pTaiSelect').innerHTML = taiHtml;
         }
 
+        // === 核心：初始化與切換 ===
         function initLocation(id, name, type) {
             if (recordsRef) recordsRef.off();
             if (playersRef) playersRef.off();
@@ -423,6 +435,7 @@
             const groupStats = document.getElementById('groupStatsTable');
             const personalStats = document.getElementById('personalStatsView');
             const groupDetailStats = document.getElementById('groupDetailStats');
+            const personalMonthlyStats = document.getElementById('personalMonthlyStats'); // 新增
             const groupManageCtrl = document.getElementById('groupManageControls');
             const personalCancelCtrl = document.getElementById('personalCancelControls');
 
@@ -435,6 +448,7 @@
                 groupStats.classList.remove('hidden');
                 personalStats.classList.add('hidden');
                 groupDetailStats.classList.remove('hidden'); 
+                personalMonthlyStats.classList.add('hidden'); // 隱藏個人月報
                 groupManageCtrl.style.display = 'flex';
                 personalCancelCtrl.classList.add('hidden');
                 document.getElementById('statsTitle').innerText = "🏆 英雄榜";
@@ -449,6 +463,7 @@
                 groupStats.classList.add('hidden');
                 personalStats.classList.remove('hidden');
                 groupDetailStats.classList.add('hidden'); 
+                personalMonthlyStats.classList.remove('hidden'); // 顯示個人月報
                 groupManageCtrl.style.display = 'none';
                 personalCancelCtrl.classList.remove('hidden');
                 document.getElementById('statsTitle').innerText = "💰 我的金庫";
@@ -456,7 +471,7 @@
                 updatePersonalSelects();
             }
             cancelEdit();
-            isBatchMode = false; // 重置批次模式
+            isBatchMode = false; 
             document.getElementById('batchToolbar').classList.add('hidden');
         }
 
@@ -522,8 +537,35 @@
                     Object.keys(data).forEach(key => { localRecords.push({ id: key, ...data[key] }); });
                     localRecords.sort((a, b) => b.timestamp - a.timestamp);
                 }
+                updateYearFilter(); // 更新年份選單
                 render();
             });
+        }
+
+        // === 篩選器邏輯 ===
+        function updateYearFilter() {
+            const yearSelect = document.getElementById('filterYear');
+            const currentVal = yearSelect.value;
+            let years = new Set();
+            localRecords.forEach(r => years.add(r.date.substring(0, 4)));
+            let sortedYears = Array.from(years).sort().reverse();
+            
+            let html = '<option value="ALL">全部年份</option>';
+            sortedYears.forEach(y => html += `<option value="${y}">${y}年</option>`);
+            yearSelect.innerHTML = html;
+            
+            // 嘗試保留選擇，若無則預設全部
+            if(sortedYears.includes(currentVal)) yearSelect.value = currentVal;
+        }
+
+        function handleYearFilter() {
+            document.getElementById('filterMonth').value = ''; // 清空月份
+            render();
+        }
+
+        function handleMonthFilter() {
+            document.getElementById('filterYear').value = 'ALL'; // 清空年份
+            render();
         }
 
         function toggleHighlightInputs() {
@@ -802,12 +844,19 @@
         }
 
         function render() {
-            const filterValue = document.getElementById('filterMonth').value; 
+            const filterYear = document.getElementById('filterYear').value;
+            const filterMonth = document.getElementById('filterMonth').value; 
             const listDiv = document.getElementById('historyList');
             listDiv.innerHTML = '';
             
             let displayRecords = localRecords;
-            if (filterValue) { displayRecords = localRecords.filter(rec => rec.date.startsWith(filterValue)); }
+            // 優先權：月份 > 年份
+            if (filterMonth) { 
+                displayRecords = localRecords.filter(rec => rec.date.startsWith(filterMonth)); 
+            } else if (filterYear !== 'ALL') {
+                displayRecords = localRecords.filter(rec => rec.date.startsWith(filterYear));
+            }
+
             if (displayRecords.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">無紀錄</p>'; }
 
             displayRecords.forEach(rec => {
@@ -818,7 +867,6 @@
                     highlightTag = `<div style="margin-top:4px;"><span class="history-tag tag-highlight">🏆 ${playerStr}${rec.highlight.hand} ${rec.highlight.tai}台</span></div>`;
                 }
                 
-                // 批次刪除勾選框
                 let checkboxHtml = isBatchMode ? `<input type="checkbox" class="batch-checkbox" value="${rec.id}">` : '';
 
                 if (currentLocType === 'group') {
@@ -833,7 +881,6 @@
                     html = `<div style="display:flex; align-items:center;">${checkboxHtml}<div style="flex:1;"><div class="history-header"><span class="history-date">${rec.date}</span> ${holidayTag} <span class="history-tag tag-info">📍 ${rec.location}</span></div><div style="font-size:18px; font-weight:bold; margin-top:5px;" class="${colorClass}">${sign}${rec.score}</div>${noteHtml}${highlightTag}</div></div>`;
                 }
                 let item = document.createElement('div'); item.className = 'history-item'; 
-                // 在批次模式下隱藏編輯按鈕
                 let actionButtons = isBatchMode ? '' : `<div><button class="edit-btn" onclick="editRecord('${rec.id}')">✎</button><button class="delete-btn" onclick="deleteRecord('${rec.id}')">✕</button></div>`;
                 item.innerHTML = html + actionButtons;
                 listDiv.appendChild(item);
@@ -858,20 +905,11 @@
         function deleteBatch() {
             const checkboxes = document.querySelectorAll('.batch-checkbox:checked');
             if (checkboxes.length === 0) { alert("請先勾選要刪除的項目"); return; }
-            
-            // 驗證密碼
             if (currentLocType === 'group') { if (!checkPassword()) { alert("❌ 密碼錯誤"); return; } }
-            // 私人模式預設進入時已驗證，此處可免密碼或再次驗證
-            
             if (!confirm(`⚠️ 確定要刪除這 ${checkboxes.length} 筆紀錄嗎？`)) return;
-
             const updates = {};
             checkboxes.forEach(cb => { updates[cb.value] = null; });
-            
-            recordsRef.update(updates).then(() => {
-                alert("🗑️ 刪除成功！");
-                toggleBatchMode();
-            });
+            recordsRef.update(updates).then(() => { alert("🗑️ 刪除成功！"); toggleBatchMode(); });
         }
 
         function renderGroupStats() {
@@ -910,10 +948,38 @@
         }
 
         function renderPersonalStats() {
-            let totalScore = 0; localRecords.forEach(rec => { totalScore += (parseInt(rec.score) || 0); });
+            let totalScore = 0; 
+            let monthlyData = {};
+
+            localRecords.forEach(rec => { 
+                let score = parseInt(rec.score) || 0;
+                totalScore += score; 
+                
+                // 月份統計
+                let monthKey = rec.date.substring(0, 7); // YYYY-MM
+                if (!monthlyData[monthKey]) monthlyData[monthKey] = { count: 0, score: 0 };
+                monthlyData[monthKey].count += 1;
+                monthlyData[monthKey].score += score;
+            });
+
             const sign = totalScore > 0 ? '+' : ''; const color = totalScore > 0 ? '#e74c3c' : (totalScore < 0 ? '#27ae60' : '#666');
             const scoreEl = document.getElementById('personalTotalScore'); scoreEl.innerText = `${sign}$${totalScore}`; scoreEl.style.color = color;
             document.getElementById('personalTotalCount').innerText = localRecords.length;
+
+            // 渲染個人月份表
+            const tbody = document.getElementById('personalMonthlyBody');
+            tbody.innerHTML = '';
+            let sortedMonths = Object.keys(monthlyData).sort().reverse();
+            if (sortedMonths.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3">無資料</td></tr>';
+            } else {
+                sortedMonths.forEach(m => {
+                    let d = monthlyData[m];
+                    let mSign = d.score > 0 ? '+' : '';
+                    let mColor = d.score > 0 ? '#e74c3c' : (d.score < 0 ? '#27ae60' : '#333');
+                    tbody.innerHTML += `<tr><td>${m}</td><td>${d.count}</td><td style="color:${mColor}; font-weight:bold;">${mSign}${d.score}</td></tr>`;
+                });
+            }
         }
 
         function exportCSV() {
