@@ -208,10 +208,18 @@
         <div id="personalInputArea" class="personal-mode hidden">
             <div class="input-row">
                 <label>地點 / 局名 (可選公開戰場或自訂)</label>
-                <select id="personalLocSelect" class="personal-select" onchange="handlePersonalSelect('Loc')">
-                    <option value="" disabled selected>請選擇地點...</option>
-                </select>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <select id="personalLocSelect" class="personal-select" onchange="handlePersonalSelect('Loc')" style="flex:1;">
+                        <option value="" disabled selected>請選擇地點...</option>
+                    </select>
+                    <button class="manage-btn" onclick="toggleLocManager()" style="padding:0 5px;">⚙️</button>
+                </div>
                 <input type="text" id="personalLocCustom" class="personal-custom" placeholder="輸入新地點名稱">
+                
+                <div id="manageLocArea" class="manage-area" style="background:#f9f9f9; padding:8px; border-radius:8px; margin-top:5px;">
+                    <div style="font-size:11px; color:#999; margin-bottom:5px;">常用地點 (點擊✕刪除):</div>
+                    <div id="manageLocList" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+                </div>
             </div>
             
             <div class="input-row">
@@ -335,6 +343,7 @@
         let localRecords = [];
         let currentEditId = null;
         let publicLocationNames = ["蕙儀家"]; 
+        let myLocations = [];
         let myStakes = ["50/20", "100/20"];
 
         const SAFETY_PASSWORD = "8888"; 
@@ -447,8 +456,10 @@
             listenToRecords();
             settingsRef.on('value', snap => {
                 const data = snap.val() || {};
+                if (data.myLocations) myLocations = Object.keys(data.myLocations); else myLocations = [];
                 if (data.myStakes) myStakes = Object.keys(data.myStakes); else myStakes = ["50/20", "100/20"];
                 updatePersonalSelects();
+                renderManageLocList(); // 更新管理列表
             });
         }
 
@@ -459,6 +470,10 @@
             // 地點選單：只顯示公開戰場
             let locHtml = `<option value="" disabled selected>請選擇地點...</option>`;
             publicLocationNames.forEach(name => { locHtml += `<option value="${name}">🏠 ${name}</option>`; });
+            // 加上自訂地點
+            myLocations.forEach(name => {
+                if (!publicLocationNames.includes(name)) { locHtml += `<option value="${name}">📍 ${name}</option>`; }
+            });
             locHtml += `<option value="CUSTOM" style="color:#e67e22;">✏️ 自訂地點...</option>`;
             locSelect.innerHTML = locHtml;
 
@@ -504,6 +519,26 @@
                     if(name) html += `<option value="${name}">${name}</option>`;
                 });
                 winnerSelect.innerHTML = html;
+            }
+        }
+
+        // === 地點管理功能 ===
+        function toggleLocManager() {
+            const area = document.getElementById('manageLocArea');
+            area.style.display = area.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function renderManageLocList() {
+            const list = document.getElementById('manageLocList');
+            list.innerHTML = '';
+            myLocations.forEach(name => {
+                list.innerHTML += `<div class="player-tag">${name} <span class="player-delete" onclick="deleteCustomLocation('${name}')">✕</span></div>`;
+            });
+        }
+
+        function deleteCustomLocation(name) {
+            if (confirm(`確定要從選單移除「${name}」嗎？`)) {
+                settingsRef.child('myLocations/' + name).remove();
             }
         }
 
@@ -568,6 +603,10 @@
         function switchLocation(id, name, type) {
             initLocation(id, name, type);
             document.getElementById('locationModal').style.display = 'none';
+        }
+
+        function updateLocationSuggestions() {
+            // Replaced by updatePersonalSelects
         }
 
         // === 既有邏輯 ===
@@ -643,9 +682,7 @@
         }
 
         function saveData() {
-            // 只有在公開群組模式才需要密碼驗證
             if (currentEditId && currentLocType === 'group') { if (!checkPassword()) { alert("❌ 密碼錯誤"); return; } }
-            
             const date = document.getElementById('dateInput').value;
             let recordData = { date: date, timestamp: Date.now() };
 
@@ -688,6 +725,7 @@
                 if (pHand) recordData.highlight = { hand: pHand, tai: parseInt(pTai) || 0 };
 
                 recordData.location = loc; recordData.score = finalScore; recordData.note = stake;
+                if (locSelect.style.display === 'none' && !myLocations.includes(loc)) settingsRef.child('myLocations/' + loc).set(true);
                 if (stakeSelect.style.display === 'none' && stake && !myStakes.includes(stake)) settingsRef.child('myStakes/' + stake).set(true);
             }
 
@@ -735,7 +773,7 @@
                 const btn = document.getElementById('personalSignBtn');
                 btn.innerText = record.score < 0 ? '-' : '+'; btn.className = record.score < 0 ? 'sign-btn btn-minus' : 'sign-btn btn-plus';
             }
-            currentEditId = id; document.getElementById('inputCard').classList.add('editing-mode'); document.getElementById('inputTitle').innerText = "✏️ 修改中..."; document.getElementById('saveBtn').innerText = "確認修改" + (currentLocType==='group' ? " (需密碼)" : ""); document.getElementById('saveBtn').style.backgroundColor = "#f39c12"; document.getElementById('cancelBtn').style.display = "block"; if(currentLocType !== 'group') document.getElementById('cancelBtnPersonal').style.display = "inline-block"; window.scrollTo({ top: 0, behavior: 'smooth' });
+            currentEditId = id; document.getElementById('inputCard').classList.add('editing-mode'); document.getElementById('inputTitle').innerText = "✏️ 修改中..."; document.getElementById('saveBtn').innerText = "確認修改"; document.getElementById('saveBtn').style.backgroundColor = "#f39c12"; document.getElementById('cancelBtn').style.display = "block"; if(currentLocType !== 'group') document.getElementById('cancelBtnPersonal').style.display = "inline-block"; window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function deleteRecord(id) {
@@ -760,6 +798,7 @@
                 document.getElementById('personalStakeSelect').value = ''; document.getElementById('personalStakeSelect').style.display = 'block'; document.getElementById('personalStakeCustom').style.display = 'none';
                 document.getElementById('personalScoreInput').value = ''; let btn = document.getElementById('personalSignBtn'); btn.innerText = '+'; btn.className = 'sign-btn btn-plus';
                 document.getElementById('pHandSelect').value = ''; document.getElementById('pTaiSelect').value = '';
+                document.getElementById('manageLocArea').style.display = 'none';
             }
             showError("");
         }
