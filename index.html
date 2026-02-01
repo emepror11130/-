@@ -133,6 +133,9 @@
         .player-tag { background: #f0f2f5; border: 1px solid #dcdfe6; border-radius: 20px; padding: 5px 12px; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; }
         .player-delete { color: #f56c6c; cursor: pointer; font-weight: bold; font-size: 16px; line-height: 1; }
         .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        
+        /* 匯入模態框 */
+        .import-textarea { width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -159,6 +162,15 @@
             <div style="display:flex; gap:10px;">
                 <div class="location-add" style="flex:1; border-color:#e67e22; color:#e67e22;" onclick="createNewLocation('personal')">➕ 新增私人金庫</div>
             </div>
+        </div>
+    </div>
+
+    <div id="importModal" class="location-menu" onclick="if(event.target.id==='importModal') document.getElementById('importModal').style.display='none'">
+        <div class="location-card">
+            <h3 style="margin-top:0;">📥 匯入歷史紀錄</h3>
+            <p style="font-size:12px; color:#666;">請將 JSON 文字貼在下方：</p>
+            <textarea id="importJsonArea" class="import-textarea" placeholder='[{"date":...}]'></textarea>
+            <button class="action-btn" onclick="processImport()">確認匯入</button>
         </div>
     </div>
 
@@ -316,6 +328,7 @@
             </div>
         </h3>
         <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+            <button class="backup-btn" onclick="showImportModal()">📥 匯入</button>
             <button class="backup-btn" onclick="backupData()">💾 備份</button>
             <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:2px 8px; font-size:12px; margin-left:5px;">📥 Excel</button>
         </div>
@@ -342,7 +355,7 @@
         let localRecords = [];
         let currentEditId = null;
         let publicLocationNames = ["蕙儀家"]; 
-        let publicLocationsMeta = {}; // 儲存公開戰場的完整資訊
+        let publicLocationsMeta = {};
         let myLocations = [];
         let myStakes = ["50/20", "100/20"];
 
@@ -519,7 +532,7 @@
             }
         }
 
-        // === 地點管理功能 (個人金庫內) ===
+        // === 地點管理功能 ===
         function toggleLocManager() {
             const area = document.getElementById('manageLocArea');
             area.style.display = area.style.display === 'block' ? 'none' : 'block';
@@ -529,15 +542,13 @@
             const list = document.getElementById('manageLocList');
             list.innerHTML = '';
             
-            // 顯示所有 "公開戰場" (帶有刪除功能)
             Object.keys(publicLocationsMeta).forEach(key => {
                 const loc = publicLocationsMeta[key];
-                if (key !== 'default') { // 預設的蕙儀家不能在這裡刪
+                if (key !== 'default') { 
                     list.innerHTML += `<div class="player-tag" style="border-color:#e67e22; color:#e67e22;">🏠 ${loc.name} <span class="player-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</span></div>`;
                 }
             });
 
-            // 顯示自訂地點
             myLocations.forEach(name => {
                 list.innerHTML += `<div class="player-tag">📍 ${name} <span class="player-delete" onclick="deleteCustomLocation('${name}')">✕</span></div>`;
             });
@@ -560,7 +571,7 @@
             publicList.innerHTML = `<div class="location-item"><div class="loc-name-area" onclick="switchLocation('default', '蕙儀家', 'group')"><span>🏠 蕙儀家 (預設)</span> ${currentLocId === 'default' ? '✅' : ''}</div></div>`;
             privateList.innerHTML = '';
             publicLocationNames = ["蕙儀家"]; 
-            publicLocationsMeta = {}; // 重置
+            publicLocationsMeta = {}; 
 
             db.ref('locations_meta').once('value', snap => {
                 const data = snap.val();
@@ -571,7 +582,7 @@
                         
                         if (type === 'group') {
                             publicLocationNames.push(loc.name);
-                            publicLocationsMeta[key] = loc; // 存下來供小齒輪管理用
+                            publicLocationsMeta[key] = loc; 
                         }
 
                         const icon = type === 'group' ? '🏠' : '🔒';
@@ -588,7 +599,7 @@
                 if (privateList.innerHTML === '') privateList.innerHTML = '<div style="padding:10px; color:#999; font-size:13px; text-align:center;">尚無私人金庫</div>';
                 if (currentLocType === 'personal') {
                     updatePersonalSelects();
-                    renderManageLocList(); // 確保管理介面也更新
+                    renderManageLocList(); 
                 }
             });
         }
@@ -909,6 +920,41 @@
 
         function backupData() {
             const jsonStr = JSON.stringify(localRecords, null, 2); const blob = new Blob([jsonStr], { type: 'application/json' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `麻將備份_${new Date().toISOString().slice(0,10)}.json`; link.click();
+        }
+
+        // 匯入功能 (手機版)
+        function showImportModal() { document.getElementById('importModal').style.display='flex'; }
+        
+        function processImport() {
+            const jsonText = document.getElementById('importJsonArea').value.trim();
+            if (!jsonText) { alert("請先貼上 JSON 資料！"); return; }
+            try {
+                const data = JSON.parse(jsonText);
+                if (!Array.isArray(data)) { alert("格式錯誤：必須是 JSON 陣列 [ ... ]"); return; }
+                
+                // 確認是否為私人模式
+                if (currentLocType === 'personal') {
+                    data.forEach(item => {
+                        recordsRef.push({
+                            date: item.date,
+                            location: item.location || "自動匯入",
+                            score: item.score,
+                            note: item.note || "",
+                            timestamp: Date.now()
+                        });
+                    });
+                } else {
+                    // 公開模式匯入邏輯 (略，因為您的檔案是私人戰績)
+                    alert("⚠️ 這是私人戰績，請先切換到私人金庫再匯入！");
+                    return;
+                }
+                
+                alert("✅ 成功匯入 " + data.length + " 筆資料！");
+                document.getElementById('importModal').style.display='none';
+                document.getElementById('importJsonArea').value = ''; // 清空
+            } catch (e) {
+                alert("❌ JSON 解析失敗：" + e.message);
+            }
         }
     </script>
 </body>
