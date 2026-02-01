@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        /* 全域設定 */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root { --bg-color: #1e6f50; --card-bg: #ffffff; --win-color: #e74c3c; --lose-color: #27ae60; --text-main: #2c3e50; }
 
@@ -19,61 +18,98 @@
             background-color: var(--bg-color); 
             color: var(--text-main); 
             margin: 0; 
-            padding: 10px; 
-            padding-bottom: 50px;
+            padding: 12px; 
+            padding-bottom: 60px;
         }
 
-        h1 { text-align: center; color: #fff; margin: 10px 0; font-size: 20px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        h1 { text-align: center; color: #fff; margin: 5px 0 10px 0; font-size: 20px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
-        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.9); margin-bottom: 10px; }
+        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.9); margin-bottom: 12px; }
         .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .connected { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
 
-        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 15px; width: 100%; }
-        .card h3 { margin: 0 0 10px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; color: var(--bg-color); font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
-
-        /* 總計看板 (新功能) */
-        .dashboard-grid { display: flex; gap: 10px; margin-bottom: 15px; }
-        .dash-box { flex: 1; padding: 10px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .dash-label { font-size: 12px; color: #666; margin-bottom: 4px; }
-        .dash-value { font-size: 18px; font-weight: bold; }
-
-        /* 輸入區 */
-        .top-inputs { display: flex; gap: 8px; margin-bottom: 10px; }
-        .input-group { flex: 1; }
-        .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 2px; text-align: center;}
-        .input-style { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; background: #f9f9f9; text-align: center; height: 38px; }
-
-        .player-row { display: flex; gap: 5px; margin-bottom: 8px; align-items: center; }
-        .name-wrapper { flex: 4; }
-        .name-select, .custom-name { width: 100%; padding: 0 8px; height: 42px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; background: white; appearance: none; -webkit-appearance: none; }
+        /* 卡片容器 */
+        .card { 
+            background: var(--card-bg); 
+            padding: 16px; 
+            border-radius: 16px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            margin-bottom: 15px; 
+            width: 100%; 
+            overflow: hidden; /* 防止內容溢出圓角 */
+        }
         
-        .sign-btn { flex: 0 0 36px; height: 36px; width: 36px; font-size: 20px; font-weight: bold; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .card h3 { margin: 0 0 12px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; color: var(--bg-color); font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* === 修改重點：輸入區版面重構 === */
+        /* 第一行：日期單獨放 */
+        .date-row { margin-bottom: 10px; }
+        .date-row label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; font-weight: bold; }
+        
+        /* 第二行：將數與東錢並排 */
+        .stats-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .stats-group { flex: 1; } /* 一人一半 */
+        .stats-group label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: center; font-weight: bold; }
+        
+        .input-style { 
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 16px; background: #f9f9f9; text-align: center; height: 42px; 
+            min-width: 0; /* 關鍵：防止寬度被撐開 */
+        }
+
+        /* 玩家輸入行 */
+        .player-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
+        
+        .name-wrapper { flex: 4; min-width: 0; } /* 防止名字框撐開 */
+        .name-select, .custom-name { 
+            width: 100%; padding: 0 8px; height: 44px; 
+            border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 15px; background: white; 
+            appearance: none; -webkit-appearance: none; 
+        }
+        
+        .sign-btn { 
+            flex: 0 0 38px; height: 38px; width: 38px; 
+            font-size: 22px; font-weight: bold; border: none; border-radius: 50%; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; 
+        }
         .btn-plus { background-color: #fff; color: var(--win-color); border: 1px solid var(--win-color); }
         .btn-minus { background-color: var(--lose-color); color: white; border: 1px solid var(--lose-color); }
 
-        .score-input { flex: 2.5; padding: 8px; height: 42px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; text-align: center; font-weight: bold; color: var(--text-main); width: 100%; }
+        .score-input { 
+            flex: 2.5; min-width: 0; /* 防止金額框撐開 */
+            padding: 0 5px; height: 44px; 
+            border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 16px; text-align: center; font-weight: bold; color: var(--text-main); 
+        }
 
-        .action-btn { width: 100%; padding: 12px; background-color: var(--text-main); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        .cancel-btn { width: 100%; padding: 10px; background-color: #95a5a6; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
+        /* 總計看板 */
+        .dashboard-grid { display: flex; gap: 10px; margin-bottom: 5px; }
+        .dash-box { flex: 1; padding: 12px 5px; border-radius: 10px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .dash-label { font-size: 11px; color: #666; margin-bottom: 2px; }
+        .dash-value { font-size: 18px; font-weight: bold; line-height: 1.2; }
+
+        /* 按鈕與表格 */
+        .action-btn { width: 100%; padding: 14px; background-color: var(--text-main); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .cancel-btn { width: 100%; padding: 10px; background-color: #95a5a6; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; table-layout: fixed; }
-        th { background-color: #f8f9fa; color: #888; font-weight: 600; padding: 8px 4px; text-align: center; font-size: 13px; }
-        td { padding: 10px 4px; text-align: center; border-bottom: 1px solid #eee; word-wrap: break-word; }
+        th { background-color: #f8f9fa; color: #888; font-weight: 600; padding: 10px 4px; text-align: center; font-size: 13px; border-radius: 4px; }
+        td { padding: 12px 4px; text-align: center; border-bottom: 1px solid #eee; word-wrap: break-word; }
         
         .win-text { color: var(--win-color); font-weight: bold; }
         .lose-text { color: var(--lose-color); font-weight: bold; }
         
-        .rank-badge { display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 50%; background: #eee; font-size: 11px; }
-        .rank-1 { background: #f1c40f; color: white; }
+        .rank-badge { display: inline-block; width: 22px; height: 22px; line-height: 22px; border-radius: 50%; background: #eee; font-size: 12px; }
+        .rank-1 { background: #f1c40f; color: white; box-shadow: 0 2px 4px rgba(241, 196, 15, 0.3); }
         
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .history-date { font-size: 12px; color: #999; margin-bottom: 2px; }
-        .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; margin-top: 4px; font-size: 13px; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .history-date { font-size: 12px; color: #999; margin-bottom: 4px; }
+        .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-top: 5px; font-size: 13px; }
         
-        .edit-btn { background: #f39c12; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 14px; }
-        .delete-btn { background: #ff7675; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 14px; margin-left: 5px;}
-        .error-msg { background: #ffebee; color: #c62828; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; display: none; margin-top: 8px; font-size: 14px;}
+        .edit-btn { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 14px; }
+        .delete-btn { background: #ff7675; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 14px; margin-left: 8px;}
+        .error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; display: none; margin-top: 10px; font-size: 14px;}
         .editing-mode { border: 2px solid #f39c12; }
     </style>
 </head>
@@ -84,20 +120,23 @@
 
     <div class="card" id="inputCard">
         <h3 id="inputTitle"><span>✏️ 新增戰績</span></h3>
-        <div class="top-inputs">
-            <div class="input-group" style="flex:1.2;">
-                <label>日期</label>
-                <input type="date" id="dateInput" class="input-style">
-            </div>
-            <div class="input-group">
+        
+        <div class="date-row">
+            <label>日期</label>
+            <input type="date" id="dateInput" class="input-style">
+        </div>
+        
+        <div class="stats-row">
+            <div class="stats-group">
                 <label>將數</label>
                 <input type="number" id="jiangInput" class="input-style" placeholder="場" value="1" inputmode="numeric">
             </div>
-            <div class="input-group">
+            <div class="stats-group">
                 <label>東錢</label>
                 <input type="number" id="dongInput" class="input-style" placeholder="$" value="0" inputmode="numeric">
             </div>
         </div>
+
         <div id="playersArea"></div>
         <p id="errorMsg" class="error-msg"></p>
         <button class="action-btn" id="saveBtn" onclick="saveData()">儲存紀錄</button>
@@ -114,7 +153,6 @@
 
     <div class="card">
         <h3>📊 統計數據</h3>
-        
         <div class="dashboard-grid">
             <div class="dash-box" style="background: #e8f5e9;">
                 <div class="dash-label">歷史總將數</div>
@@ -125,7 +163,6 @@
                 <div class="dash-value" style="color: #ef6c00;" id="grandTotalDong">$0</div>
             </div>
         </div>
-
         <table>
             <thead><tr><th>月份</th><th>場次</th><th>東錢</th></tr></thead>
             <tbody id="monthlyStatsBody"><tr><td colspan="3">計算中...</td></tr></tbody>
@@ -392,11 +429,11 @@
                 });
             }
 
-            // 統計計算 (月度 + 總歷史)
+            // 統計計算
             let monthlyData = {}; 
             let yearlyJiang = {}; 
-            let grandTotalJiang = 0; // 歷史總將數
-            let grandTotalDong = 0; // 歷史總東錢
+            let grandTotalJiang = 0; 
+            let grandTotalDong = 0; 
 
             localRecords.forEach(rec => {
                 let dateObj = new Date(rec.date);
@@ -413,12 +450,10 @@
                 monthlyData[key].dong += d;
                 yearlyJiang[year] += j;
                 
-                // 累加歷史總額
                 grandTotalJiang += j;
                 grandTotalDong += d;
             });
 
-            // 更新總計看板 DOM
             document.getElementById('grandTotalJiang').innerText = grandTotalJiang;
             document.getElementById('grandTotalDong').innerText = "$" + grandTotalDong;
 
