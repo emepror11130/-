@@ -43,7 +43,7 @@
         
         .card h3 { margin: 0 0 12px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; color: var(--bg-color); font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* === 輸入區 === */
+        /* === 輸入區修正 === */
         .row-date { margin-bottom: 12px; }
         .row-date label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
@@ -51,24 +51,37 @@
         .col-half { flex: 1; }
         .col-half label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
-        /* === 修正重點：日期置中 (針對 iOS) === */
+        /* 統一輸入框樣式 */
         .input-style { 
-            width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 16px; background: #f9f9f9; color: #333; line-height: normal;
+            width: 100%; 
+            height: 44px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            background: #f9f9f9; 
+            color: #333;
+            /* 讓文字垂直置中的關鍵 */
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        
-        /* 針對 date 類型的特殊處理 */
+
+        /* 針對日期輸入框的特殊修正 (解決 iOS 偏上問題) */
         input[type="date"] {
             -webkit-appearance: none;
             appearance: none;
-            display: block;
-            text-align: center; /* 一般瀏覽器 */
-            width: 100%;
+            display: flex; /* 使用 Flexbox 強制內容置中 */
+            align-items: center;
+            justify-content: center;
+            line-height: normal; /* 重置行高 */
+            padding-top: 0;
+            padding-bottom: 0;
         }
-        /* iOS Safari 專用置中修正 */
+        /* 修正 iOS 內部的 date 值 */
         input[type="date"]::-webkit-date-and-time-value {
-            text-align: center;
-            display: inline-block;
+            line-height: 1.5; /* 調整行高比例 */
+            padding-top: 2px; /* 微調 */
         }
 
         /* 玩家行 */
@@ -121,18 +134,17 @@
         .rank-boss { background: #2c3e50; color: #f1c40f; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-block; width: auto; height: auto; line-height: normal; }
         .rank-other { background: #eee; font-size: 12px; color: #666; }
 
-        /* 儀表板 */
         .dashboard-grid { display: flex; gap: 10px; margin-bottom: 5px; }
         .dash-box { flex: 1; padding: 12px 5px; border-radius: 10px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .dash-label { font-size: 11px; color: #666; margin-bottom: 2px; }
         .dash-value { font-size: 18px; font-weight: bold; line-height: 1.2; }
 
-        /* 歷史紀錄與節日標籤 */
+        /* 歷史紀錄與節日標籤樣式 */
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
         .history-header { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .history-date { font-size: 13px; color: #333; font-weight: 500; }
-        .history-tag { font-size: 11px; padding: 1px 5px; border-radius: 4px; display: inline-block; }
-        .tag-holiday { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; } /* 節日紅 */
+        .history-tag { font-size: 11px; padding: 1px 5px; border-radius: 4px; display: inline-block; white-space: nowrap; }
+        .tag-holiday { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; font-weight: bold; } /* 節日紅 */
         .tag-lunar { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; } /* 初一十五藍 */
         .tag-info { background-color: #f5f5f5; color: #666; border: 1px solid #e0e0e0; }
         
@@ -232,7 +244,6 @@
         let localRecords = [];
         let currentEditId = null;
         
-        // 選手名單順序
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "學姊", "H", "盛安", "一中"];
         let allPlayers = [...DEFAULT_PLAYERS];
 
@@ -474,7 +485,7 @@
             if (currentEditId === id) cancelEdit();
         }
 
-        // 核心功能：計算節日名稱
+        // 節日計算核心
         function getHolidayTag(dateStr) {
             try {
                 const dateParts = dateStr.split('-');
@@ -482,7 +493,7 @@
                 const m = parseInt(dateParts[1]);
                 const d = parseInt(dateParts[2]);
                 
-                // 1. 檢查國曆固定節日
+                // 1. 國曆固定節日
                 if (m === 2 && d === 14) return '<span class="history-tag tag-holiday">💘 情人節</span>';
                 if (m === 12 && d === 25) return '<span class="history-tag tag-holiday">🎄 聖誕節</span>';
                 if (m === 1 && d === 1) return '<span class="history-tag tag-holiday">🎉 元旦</span>';
@@ -493,7 +504,7 @@
                 const lMonth = lunar.getMonth();
                 const lDay = lunar.getDay();
 
-                // 3. 檢查農曆重要節日
+                // 3. 農曆節日
                 if (lMonth === 1 && lDay === 1) return '<span class="history-tag tag-holiday">🧧 春節</span>';
                 if (lMonth === 1 && lDay === 15) return '<span class="history-tag tag-holiday">🏮 元宵</span>';
                 if (lMonth === 5 && lDay === 5) return '<span class="history-tag tag-holiday">🐉 端午</span>';
@@ -501,7 +512,7 @@
                 if (lMonth === 7 && lDay === 15) return '<span class="history-tag tag-holiday">👻 中元</span>';
                 if (lMonth === 8 && lDay === 15) return '<span class="history-tag tag-holiday">🥮 中秋</span>';
                 
-                // 除夕判斷 (年的最後一天)
+                // 除夕
                 const nextDay = Lunar.fromDate(new Date(y, m - 1, d + 1));
                 if (nextDay.getYear() !== lunar.getYear()) return '<span class="history-tag tag-holiday">🍲 除夕</span>';
 
@@ -528,7 +539,6 @@
                     return `<div><span>${p.name}</span> <span class="${colorClass}">${sign}${p.score}</span></div>`;
                 }).join('');
 
-                // 取得節日標籤
                 let holidayTag = getHolidayTag(rec.date);
                 let infoTags = "";
                 if (rec.jiangCount) infoTags += `<span class="history-tag tag-info">🀄 ${rec.jiangCount}將</span>`;
@@ -553,7 +563,6 @@
                 listDiv.appendChild(item);
             });
 
-            // 總結算
             let stats = {};
             localRecords.forEach(rec => {
                 rec.details.forEach(p => {
@@ -579,7 +588,6 @@
                     else if(index === 1) { rankContent = '🥈'; rankClass = "rank-2"; }
                     else if(index === 2) { rankContent = '🥉'; rankClass = "rank-3"; }
 
-                    // 老闆標籤邏輯：如果是最後一名，且總人數大於1
                     if (index === sortedStats.length - 1 && sortedStats.length > 1) {
                         rankContent = '老闆';
                         rankClass = 'rank-boss';
@@ -593,7 +601,6 @@
                 });
             }
 
-            // 統計計算
             let monthlyData = {}; 
             let yearlyJiang = {}; 
             let grandTotalJiang = 0; 
