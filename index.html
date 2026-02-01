@@ -28,7 +28,6 @@
         .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .connected { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
 
-        /* 卡片容器 */
         .card { 
             background: var(--card-bg); 
             padding: 16px; 
@@ -36,60 +35,73 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
             margin-bottom: 15px; 
             width: 100%; 
-            overflow: hidden; /* 防止內容溢出圓角 */
+            overflow: hidden; 
         }
         
         .card h3 { margin: 0 0 12px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; color: var(--bg-color); font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* === 修改重點：輸入區版面重構 === */
-        /* 第一行：日期單獨放 */
-        .date-row { margin-bottom: 10px; }
-        .date-row label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; font-weight: bold; }
+        /* === 輸入區優化 === */
+        .row-date { margin-bottom: 12px; }
+        .row-date label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
-        /* 第二行：將數與東錢並排 */
-        .stats-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .stats-group { flex: 1; } /* 一人一半 */
-        .stats-group label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: center; font-weight: bold; }
+        .row-stats { display: flex; gap: 12px; margin-bottom: 20px; }
+        .col-half { flex: 1; }
+        .col-half label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
+        /* 統一輸入框樣式，確保高度一致 */
         .input-style { 
-            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 16px; background: #f9f9f9; text-align: center; height: 42px; 
-            min-width: 0; /* 關鍵：防止寬度被撐開 */
+            width: 100%; 
+            height: 44px; /* 強制高度 */
+            padding: 0 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            background: #f9f9f9; 
+            color: #333;
+            line-height: normal; /* 修正文字垂直對齊 */
         }
-
-        /* 玩家輸入行 */
-        .player-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
         
-        .name-wrapper { flex: 4; min-width: 0; } /* 防止名字框撐開 */
+        input[type="date"] { -webkit-appearance: none; display: block; }
+
+        /* 玩家行 */
+        .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+        
+        .name-wrapper { flex: 1; min-width: 0; position: relative; } 
+        
         .name-select, .custom-name { 
-            width: 100%; padding: 0 8px; height: 44px; 
+            width: 100%; height: 44px; padding: 0 10px; 
             border: 1px solid #ddd; border-radius: 8px; 
             font-size: 15px; background: white; 
             appearance: none; -webkit-appearance: none; 
+            color: #333;
         }
-        
+        .name-select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+        }
+
         .sign-btn { 
-            flex: 0 0 38px; height: 38px; width: 38px; 
-            font-size: 22px; font-weight: bold; border: none; border-radius: 50%; cursor: pointer; 
+            flex: 0 0 40px; height: 40px; width: 40px; 
+            font-size: 24px; font-weight: bold; border: none; border-radius: 50%; cursor: pointer; 
             display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .btn-plus { background-color: #fff; color: var(--win-color); border: 1px solid var(--win-color); }
-        .btn-minus { background-color: var(--lose-color); color: white; border: 1px solid var(--lose-color); }
+        .btn-plus { background-color: #fff; color: var(--win-color); border: 1.5px solid var(--win-color); }
+        .btn-minus { background-color: var(--lose-color); color: white; border: 1.5px solid var(--lose-color); }
 
         .score-input { 
-            flex: 2.5; min-width: 0; /* 防止金額框撐開 */
-            padding: 0 5px; height: 44px; 
+            width: 80px; height: 44px; padding: 0 5px; 
             border: 1px solid #ddd; border-radius: 8px; 
             font-size: 16px; text-align: center; font-weight: bold; color: var(--text-main); 
         }
 
-        /* 總計看板 */
         .dashboard-grid { display: flex; gap: 10px; margin-bottom: 5px; }
         .dash-box { flex: 1; padding: 12px 5px; border-radius: 10px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .dash-label { font-size: 11px; color: #666; margin-bottom: 2px; }
         .dash-value { font-size: 18px; font-weight: bold; line-height: 1.2; }
 
-        /* 按鈕與表格 */
         .action-btn { width: 100%; padding: 14px; background-color: var(--text-main); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .cancel-btn { width: 100%; padding: 10px; background-color: #95a5a6; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
@@ -121,17 +133,17 @@
     <div class="card" id="inputCard">
         <h3 id="inputTitle"><span>✏️ 新增戰績</span></h3>
         
-        <div class="date-row">
+        <div class="row-date">
             <label>日期</label>
             <input type="date" id="dateInput" class="input-style">
         </div>
         
-        <div class="stats-row">
-            <div class="stats-group">
+        <div class="row-stats">
+            <div class="col-half">
                 <label>將數</label>
                 <input type="number" id="jiangInput" class="input-style" placeholder="場" value="1" inputmode="numeric">
             </div>
-            <div class="stats-group">
+            <div class="col-half">
                 <label>東錢</label>
                 <input type="number" id="dongInput" class="input-style" placeholder="$" value="0" inputmode="numeric">
             </div>
@@ -196,9 +208,16 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const recordsRef = db.ref('records');
+        const playersRef = db.ref('players'); // 新增：玩家名單的資料庫位置
+
         let localRecords = [];
         let currentEditId = null;
+        
+        // 預設名單 (如果雲端是空的，會用這組初始化)
+        const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "H", "學姊", "一中", "盛安"];
+        let allPlayers = [...DEFAULT_PLAYERS];
 
+        // 1. 連線狀態監聽
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
             const dot = document.getElementById('dot');
@@ -209,6 +228,22 @@
             }
         });
 
+        // 2. 監聽玩家名單 (新增功能)
+        playersRef.on('value', (snap) => {
+            const data = snap.val();
+            if (data) {
+                // 如果雲端有資料，就用雲端的
+                allPlayers = Object.keys(data);
+            } else {
+                // 如果雲端沒資料 (第一次執行)，把預設名單存上去
+                let updates = {};
+                DEFAULT_PLAYERS.forEach(name => updates[name] = true);
+                playersRef.update(updates);
+            }
+            updateAllPlayerSelects(); // 更新介面選單
+        });
+
+        // 3. 監聽戰績資料
         recordsRef.on('value', (snapshot) => {
             const data = snapshot.val();
             localRecords = [];
@@ -221,23 +256,19 @@
             render();
         });
 
-        const PREDEFINED_NAMES = ["宥辰", "夏瑋", "H", "學姊", "一中", "盛安"];
         document.getElementById('dateInput').valueAsDate = new Date();
-        initPlayerInputs();
+        initPlayerInputs(); // 建立 HTML 結構
 
+        // 建立 4 個玩家的輸入列 (只建立結構，選項內容由 updateAllPlayerSelects 填入)
         function initPlayerInputs() {
             const container = document.getElementById('playersArea');
             let html = '';
-            let optionsHtml = `<option value="" disabled selected>選擇</option>`;
-            PREDEFINED_NAMES.forEach(name => optionsHtml += `<option value="${name}">${name}</option>`);
-            optionsHtml += `<option value="Other">自訂...</option>`;
-
             for (let i = 1; i <= 4; i++) {
                 html += `
                 <div class="player-row">
                     <div class="name-wrapper">
-                        <select class="name-select" onchange="handleNameChange(this)">${optionsHtml}</select>
-                        <input type="text" class="custom-name" placeholder="名字">
+                        <select class="name-select" onchange="handleNameChange(this)"></select>
+                        <input type="text" class="custom-name" placeholder="輸入名字" style="display:none;">
                     </div>
                     <button class="sign-btn btn-plus" onclick="toggleSign(this)">+</button>
                     <input type="number" class="score-input" placeholder="0" inputmode="numeric">
@@ -246,11 +277,65 @@
             container.innerHTML = html;
         }
 
+        // 更新所有下拉選單的內容
+        function updateAllPlayerSelects() {
+            // 產生選項 HTML
+            let optionsHtml = `<option value="" disabled selected>請選擇玩家...</option>`;
+            
+            // 填入所有玩家
+            allPlayers.forEach(name => {
+                optionsHtml += `<option value="${name}">${name}</option>`;
+            });
+            
+            // 加入功能選項
+            optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
+            optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
+
+            // 更新每一個下拉選單
+            document.querySelectorAll('.name-select').forEach(select => {
+                const currentVal = select.value; // 記住現在選的人
+                select.innerHTML = optionsHtml;
+                
+                // 嘗試還原選擇
+                if (currentVal && allPlayers.includes(currentVal)) {
+                    select.value = currentVal;
+                } else if (currentVal === 'Other' || currentVal === 'ADD_NEW') {
+                    // 特殊選項不還原，讓使用者重選或保持狀態
+                }
+            });
+        }
+
         function handleNameChange(select) {
             const wrapper = select.parentElement;
             const custom = wrapper.querySelector('.custom-name');
-            if (select.value === 'Other') { select.style.display='none'; custom.style.display='block'; custom.focus(); }
-            else { custom.style.display='none'; select.style.display='block'; custom.value=''; }
+            const val = select.value;
+
+            if (val === 'Other') {
+                // 單次自訂模式
+                select.style.display = 'none';
+                custom.style.display = 'block';
+                custom.focus();
+            } else if (val === 'ADD_NEW') {
+                // 新增固定牌友模式
+                const newName = prompt("請輸入新牌友的名字 (將會儲存到選單中)：");
+                if (newName && newName.trim() !== "") {
+                    // 儲存到 Firebase
+                    playersRef.child(newName.trim()).set(true).then(() => {
+                        // Firebase 監聽會觸發 updateAllPlayerSelects
+                        // 我們只需要稍微延遲一下，把這個選單選成新名字
+                        setTimeout(() => {
+                            select.value = newName.trim();
+                        }, 100);
+                    });
+                } else {
+                    select.value = ""; // 取消或沒輸入，重置
+                }
+            } else {
+                // 正常選擇模式
+                custom.style.display = 'none';
+                select.style.display = 'block';
+                custom.value = '';
+            }
         }
 
         function toggleSign(btn) {
@@ -274,8 +359,15 @@
                 const signBtn = row.querySelector('.sign-btn');
                 const scoreInput = row.querySelector('.score-input');
                 
-                let name = select.style.display !== 'none' ? select.value : customInput.value.trim();
-                if (!name || name === "Other") { showError("⚠️ 請輸入名字"); return; }
+                let name = "";
+                if (select.style.display !== 'none') {
+                    name = select.value;
+                    if (name === "ADD_NEW") name = ""; // 防呆
+                } else {
+                    name = customInput.value.trim();
+                }
+
+                if (!name) { showError("⚠️ 請輸入/選擇玩家名字"); return; }
                 if (namesCheck.has(name)) { showError(`⚠️ 名字重複：${name}`); return; }
                 namesCheck.add(name);
 
@@ -326,10 +418,17 @@
                     const score = row.querySelector('.score-input');
                     const btn = row.querySelector('.sign-btn');
 
-                    if (PREDEFINED_NAMES.includes(p.name)) {
-                        select.value = p.name; select.style.display = 'block'; custom.style.display = 'none';
+                    // 判斷是否在名單內
+                    if (allPlayers.includes(p.name)) {
+                        select.value = p.name; 
+                        select.style.display = 'block'; 
+                        custom.style.display = 'none';
                     } else {
-                        select.value = 'Other'; select.style.display = 'none'; custom.style.display = 'block'; custom.value = p.name;
+                        // 如果是以前的舊名字或是單次自訂
+                        select.value = 'Other'; 
+                        select.style.display = 'none'; 
+                        custom.style.display = 'block'; 
+                        custom.value = p.name;
                     }
 
                     score.value = Math.abs(p.score);
@@ -363,6 +462,13 @@
                 row.querySelector('.score-input').value = '';
                 let btn = row.querySelector('.sign-btn');
                 btn.innerText = '+'; btn.className = 'sign-btn btn-plus';
+                
+                // 重置下拉選單
+                const select = row.querySelector('.name-select');
+                const custom = row.querySelector('.custom-name');
+                select.value = "";
+                select.style.display = 'block';
+                custom.style.display = 'none';
             });
             document.getElementById('dongInput').value = 0;
             document.getElementById('jiangInput').value = 1;
