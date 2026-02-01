@@ -143,30 +143,28 @@
         .win-text { color: var(--win-color); font-weight: bold; }
         .lose-text { color: var(--lose-color); font-weight: bold; }
         
-        /* 排名徽章 (預設圓形) */
+        /* 排名徽章 */
         .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 14px; font-weight: bold; }
         .rank-1 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
         .rank-2 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
         .rank-3 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
         .rank-other { background: #eee; font-size: 12px; color: #666; }
         
-        /* === 修正後的黑金老闆樣式 === */
-        /* 強制覆蓋 width/height 讓文字能展開 */
+        /* === 修正後的「老闆」樣式：簡約白底金框 === */
         .rank-badge.rank-boss { 
             width: auto !important;
             height: auto !important;
-            background: #2c3e50; /* 深色背景 */
-            color: #ffd700; /* 金字 */
+            background: #fff;
+            color: #f39c12; /* 金橘色文字 */
+            border: 1px solid #f39c12; /* 金橘色邊框 */
             font-size: 11px;
-            padding: 2px 8px; /* 增加內距 */
-            border-radius: 20px; /* 膠囊形狀 */
-            border: 1px solid #ffd700;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            line-height: 1.4;
+            padding: 2px 8px;
+            border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            vertical-align: middle;
+            font-weight: 700;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .dashboard-grid { display: flex; gap: 12px; margin-bottom: 8px; }
@@ -249,12 +247,17 @@
             background: #fff; border-radius: 14px; margin-bottom: 12px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; 
             /* 改用 border-left 確保切齊 */
+            position: relative; 
             transition: box-shadow 0.2s;
         }
         .year-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
         
-        .year-card.win { border-left: 6px solid #e74c3c; }
-        .year-card.lose { border-left: 6px solid #27ae60; }
+        /* 使用偽元素製作完美貼齊的邊框 */
+        .year-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; z-index: 1;
+        }
+        .year-card.win::before { background-color: #e74c3c; }
+        .year-card.lose::before { background-color: #27ae60; }
         
         .year-header { 
             padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; 
