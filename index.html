@@ -59,12 +59,11 @@
         .btn-plus { background: #fff; color: var(--win-color); border: 1.5px solid var(--win-color); }
         .btn-minus { background: var(--lose-color); color: white; border: 1.5px solid var(--lose-color); }
 
-        /* 大牌紀錄區塊 (新版選單樣式) */
+        /* 大牌紀錄區塊 */
         .highlight-section { background: #fffcf5; border: 1px solid #fae588; border-radius: 10px; padding: 10px; margin-top: 15px; margin-bottom: 5px; }
         .highlight-toggle { color: #f39c12; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-top: 10px; }
         .highlight-inputs { display: none; margin-top: 10px; }
         
-        /* 選單通用樣式 */
         .mem-select { width: 100%; height: 44px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: 15px; padding: 0 10px; color: #333; }
 
         /* 個人模式樣式 */
@@ -343,6 +342,7 @@
         let localRecords = [];
         let currentEditId = null;
         let publicLocationNames = ["蕙儀家"]; 
+        let publicLocationsMeta = {}; // 儲存公開戰場的完整資訊
         let myLocations = [];
         let myStakes = ["50/20", "100/20"];
 
@@ -352,7 +352,7 @@
         let allPlayers = [...DEFAULT_PLAYERS];
 
         initLocation('default', '蕙儀家', 'group');
-        initSelectOptions(); // 初始化選單
+        initSelectOptions(); 
 
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
@@ -364,7 +364,6 @@
             }
         });
 
-        // 初始化選單選項 (牌型 & 台數)
         function initSelectOptions() {
             let handHtml = '<option value="">選擇牌型 (選填)</option>';
             HAND_TYPES.forEach(h => handHtml += `<option value="${h}">${h}</option>`);
@@ -459,7 +458,7 @@
                 if (data.myLocations) myLocations = Object.keys(data.myLocations); else myLocations = [];
                 if (data.myStakes) myStakes = Object.keys(data.myStakes); else myStakes = ["50/20", "100/20"];
                 updatePersonalSelects();
-                renderManageLocList(); // 更新管理列表
+                renderManageLocList(); 
             });
         }
 
@@ -467,10 +466,8 @@
             const locSelect = document.getElementById('personalLocSelect');
             const stakeSelect = document.getElementById('personalStakeSelect');
             
-            // 地點選單：只顯示公開戰場
             let locHtml = `<option value="" disabled selected>請選擇地點...</option>`;
             publicLocationNames.forEach(name => { locHtml += `<option value="${name}">🏠 ${name}</option>`; });
-            // 加上自訂地點
             myLocations.forEach(name => {
                 if (!publicLocationNames.includes(name)) { locHtml += `<option value="${name}">📍 ${name}</option>`; }
             });
@@ -522,7 +519,7 @@
             }
         }
 
-        // === 地點管理功能 ===
+        // === 地點管理功能 (個人金庫內) ===
         function toggleLocManager() {
             const area = document.getElementById('manageLocArea');
             area.style.display = area.style.display === 'block' ? 'none' : 'block';
@@ -531,8 +528,18 @@
         function renderManageLocList() {
             const list = document.getElementById('manageLocList');
             list.innerHTML = '';
+            
+            // 顯示所有 "公開戰場" (帶有刪除功能)
+            Object.keys(publicLocationsMeta).forEach(key => {
+                const loc = publicLocationsMeta[key];
+                if (key !== 'default') { // 預設的蕙儀家不能在這裡刪
+                    list.innerHTML += `<div class="player-tag" style="border-color:#e67e22; color:#e67e22;">🏠 ${loc.name} <span class="player-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</span></div>`;
+                }
+            });
+
+            // 顯示自訂地點
             myLocations.forEach(name => {
-                list.innerHTML += `<div class="player-tag">${name} <span class="player-delete" onclick="deleteCustomLocation('${name}')">✕</span></div>`;
+                list.innerHTML += `<div class="player-tag">📍 ${name} <span class="player-delete" onclick="deleteCustomLocation('${name}')">✕</span></div>`;
             });
         }
 
@@ -553,6 +560,7 @@
             publicList.innerHTML = `<div class="location-item"><div class="loc-name-area" onclick="switchLocation('default', '蕙儀家', 'group')"><span>🏠 蕙儀家 (預設)</span> ${currentLocId === 'default' ? '✅' : ''}</div></div>`;
             privateList.innerHTML = '';
             publicLocationNames = ["蕙儀家"]; 
+            publicLocationsMeta = {}; // 重置
 
             db.ref('locations_meta').once('value', snap => {
                 const data = snap.val();
@@ -560,15 +568,28 @@
                     Object.keys(data).forEach(key => {
                         const loc = data[key];
                         const type = loc.type || 'group'; 
-                        if (type === 'group') publicLocationNames.push(loc.name);
+                        
+                        if (type === 'group') {
+                            publicLocationNames.push(loc.name);
+                            publicLocationsMeta[key] = loc; // 存下來供小齒輪管理用
+                        }
+
                         const icon = type === 'group' ? '🏠' : '🔒';
                         const check = currentLocId === key ? '✅' : '';
                         const html = `<div class="location-item"><div class="loc-name-area" onclick="verifyAndSwitch('${key}', '${loc.name}', '${loc.password}', '${type}')"><span>${icon} ${loc.name}</span> ${check}</div><div class="loc-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</div></div>`;
-                        if (type !== 'group') privateList.innerHTML += html;
+                        
+                        if (type === 'group') {
+                            publicList.innerHTML += html; 
+                        } else {
+                            privateList.innerHTML += html;
+                        }
                     });
                 }
                 if (privateList.innerHTML === '') privateList.innerHTML = '<div style="padding:10px; color:#999; font-size:13px; text-align:center;">尚無私人金庫</div>';
-                if (currentLocType === 'personal') updatePersonalSelects();
+                if (currentLocType === 'personal') {
+                    updatePersonalSelects();
+                    renderManageLocList(); // 確保管理介面也更新
+                }
             });
         }
 
@@ -603,10 +624,6 @@
         function switchLocation(id, name, type) {
             initLocation(id, name, type);
             document.getElementById('locationModal').style.display = 'none';
-        }
-
-        function updateLocationSuggestions() {
-            // Replaced by updatePersonalSelects
         }
 
         // === 既有邏輯 ===
