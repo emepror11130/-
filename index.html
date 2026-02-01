@@ -59,12 +59,13 @@
         .btn-plus { background: #fff; color: var(--win-color); border: 1.5px solid var(--win-color); }
         .btn-minus { background: var(--lose-color); color: white; border: 1.5px solid var(--lose-color); }
 
-        /* 大牌紀錄區塊 */
+        /* 大牌紀錄區塊 (新版選單樣式) */
         .highlight-section { background: #fffcf5; border: 1px solid #fae588; border-radius: 10px; padding: 10px; margin-top: 15px; margin-bottom: 5px; }
         .highlight-toggle { color: #f39c12; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-top: 10px; }
         .highlight-inputs { display: none; margin-top: 10px; }
-        .hand-select { width: 100%; height: 40px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; padding: 0 8px; font-size: 14px; }
-        .tai-input { width: 100%; height: 40px; border: 1px solid #ddd; border-radius: 6px; padding: 0 10px; text-align: center; font-size: 14px; }
+        
+        /* 選單通用樣式 */
+        .mem-select { width: 100%; height: 44px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: 15px; padding: 0 10px; color: #333; }
 
         /* 個人模式樣式 */
         .personal-mode .input-row { margin-bottom: 12px; }
@@ -190,17 +191,16 @@
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1;">
                         <label style="font-size:12px; color:#888;">贏家</label>
-                        <select id="hlWinnerSelect" class="hand-select"></select>
+                        <select id="hlWinnerSelect" class="mem-select"></select>
                     </div>
                     <div style="flex:1;">
                         <label style="font-size:12px; color:#888;">台數</label>
-                        <input type="number" id="hlTaiInput" class="tai-input" placeholder="台" inputmode="numeric">
+                        <select id="hlTaiSelect" class="mem-select"></select>
                     </div>
                 </div>
-                <div>
+                <div style="margin-top:8px;">
                     <label style="font-size:12px; color:#888;">牌型</label>
-                    <input type="text" id="hlHandInput" class="hand-select" list="handTypes" placeholder="例如: 碰碰胡">
-                    <datalist id="handTypes"></datalist>
+                    <select id="hlHandSelect" class="mem-select"></select>
                 </div>
             </div>
         </div>
@@ -233,8 +233,8 @@
             <div style="background:#f9f9f9; padding:10px; border-radius:8px; margin-top:10px;">
                 <label style="color:#f39c12; font-weight:bold;">✨ 難忘回憶 (選填)</label>
                 <div style="display:flex; gap:10px; margin-top:5px;">
-                    <input type="text" id="pHandInput" class="hand-select" list="handTypes" placeholder="牌型 (如: 清一色)" style="margin-bottom:0;">
-                    <input type="number" id="pTaiInput" class="tai-input" placeholder="台數" inputmode="numeric" style="width:80px;">
+                    <select id="pHandSelect" class="mem-select" style="flex:2;"></select>
+                    <select id="pTaiSelect" class="mem-select" style="flex:1;"></select>
                 </div>
             </div>
         </div>
@@ -335,16 +335,15 @@
         let localRecords = [];
         let currentEditId = null;
         let publicLocationNames = ["蕙儀家"]; 
-        let myLocations = [];
         let myStakes = ["50/20", "100/20"];
 
         const SAFETY_PASSWORD = "8888"; 
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
-        const HAND_TYPES = ["碰碰胡", "平胡", "清一色", "混一色", "三暗刻", "四暗刻", "五暗刻", "門清自摸", "全求人", "大三元", "小三元", "大四喜", "小四喜", "字一色", "七搶一", "八仙過海", "天胡", "地胡", "人胡", "流局"];
+        const HAND_TYPES = ["平胡", "碰碰胡", "混一色", "清一色", "三暗刻", "四暗刻", "五暗刻", "門清自摸", "全求人", "大三元", "小三元", "大四喜", "小四喜", "字一色", "七搶一", "八仙過海", "天胡", "地胡", "人胡", "流局"];
         let allPlayers = [...DEFAULT_PLAYERS];
 
         initLocation('default', '蕙儀家', 'group');
-        initHandTypes();
+        initSelectOptions(); // 初始化選單
 
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
@@ -356,11 +355,17 @@
             }
         });
 
-        function initHandTypes() {
-            const dl = document.getElementById('handTypes');
-            let html = '';
-            HAND_TYPES.forEach(h => html += `<option value="${h}">`);
-            dl.innerHTML = html;
+        // 初始化選單選項 (牌型 & 台數)
+        function initSelectOptions() {
+            let handHtml = '<option value="">選擇牌型 (選填)</option>';
+            HAND_TYPES.forEach(h => handHtml += `<option value="${h}">${h}</option>`);
+            document.getElementById('hlHandSelect').innerHTML = handHtml;
+            document.getElementById('pHandSelect').innerHTML = handHtml;
+
+            let taiHtml = '<option value="">台數 (選填)</option>';
+            for(let i=1; i<=30; i++) taiHtml += `<option value="${i}">${i}台</option>`;
+            document.getElementById('hlTaiSelect').innerHTML = taiHtml;
+            document.getElementById('pTaiSelect').innerHTML = taiHtml;
         }
 
         // === 核心：初始化與切換 ===
@@ -411,7 +416,7 @@
                 personalCancelCtrl.classList.remove('hidden');
                 document.getElementById('statsTitle').innerText = "💰 我的金庫";
                 
-                updateLocationSuggestions();
+                updatePersonalSelects();
             }
             cancelEdit();
         }
@@ -442,7 +447,6 @@
             listenToRecords();
             settingsRef.on('value', snap => {
                 const data = snap.val() || {};
-                if (data.myLocations) myLocations = Object.keys(data.myLocations); else myLocations = [];
                 if (data.myStakes) myStakes = Object.keys(data.myStakes); else myStakes = ["50/20", "100/20"];
                 updatePersonalSelects();
             });
@@ -452,11 +456,9 @@
             const locSelect = document.getElementById('personalLocSelect');
             const stakeSelect = document.getElementById('personalStakeSelect');
             
+            // 地點選單：只顯示公開戰場
             let locHtml = `<option value="" disabled selected>請選擇地點...</option>`;
             publicLocationNames.forEach(name => { locHtml += `<option value="${name}">🏠 ${name}</option>`; });
-            myLocations.forEach(name => {
-                if (!publicLocationNames.includes(name)) { locHtml += `<option value="${name}">📍 ${name}</option>`; }
-            });
             locHtml += `<option value="CUSTOM" style="color:#e67e22;">✏️ 自訂地點...</option>`;
             locSelect.innerHTML = locHtml;
 
@@ -494,7 +496,6 @@
             const el = document.getElementById('highlightInputs');
             el.style.display = el.style.display === 'block' ? 'none' : 'block';
             if(el.style.display === 'block') {
-                // 更新贏家選單
                 const rows = document.querySelectorAll('.player-row .name-select');
                 const winnerSelect = document.getElementById('hlWinnerSelect');
                 let html = '<option value="">請選擇贏家</option>';
@@ -567,10 +568,6 @@
         function switchLocation(id, name, type) {
             initLocation(id, name, type);
             document.getElementById('locationModal').style.display = 'none';
-        }
-
-        function updateLocationSuggestions() {
-            // 這個 function 在新版用 updatePersonalSelects 取代
         }
 
         // === 既有邏輯 ===
@@ -646,7 +643,9 @@
         }
 
         function saveData() {
+            // 只有在公開群組模式才需要密碼驗證
             if (currentEditId && currentLocType === 'group') { if (!checkPassword()) { alert("❌ 密碼錯誤"); return; } }
+            
             const date = document.getElementById('dateInput').value;
             let recordData = { date: date, timestamp: Date.now() };
 
@@ -666,10 +665,9 @@
                 }
                 if (totalScore !== 0) { showError(`⚠️ 帳目不平！目前 ${totalScore}`); return; }
                 
-                // 儲存大牌紀錄
                 const hlWinner = document.getElementById('hlWinnerSelect').value;
-                const hlHand = document.getElementById('hlHandInput').value.trim();
-                const hlTai = document.getElementById('hlTaiInput').value;
+                const hlHand = document.getElementById('hlHandSelect').value;
+                const hlTai = document.getElementById('hlTaiSelect').value;
                 if (hlWinner && hlHand) {
                     recordData.highlight = { player: hlWinner, hand: hlHand, tai: parseInt(hlTai) || 0 };
                 }
@@ -685,13 +683,11 @@
                 if (isNaN(score)) { showError("⚠️ 請輸入金額"); return; }
                 let finalScore = Math.abs(score) * (signBtn.innerText === '+' ? 1 : -1);
                 
-                // 個人大牌
-                const pHand = document.getElementById('pHandInput').value.trim();
-                const pTai = document.getElementById('pTaiInput').value;
+                const pHand = document.getElementById('pHandSelect').value;
+                const pTai = document.getElementById('pTaiSelect').value;
                 if (pHand) recordData.highlight = { hand: pHand, tai: parseInt(pTai) || 0 };
 
                 recordData.location = loc; recordData.score = finalScore; recordData.note = stake;
-                if (locSelect.style.display === 'none' && !myLocations.includes(loc)) settingsRef.child('myLocations/' + loc).set(true);
                 if (stakeSelect.style.display === 'none' && stake && !myStakes.includes(stake)) settingsRef.child('myStakes/' + stake).set(true);
             }
 
@@ -704,14 +700,11 @@
             document.getElementById('dateInput').value = record.date;
             if (currentLocType === 'group') {
                 document.getElementById('jiangInput').value = record.jiangCount || 0; document.getElementById('dongInput').value = record.dongQian || 0;
-                // 還原大牌
                 if (record.highlight) {
                     document.getElementById('highlightInputs').style.display = 'block';
-                    document.getElementById('hlHandInput').value = record.highlight.hand;
-                    document.getElementById('hlTaiInput').value = record.highlight.tai;
-                    // Winner 需要等 row 渲染完再選，暫時略過複雜邏輯
+                    document.getElementById('hlHandSelect').value = record.highlight.hand;
+                    document.getElementById('hlTaiSelect').value = record.highlight.tai;
                 }
-                // (省略複雜的 row 渲染代碼，維持原樣)
                 const rows = document.querySelectorAll('.player-row');
                 for (let i = 0; i < 4; i++) {
                     if (i < record.details.length) {
@@ -720,14 +713,11 @@
                         score.value = Math.abs(p.score); btn.innerText = p.score < 0 ? '-' : '+'; btn.className = p.score < 0 ? 'sign-btn btn-minus' : 'sign-btn btn-plus';
                     }
                 }
-                // 再次觸發贏家選單更新
                 toggleHighlightInputs(); if(record.highlight) document.getElementById('hlWinnerSelect').value = record.highlight.player;
 
             } else {
-                // 還原個人設定
                 const locSelect = document.getElementById('personalLocSelect'); const locCustom = document.getElementById('personalLocCustom');
                 const stakeSelect = document.getElementById('personalStakeSelect'); const stakeCustom = document.getElementById('personalStakeCustom');
-                
                 let isKnownLoc = false; Array.from(locSelect.options).forEach(opt => { if(opt.value === record.location) isKnownLoc = true; });
                 if (isKnownLoc) { locSelect.value = record.location; locSelect.style.display = 'block'; locCustom.style.display = 'none'; }
                 else { locSelect.value = 'CUSTOM'; locCustom.value = record.location; locSelect.style.display = 'none'; locCustom.style.display = 'block'; }
@@ -737,8 +727,8 @@
                 else { stakeSelect.value = 'CUSTOM'; stakeCustom.value = stakeVal; stakeSelect.style.display = 'none'; stakeCustom.style.display = 'block'; }
 
                 if (record.highlight) {
-                    document.getElementById('pHandInput').value = record.highlight.hand;
-                    document.getElementById('pTaiInput').value = record.highlight.tai;
+                    document.getElementById('pHandSelect').value = record.highlight.hand;
+                    document.getElementById('pTaiSelect').value = record.highlight.tai;
                 }
 
                 document.getElementById('personalScoreInput').value = Math.abs(record.score);
@@ -764,12 +754,12 @@
                 const rows = document.querySelectorAll('.player-row'); rows.forEach(row => { row.querySelector('.score-input').value = ''; let btn = row.querySelector('.sign-btn'); btn.innerText = '+'; btn.className = 'sign-btn btn-plus'; const select = row.querySelector('.name-select'); const custom = row.querySelector('.custom-name'); select.value = ""; select.style.display = 'block'; custom.style.display = 'none'; });
                 document.getElementById('dongInput').value = 0; document.getElementById('jiangInput').value = 1;
                 document.getElementById('highlightInputs').style.display = 'none';
-                document.getElementById('hlHandInput').value = ''; document.getElementById('hlTaiInput').value = '';
+                document.getElementById('hlHandSelect').value = ''; document.getElementById('hlTaiSelect').value = '';
             } else {
                 document.getElementById('personalLocSelect').value = ''; document.getElementById('personalLocSelect').style.display = 'block'; document.getElementById('personalLocCustom').style.display = 'none';
                 document.getElementById('personalStakeSelect').value = ''; document.getElementById('personalStakeSelect').style.display = 'block'; document.getElementById('personalStakeCustom').style.display = 'none';
                 document.getElementById('personalScoreInput').value = ''; let btn = document.getElementById('personalSignBtn'); btn.innerText = '+'; btn.className = 'sign-btn btn-plus';
-                document.getElementById('pHandInput').value = ''; document.getElementById('pTaiInput').value = '';
+                document.getElementById('pHandSelect').value = ''; document.getElementById('pTaiSelect').value = '';
             }
             showError("");
         }
@@ -786,7 +776,6 @@
             displayRecords.forEach(rec => {
                 let html = ''; let holidayTag = getHolidayTag(rec.date);
                 
-                // 大牌顯示
                 let highlightTag = '';
                 if (rec.highlight && rec.highlight.hand) {
                     const playerStr = rec.highlight.player ? `${rec.highlight.player}: ` : '';
@@ -817,25 +806,15 @@
 
             localRecords.forEach(rec => {
                 rec.details.forEach(p => { if (!stats[p.name]) stats[p.name] = 0; stats[p.name] += p.score; });
-                
-                // 統計最大台
-                if (rec.highlight && rec.highlight.tai > maxTai.tai) {
-                    maxTai = rec.highlight;
-                }
-
+                if (rec.highlight && rec.highlight.tai > maxTai.tai) { maxTai = rec.highlight; }
                 let dateObj = new Date(rec.date); let year = dateObj.getFullYear(); let month = (dateObj.getMonth() + 1).toString().padStart(2, '0'); let key = `${month}月`;
                 if (!monthlyData[key]) monthlyData[key] = { jiang: 0, dong: 0 }; if (!yearlyJiang[year]) yearlyJiang[year] = 0;
                 let j = parseInt(rec.jiangCount) || 0; let d = parseInt(rec.dongQian) || 0;
                 monthlyData[key].jiang += j; monthlyData[key].dong += d; yearlyJiang[year] += j; grandTotalJiang += j; grandTotalDong += d;
             });
 
-            // 顯示最大台
             const maxTaiEl = document.getElementById('maxTaiRecord');
-            if (maxTai.tai > 0) {
-                maxTaiEl.innerText = `${maxTai.player} / ${maxTai.hand} (${maxTai.tai}台)`;
-            } else {
-                maxTaiEl.innerText = "尚無紀錄";
-            }
+            if (maxTai.tai > 0) { maxTaiEl.innerText = `${maxTai.player} / ${maxTai.hand} (${maxTai.tai}台)`; } else { maxTaiEl.innerText = "尚無紀錄"; }
 
             const summaryBody = document.getElementById('summaryBody'); summaryBody.innerHTML = '';
             if (Object.keys(stats).length === 0) { summaryBody.innerHTML = '<tr><td colspan="3" style="color:#999;">無資料</td></tr>'; }
