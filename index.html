@@ -21,13 +21,28 @@
             background-color: var(--bg-color); 
             color: var(--text-main); 
             margin: 0; 
-            padding: 12px; 
+            padding: 10px; 
             padding-bottom: 60px;
         }
 
-        h1 { text-align: center; color: #fff; margin: 5px 0 10px 0; font-size: 20px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        /* 頂部導航與地點切換 */
+        .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; }
+        h1 { margin: 0; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        
+        /* 地點切換按鈕 */
+        .location-badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.4);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .location-badge:active { background: rgba(255,255,255,0.4); }
 
-        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.9); margin-bottom: 12px; }
+        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 10px; }
         .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .connected { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
 
@@ -122,20 +137,39 @@
         
         .manage-area { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px; display: none; }
         .manage-btn { background: none; border: none; color: #7f8c8d; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .manage-btn:hover { color: #2c3e50; }
         .player-tag { background: #f0f2f5; border: 1px solid #dcdfe6; border-radius: 20px; padding: 5px 12px; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; }
         .player-delete { color: #f56c6c; cursor: pointer; font-weight: bold; font-size: 16px; line-height: 1; }
         .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 
-        /* 月份篩選器樣式 */
         .filter-wrapper { display: flex; gap: 5px; align-items: center; }
         .month-filter { border: 1px solid #ddd; background: #fff; padding: 2px 5px; border-radius: 6px; font-size: 13px; color: #555; }
+
+        /* 地點選單樣式 */
+        .location-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; }
+        .location-card { background: white; width: 85%; max-width: 300px; padding: 20px; border-radius: 12px; }
+        .location-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; }
+        .location-item:hover { background: #f5f5f5; }
+        .location-add { margin-top: 10px; text-align: center; color: #2ecc71; font-weight: bold; cursor: pointer; padding: 10px; border: 1px dashed #2ecc71; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <h1>🀄 雀神記帳本</h1>
+    <div class="header-nav">
+        <h1>🀄 雀神記帳本</h1>
+        <div class="location-badge" onclick="showLocationMenu()">
+            <span id="currentLocationName">📍 蕙儀家</span>
+        </div>
+    </div>
+    
     <div id="status"><span class="online-dot" id="dot"></span><span id="statusText">連線中...</span></div>
+
+    <div id="locationModal" class="location-menu" onclick="closeLocationMenu(event)">
+        <div class="location-card">
+            <h3 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px;">切換帳本</h3>
+            <div id="locationList"></div>
+            <div class="location-add" onclick="createNewLocation()">➕ 新增秘密基地</div>
+        </div>
+    </div>
 
     <div class="card" id="inputCard">
         <h3 id="inputTitle"><span>✏️ 新增戰績</span></h3>
@@ -230,24 +264,24 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const recordsRef = db.ref('records');
-        const playersRef = db.ref('players'); 
-
-        const SAFETY_PASSWORD = "8888";
-
+        
+        // 全域變數
+        let currentLocId = 'default'; // 預設為蕙儀家 (root)
+        let recordsRef, playersRef;
         let localRecords = [];
         let currentEditId = null;
         
-        // 名單順序
+        // 預設密碼 (管理選手/刪除紀錄用)
+        const SAFETY_PASSWORD = "8888"; 
+        
+        // 預設選手名單
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
         let allPlayers = [...DEFAULT_PLAYERS];
 
-        // 初始化篩選器為當月
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        document.getElementById('filterMonth').value = `${year}-${month}`;
+        // 初始化：預設載入「蕙儀家」
+        initLocation('default');
 
+        // 監聽連線
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
             const dot = document.getElementById('dot');
@@ -258,38 +292,146 @@
             }
         });
 
-        playersRef.on('value', (snap) => {
-            const data = snap.val();
-            if (data) {
-                const cloudPlayers = Object.keys(data);
-                const newPlayers = cloudPlayers.filter(p => !DEFAULT_PLAYERS.includes(p));
-                let sortedPlayers = [];
-                DEFAULT_PLAYERS.forEach(p => { if (cloudPlayers.includes(p)) sortedPlayers.push(p); });
-                cloudPlayers.forEach(p => { if (!sortedPlayers.includes(p)) sortedPlayers.push(p); });
-                allPlayers = sortedPlayers;
+        // === 核心：切換地點邏輯 ===
+        function initLocation(locId, locName = "蕙儀家") {
+            // 解除舊的監聽
+            if (recordsRef) recordsRef.off();
+            if (playersRef) playersRef.off();
+
+            currentLocId = locId;
+            document.getElementById('currentLocationName').innerText = `📍 ${locName}`;
+
+            // 設定資料庫路徑
+            if (locId === 'default') {
+                // 蕙儀家使用舊的根目錄，保留原有資料
+                recordsRef = db.ref('records');
+                playersRef = db.ref('players');
             } else {
-                let updates = {};
-                DEFAULT_PLAYERS.forEach(n => updates[n] = true);
-                playersRef.update(updates);
-                allPlayers = DEFAULT_PLAYERS;
+                // 其他地點使用子目錄
+                recordsRef = db.ref(`locations/${locId}/records`);
+                playersRef = db.ref(`locations/${locId}/players`);
             }
-            updateAllPlayerSelects(); 
-            renderManageList(); 
-        });
 
-        recordsRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            localRecords = [];
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    localRecords.push({ id: key, ...data[key] });
-                });
-                localRecords.sort((a, b) => b.timestamp - a.timestamp);
+            // 重新綁定監聽
+            setupListeners();
+            // 重置介面
+            cancelEdit();
+        }
+
+        function setupListeners() {
+            // 監聽選手
+            playersRef.on('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    const cloudPlayers = Object.keys(data);
+                    const newPlayers = cloudPlayers.filter(p => !DEFAULT_PLAYERS.includes(p));
+                    let sortedPlayers = [];
+                    DEFAULT_PLAYERS.forEach(p => { if (cloudPlayers.includes(p)) sortedPlayers.push(p); });
+                    cloudPlayers.forEach(p => { if (!sortedPlayers.includes(p)) sortedPlayers.push(p); });
+                    allPlayers = sortedPlayers;
+                } else {
+                    let updates = {};
+                    DEFAULT_PLAYERS.forEach(n => updates[n] = true);
+                    playersRef.update(updates);
+                    allPlayers = DEFAULT_PLAYERS;
+                }
+                updateAllPlayerSelects(); 
+                renderManageList(); 
+            });
+
+            // 監聽戰績
+            recordsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                localRecords = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        localRecords.push({ id: key, ...data[key] });
+                    });
+                    localRecords.sort((a, b) => b.timestamp - a.timestamp);
+                }
+                render();
+            });
+        }
+
+        // === 地點選單功能 ===
+        function showLocationMenu() {
+            document.getElementById('locationModal').style.display = 'flex';
+            renderLocationList();
+        }
+
+        function closeLocationMenu(e) {
+            if (e.target.id === 'locationModal') {
+                document.getElementById('locationModal').style.display = 'none';
             }
-            render();
-        });
+        }
 
+        function renderLocationList() {
+            const list = document.getElementById('locationList');
+            list.innerHTML = `
+                <div class="location-item" onclick="switchLocation('default', '蕙儀家')">
+                    <span>🏠 蕙儀家 (公開)</span>
+                    ${currentLocId === 'default' ? '✅' : ''}
+                </div>
+            `;
+
+            // 讀取所有其他地點
+            db.ref('locations_meta').once('value', snap => {
+                const data = snap.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        const loc = data[key];
+                        list.innerHTML += `
+                            <div class="location-item" onclick="verifyAndSwitch('${key}', '${loc.name}', '${loc.password}')">
+                                <span>🔒 ${loc.name}</span>
+                                ${currentLocId === key ? '✅' : ''}
+                            </div>
+                        `;
+                    });
+                }
+            });
+        }
+
+        function createNewLocation() {
+            const name = prompt("請輸入新地點名稱 (例如: 宥辰私局)");
+            if (!name) return;
+            const password = prompt("請設定進入密碼：");
+            if (!password) return;
+
+            const newId = 'loc_' + Date.now();
+            db.ref('locations_meta/' + newId).set({
+                name: name,
+                password: password
+            }).then(() => {
+                alert("✅ 建立成功！");
+                renderLocationList();
+            });
+        }
+
+        function verifyAndSwitch(id, name, password) {
+            if (currentLocId === id) {
+                document.getElementById('locationModal').style.display = 'none';
+                return;
+            }
+            const input = prompt(`請輸入「${name}」的密碼：`);
+            if (input === password) {
+                initLocation(id, name);
+                document.getElementById('locationModal').style.display = 'none';
+            } else {
+                alert("❌ 密碼錯誤");
+            }
+        }
+
+        function switchLocation(id, name) {
+            initLocation(id, name);
+            document.getElementById('locationModal').style.display = 'none';
+        }
+
+        // === 既有邏輯保持不變 ===
         document.getElementById('dateInput').valueAsDate = new Date();
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        document.getElementById('filterMonth').value = `${year}-${month}`;
         initPlayerInputs();
 
         function initPlayerInputs() {
@@ -570,14 +712,11 @@
         }
 
         function render() {
-            // === 核心修改：取得篩選月份 ===
-            const filterValue = document.getElementById('filterMonth').value; // 格式: "2026-02"
-
+            const filterValue = document.getElementById('filterMonth').value; 
             const listDiv = document.getElementById('historyList');
             listDiv.innerHTML = '';
             
             let displayRecords = localRecords;
-            // 如果有選月份，進行篩選
             if (filterValue) {
                 displayRecords = localRecords.filter(rec => rec.date.startsWith(filterValue));
             }
@@ -617,7 +756,7 @@
                 listDiv.appendChild(item);
             });
 
-            // 以下是總榜與統計，維持計算所有資料 (localRecords)，不受篩選影響
+            // 總榜與統計 (維持計算全部資料)
             let stats = {};
             localRecords.forEach(rec => {
                 rec.details.forEach(p => {
