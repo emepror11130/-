@@ -7,6 +7,9 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.2.37/lunar.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
@@ -40,7 +43,7 @@
         
         .card h3 { margin: 0 0 12px 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; color: var(--bg-color); font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* === 輸入區優化 === */
+        /* === 輸入區 === */
         .row-date { margin-bottom: 12px; }
         .row-date label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
@@ -48,31 +51,28 @@
         .col-half { flex: 1; }
         .col-half label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; margin-left: 2px; }
         
-        /* 統一輸入框樣式，優化日期置中 */
+        /* === 修正重點：日期置中 (針對 iOS) === */
         .input-style { 
-            width: 100%; 
-            height: 44px; 
-            padding: 0 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            background: #f9f9f9; 
-            color: #333;
-            text-align: center; /* 讓文字水平置中 */
-            display: block;     /* 移除 flex 以避免 iOS 日期跑版 */
-            line-height: normal;
+            width: 100%; height: 44px; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 16px; background: #f9f9f9; color: #333; line-height: normal;
         }
         
-        /* 強制 iOS 日期選擇器置中 */
+        /* 針對 date 類型的特殊處理 */
         input[type="date"] {
-            text-align: center;
-            display: block;
             -webkit-appearance: none;
+            appearance: none;
+            display: block;
+            text-align: center; /* 一般瀏覽器 */
+            width: 100%;
+        }
+        /* iOS Safari 專用置中修正 */
+        input[type="date"]::-webkit-date-and-time-value {
+            text-align: center;
+            display: inline-block;
         }
 
         /* 玩家行 */
         .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-        
         .name-wrapper { flex: 1; min-width: 0; position: relative; } 
         
         .name-select, .custom-name { 
@@ -104,12 +104,6 @@
             font-size: 16px; text-align: center; font-weight: bold; color: var(--text-main); 
         }
 
-        /* 總計看板 */
-        .dashboard-grid { display: flex; gap: 10px; margin-bottom: 5px; }
-        .dash-box { flex: 1; padding: 12px 5px; border-radius: 10px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .dash-label { font-size: 11px; color: #666; margin-bottom: 2px; }
-        .dash-value { font-size: 18px; font-weight: bold; line-height: 1.2; }
-
         .action-btn { width: 100%; padding: 14px; background-color: var(--text-main); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .cancel-btn { width: 100%; padding: 10px; background-color: #95a5a6; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
@@ -120,29 +114,28 @@
         .win-text { color: var(--win-color); font-weight: bold; }
         .lose-text { color: var(--lose-color); font-weight: bold; }
         
-        /* 排名獎牌樣式 */
         .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 14px; }
-        .rank-1 { background: transparent; font-size: 20px; line-height: 24px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); } /* 金牌 */
-        .rank-2 { background: transparent; font-size: 20px; line-height: 24px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); } /* 銀牌 */
-        .rank-3 { background: transparent; font-size: 20px; line-height: 24px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); } /* 銅牌 */
+        .rank-1 { background: transparent; font-size: 20px; line-height: 24px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); }
+        .rank-2 { background: transparent; font-size: 20px; line-height: 24px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); }
+        .rank-3 { background: transparent; font-size: 20px; line-height: 24px; text-shadow: 0 2px 2px rgba(0,0,0,0.2); }
+        .rank-boss { background: #2c3e50; color: #f1c40f; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-block; width: auto; height: auto; line-height: normal; }
         .rank-other { background: #eee; font-size: 12px; color: #666; }
-        
-        /* 老闆標籤樣式 */
-        .rank-boss { 
-            background: #2c3e50; 
-            color: #f1c40f; 
-            font-size: 11px; 
-            padding: 2px 6px; 
-            border-radius: 4px; 
-            font-weight: bold;
-            display: inline-block;
-            width: auto;
-            height: auto;
-            line-height: normal;
-        }
-        
+
+        /* 儀表板 */
+        .dashboard-grid { display: flex; gap: 10px; margin-bottom: 5px; }
+        .dash-box { flex: 1; padding: 12px 5px; border-radius: 10px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .dash-label { font-size: 11px; color: #666; margin-bottom: 2px; }
+        .dash-value { font-size: 18px; font-weight: bold; line-height: 1.2; }
+
+        /* 歷史紀錄與節日標籤 */
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .history-date { font-size: 12px; color: #999; margin-bottom: 4px; }
+        .history-header { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .history-date { font-size: 13px; color: #333; font-weight: 500; }
+        .history-tag { font-size: 11px; padding: 1px 5px; border-radius: 4px; display: inline-block; }
+        .tag-holiday { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; } /* 節日紅 */
+        .tag-lunar { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; } /* 初一十五藍 */
+        .tag-info { background-color: #f5f5f5; color: #666; border: 1px solid #e0e0e0; }
+        
         .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-top: 5px; font-size: 13px; }
         
         .edit-btn { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 14px; }
@@ -239,11 +232,10 @@
         let localRecords = [];
         let currentEditId = null;
         
-        // 更新後的固定順序名單
+        // 選手名單順序
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "學姊", "H", "盛安", "一中"];
         let allPlayers = [...DEFAULT_PLAYERS];
 
-        // 1. 連線狀態監聽
         db.ref('.info/connected').on('value', function(snap) {
             const statusText = document.getElementById('statusText');
             const dot = document.getElementById('dot');
@@ -254,11 +246,9 @@
             }
         });
 
-        // 2. 監聽玩家名單
         playersRef.on('value', (snap) => {
             const data = snap.val();
             if (data) {
-                // 合併雲端的新名單與預設名單，但保持預設名單的順序在最前
                 const cloudPlayers = Object.keys(data);
                 const newPlayers = cloudPlayers.filter(p => !DEFAULT_PLAYERS.includes(p));
                 allPlayers = [...DEFAULT_PLAYERS, ...newPlayers];
@@ -270,7 +260,6 @@
             updateAllPlayerSelects(); 
         });
 
-        // 3. 監聽戰績資料
         recordsRef.on('value', (snapshot) => {
             const data = snapshot.val();
             localRecords = [];
@@ -304,13 +293,10 @@
         }
 
         function updateAllPlayerSelects() {
-            // 修改：預設文字改為「請選擇選手...」
             let optionsHtml = `<option value="" disabled selected>請選擇選手...</option>`;
-            
             allPlayers.forEach(name => {
                 optionsHtml += `<option value="${name}">${name}</option>`;
             });
-            
             optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
             optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
 
@@ -488,6 +474,48 @@
             if (currentEditId === id) cancelEdit();
         }
 
+        // 核心功能：計算節日名稱
+        function getHolidayTag(dateStr) {
+            try {
+                const dateParts = dateStr.split('-');
+                const y = parseInt(dateParts[0]);
+                const m = parseInt(dateParts[1]);
+                const d = parseInt(dateParts[2]);
+                
+                // 1. 檢查國曆固定節日
+                if (m === 2 && d === 14) return '<span class="history-tag tag-holiday">💘 情人節</span>';
+                if (m === 12 && d === 25) return '<span class="history-tag tag-holiday">🎄 聖誕節</span>';
+                if (m === 1 && d === 1) return '<span class="history-tag tag-holiday">🎉 元旦</span>';
+                if (m === 10 && d === 10) return '<span class="history-tag tag-holiday">🇹🇼 國慶</span>';
+
+                // 2. 農曆轉換
+                const lunar = Lunar.fromDate(new Date(y, m - 1, d));
+                const lMonth = lunar.getMonth();
+                const lDay = lunar.getDay();
+
+                // 3. 檢查農曆重要節日
+                if (lMonth === 1 && lDay === 1) return '<span class="history-tag tag-holiday">🧧 春節</span>';
+                if (lMonth === 1 && lDay === 15) return '<span class="history-tag tag-holiday">🏮 元宵</span>';
+                if (lMonth === 5 && lDay === 5) return '<span class="history-tag tag-holiday">🐉 端午</span>';
+                if (lMonth === 7 && lDay === 7) return '<span class="history-tag tag-holiday">🎋 七夕</span>';
+                if (lMonth === 7 && lDay === 15) return '<span class="history-tag tag-holiday">👻 中元</span>';
+                if (lMonth === 8 && lDay === 15) return '<span class="history-tag tag-holiday">🥮 中秋</span>';
+                
+                // 除夕判斷 (年的最後一天)
+                const nextDay = Lunar.fromDate(new Date(y, m - 1, d + 1));
+                if (nextDay.getYear() !== lunar.getYear()) return '<span class="history-tag tag-holiday">🍲 除夕</span>';
+
+                // 4. 初一十五
+                if (lDay === 1) return '<span class="history-tag tag-lunar">🌑 初一</span>';
+                if (lDay === 15) return '<span class="history-tag tag-lunar">🌕 十五</span>';
+
+                return '';
+            } catch (e) {
+                console.error("節日計算錯誤", e);
+                return '';
+            }
+        }
+
         function render() {
             const listDiv = document.getElementById('historyList');
             listDiv.innerHTML = '';
@@ -500,11 +528,21 @@
                     return `<div><span>${p.name}</span> <span class="${colorClass}">${sign}${p.score}</span></div>`;
                 }).join('');
 
+                // 取得節日標籤
+                let holidayTag = getHolidayTag(rec.date);
+                let infoTags = "";
+                if (rec.jiangCount) infoTags += `<span class="history-tag tag-info">🀄 ${rec.jiangCount}將</span>`;
+                if (rec.dongQian) infoTags += `<span class="history-tag tag-info">💰 東${rec.dongQian}</span>`;
+
                 let item = document.createElement('div');
                 item.className = 'history-item';
                 item.innerHTML = `
                     <div style="flex:1;">
-                        <div class="history-date">${rec.date} ${rec.jiangCount ? `| ${rec.jiangCount}將` : ''}</div>
+                        <div class="history-header">
+                            <span class="history-date">${rec.date}</span>
+                            ${holidayTag}
+                            ${infoTags}
+                        </div>
                         <div class="history-scores">${detailsHtml}</div>
                     </div>
                     <div>
@@ -515,7 +553,7 @@
                 listDiv.appendChild(item);
             });
 
-            // 總結算排行榜
+            // 總結算
             let stats = {};
             localRecords.forEach(rec => {
                 rec.details.forEach(p => {
@@ -534,7 +572,6 @@
                     let colorClass = score > 0 ? 'win-text' : (score < 0 ? 'lose-text' : 'zero-text');
                     let sign = score > 0 ? '+' : '';
                     
-                    // 處理排名圖示
                     let rankContent = index + 1;
                     let rankClass = "rank-other";
 
@@ -542,7 +579,7 @@
                     else if(index === 1) { rankContent = '🥈'; rankClass = "rank-2"; }
                     else if(index === 2) { rankContent = '🥉'; rankClass = "rank-3"; }
 
-                    // 最後一名標記老闆 (如果有超過1人)
+                    // 老闆標籤邏輯：如果是最後一名，且總人數大於1
                     if (index === sortedStats.length - 1 && sortedStats.length > 1) {
                         rankContent = '老闆';
                         rankClass = 'rank-boss';
