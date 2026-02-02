@@ -315,7 +315,15 @@
             <label style="display:block; font-size:13px; color:#7f8c8d; margin-bottom:6px; font-weight:700; margin-left:4px;">日期</label>
             <input type="date" id="dateInput" class="input-style">
         </div>
+        
         <div id="groupInputArea" class="group-mode">
+            <div style="margin-bottom: 15px;">
+                <label style="display:block; font-size:13px; color:#7f8c8d; margin-bottom:6px; font-weight:700; margin-left:4px;">⚡ 快速發車 (選擇組合)</label>
+                <select id="quickSquadSelect" class="input-style" onchange="applyQuickSquad()">
+                    <option value="">請選擇固定咖...</option>
+                </select>
+            </div>
+
             <div class="row-stats">
                 <div class="col-half">
                     <label style="display:block; font-size:13px; color:#7f8c8d; margin-bottom:6px; font-weight:700; margin-left:4px;">將數</label>
@@ -488,6 +496,12 @@
 
         const SAFETY_PASSWORD = "8888"; 
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
+        // 定義固定班底組合
+        const PRESET_SQUADS = [
+            { name: "組合 1 (夏瑋/宥辰/蕙儀/盛安)", players: ["夏瑋", "宥辰", "蕙儀", "盛安"] },
+            { name: "組合 2 (夏瑋/宥辰/蕙儀/H)", players: ["夏瑋", "宥辰", "蕙儀", "H"] },
+            { name: "組合 3 (夏瑋/蕙儀/H/一中)", players: ["夏瑋", "蕙儀", "H", "一中"] }
+        ];
         const HAND_TYPES = ["平胡", "碰碰胡", "混一色", "清一色", "三暗刻", "四暗刻", "五暗刻", "門清自摸", "全求人", "大三元", "小三元", "大四喜", "小四喜", "字一色", "七搶一", "八仙過海", "天胡", "地胡", "人胡", "流局"];
         let allPlayers = [...DEFAULT_PLAYERS];
 
@@ -502,6 +516,7 @@
         }
         
         initSelectOptions(); 
+        initQuickSquads(); // 初始化快速發車
         renderLocationList();
 
         db.ref('.info/connected').on('value', function(snap) {
@@ -524,6 +539,36 @@
             for(let i=1; i<=30; i++) taiHtml += `<option value="${i}">${i}台</option>`;
             document.getElementById('hlTaiSelect').innerHTML = taiHtml;
             document.getElementById('pTaiSelect').innerHTML = taiHtml;
+        }
+
+        // 初始化快速發車下拉選單
+        function initQuickSquads() {
+            const select = document.getElementById('quickSquadSelect');
+            let html = '<option value="">請選擇固定咖...</option>';
+            PRESET_SQUADS.forEach((squad, index) => {
+                html += `<option value="${index}">${squad.name}</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        // 應用快速發車組合
+        function applyQuickSquad() {
+            const select = document.getElementById('quickSquadSelect');
+            const index = select.value;
+            if (index === "") return;
+
+            const squad = PRESET_SQUADS[index];
+            const container = document.getElementById('playersArea');
+            container.innerHTML = ''; // 清空現有欄位
+
+            squad.players.forEach(name => {
+                addPlayerRow(name); // 自動帶入名字
+            });
+            
+            // 如果組合少於4人 (雖然目前設定都是4人)，補滿到4個
+            while(container.children.length < 4) {
+                addPlayerRow();
+            }
         }
 
         function initLocation(id, name, type) {
@@ -781,7 +826,8 @@
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
-        // document.getElementById('filterMonth').value = `${year}-${month}`; // 預設顯示全部
+        // 移除預設篩選，讓它顯示全部
+        // document.getElementById('filterMonth').value = `${year}-${month}`; 
 
         function initPlayerInputs() {
             const container = document.getElementById('playersArea');
@@ -1019,8 +1065,8 @@
             const listDiv = document.getElementById('historyList');
             listDiv.innerHTML = '';
             
-            displayRecords = localRecords;
-            // 優先權：月份 > 年份
+            displayRecords = localRecords; // 預設顯示全部
+            
             if (filterMonth) { 
                 displayRecords = localRecords.filter(rec => rec.date.startsWith(filterMonth)); 
             } else if (filterYear !== 'ALL') {
@@ -1056,9 +1102,10 @@
                 listDiv.appendChild(item);
             });
 
-            if (currentLocType === 'group') renderGroupStats(displayRecords); else renderPersonalStats();
+            if (currentLocType === 'group') renderGroupStats(displayRecords); else renderPersonalStats(displayRecords);
         }
 
+        // === 批次刪除功能 ===
         function toggleBatchMode() {
             isBatchMode = !isBatchMode;
             document.getElementById('batchToolbar').classList.toggle('hidden');
@@ -1081,7 +1128,7 @@
             recordsRef.update(updates).then(() => { alert("🗑️ 刪除成功！"); toggleBatchMode(); });
         }
 
-        // 修改：接收 filteredRecords 參數，並使用數字運算
+        // 接收 filteredRecords 參數，達到排行榜與列表連動
         function renderGroupStats(filteredRecords) {
             let stats = {}; let monthlyData = {}; let yearlyJiang = {}; let grandTotalJiang = 0; let grandTotalDong = 0; 
             let maxTai = { tai: 0, player: '', hand: '' };
@@ -1135,6 +1182,7 @@
             let sortedYears = Object.keys(yearlyJiang).sort().reverse(); if(sortedYears.length > 0) { yearFoot.innerHTML = `${sortedYears[0]}年總計：${yearlyJiang[sortedYears[0]]} 將`; }
         }
 
+        // 顯示選手戰績詳細 (驗算功能)
         function showPlayerStats(playerName) {
             const modal = document.getElementById('playerStatsModal');
             const title = document.getElementById('playerStatsTitle');
@@ -1145,6 +1193,7 @@
             list.innerHTML = '';
             
             let total = 0;
+            // 使用目前的 displayRecords (篩選後的)，達到連動篩選的效果
             displayRecords.forEach(rec => {
                 if (rec.details) {
                     const playerRecord = rec.details.find(p => p.name === playerName);
@@ -1176,12 +1225,15 @@
             document.getElementById('playerStatsModal').style.display = 'none';
         }
 
-        function renderPersonalStats() {
+        // 接收 filteredRecords 參數，達到總資產連動
+        function renderPersonalStats(filteredRecords) {
             let totalScore = 0; 
             let yearlyData = {};
             let locationStats = {};
 
-            localRecords.forEach(rec => { 
+            const targetRecords = filteredRecords || localRecords;
+
+            targetRecords.forEach(rec => { 
                 let score = parseInt(rec.score) || 0;
                 totalScore += score; 
                 let loc = rec.location || '未知';
@@ -1199,7 +1251,7 @@
             const sign = totalScore > 0 ? '+' : ''; const color = totalScore > 0 ? '#e74c3c' : (totalScore < 0 ? '#27ae60' : '#666');
             document.getElementById('personalTotalScore').innerText = `${sign}$${totalScore}`;
             document.getElementById('personalTotalScore').style.color = color;
-            document.getElementById('personalTotalCount').innerText = localRecords.length;
+            document.getElementById('personalTotalCount').innerText = targetRecords.length;
 
             const locContainer = document.getElementById('personalLocationStats');
             let sortedLocs = Object.keys(locationStats).sort((a,b) => locationStats[b] - locationStats[a]); 
