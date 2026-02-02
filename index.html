@@ -10,7 +10,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.2.37/lunar.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -91,14 +91,10 @@
         .group-mode .row-stats { display: flex; gap: 12px; margin-bottom: 20px; }
         .group-mode .col-half { flex: 1; }
         .group-mode .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-        .group-mode .name-select { width: 100%; height: 46px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; font-size: 15px; padding: 0 10px; flex: 1; }
+        .group-mode .name-select { width: 100%; height: 46px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; font-size: 15px; padding: 0 10px; }
         .group-mode .score-input { width: 85px; height: 46px; text-align: center; font-weight: bold; border-radius: 10px; border: 1px solid #e0e0e0; font-size: 17px; font-family: 'Roboto Mono', monospace; }
         
-        /* 刪除列按鈕 */
-        .row-delete-btn {
-            width: 30px; height: 46px; display: flex; align-items: center; justify-content: center;
-            color: #bdc3c7; font-size: 18px; cursor: pointer; margin-left: 2px;
-        }
+        .row-delete-btn { width: 30px; height: 46px; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-size: 18px; cursor: pointer; margin-left: 2px; }
         .row-delete-btn:hover { color: #e74c3c; }
 
         .sign-btn { 
@@ -140,13 +136,7 @@
             transition: transform 0.1s;
         }
         .action-btn:active { transform: scale(0.98); }
-        
-        .add-player-btn {
-            width: 100%; padding: 10px; background: #f0f8ff; color: #3498db;
-            border: 1px dashed #3498db; border-radius: 10px; font-size: 14px; font-weight: 600;
-            cursor: pointer; margin-top: 5px; margin-bottom: 10px;
-        }
-
+        .add-player-btn { width: 100%; padding: 10px; background: #f0f8ff; color: #3498db; border: 1px dashed #3498db; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 5px; margin-bottom: 10px; }
         .cancel-btn { width: 100%; padding: 12px; background-color: #95a5a6; color: white; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
         /* 統計與列表 */
@@ -157,27 +147,18 @@
         .win-text { color: var(--win-color); font-weight: bold; }
         .lose-text { color: var(--lose-color); font-weight: bold; }
         
-        /* 排名徽章 */
         .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 14px; font-weight: bold; }
         .rank-1 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
         .rank-2 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
         .rank-3 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
         .rank-other { background: #eee; font-size: 12px; color: #666; }
         
-        /* === 修正後的「老闆」樣式：簡約白底金框 === */
+        /* === 老闆徽章：白底金框 === */
         .rank-badge.rank-boss { 
-            width: auto !important;
-            height: auto !important;
-            background: #fff;
-            color: #f39c12; /* 金橘色文字 */
-            border: 1px solid #f39c12; /* 金橘色邊框 */
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
+            width: auto !important; height: auto !important; background: #fff;
+            color: #f39c12; border: 1px solid #f39c12; font-size: 11px;
+            padding: 2px 8px; border-radius: 12px; display: inline-flex;
+            align-items: center; justify-content: center; font-weight: 700;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
@@ -190,10 +171,7 @@
         .dash-value { font-size: 20px; font-weight: 800; line-height: 1.2; font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
 
         /* 歷史紀錄列表 */
-        .history-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 14px 0; border-bottom: 1px solid #f0f0f0; 
-        }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
         .history-header { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .history-date { font-size: 14px; color: #2c3e50; font-weight: 600; }
         .history-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; display: inline-block; white-space: nowrap; }
@@ -215,28 +193,16 @@
         .manage-btn { background: none; border: none; color: #95a5a6; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 5px; }
         .manage-btn:hover { color: #2c3e50; }
         
-        /* 地點選單優化 */
+        /* 地點選單 */
         .location-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
         .location-card { background: white; width: 85%; max-width: 340px; padding: 25px; border-radius: 16px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        
-        .location-group-title { 
-            font-size: 12px; color: #95a5a6; margin-top: 15px; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 4px;
-        }
-        
-        .location-item { 
-            padding: 14px; margin-bottom: 10px; border-radius: 10px; background: #f8f9fa; border: 1px solid #eee;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s;
-        }
+        .location-group-title { font-size: 12px; color: #95a5a6; margin-top: 15px; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        .location-item { padding: 14px; margin-bottom: 10px; border-radius: 10px; background: #f8f9fa; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
         .location-item:hover { background: #fff; border-color: var(--bg-color); transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
         .loc-name-area { flex: 1; font-weight: 500; color: #2c3e50; display:flex; justify-content:space-between; align-items:center; }
         .loc-delete { padding: 8px; color: #bdc3c7; font-size: 16px; cursor: pointer; border-left: 1px solid #eee; margin-left: 10px; padding-left: 10px; }
         .loc-delete:hover { color: #e74c3c; }
-
-        .location-add { 
-            margin-top: 20px; text-align: center; padding: 12px; border: 1px dashed #3498db; border-radius: 10px; 
-            color: #3498db; cursor: pointer; font-size: 14px; font-weight: 500; background: #f0f8ff;
-        }
+        .location-add { margin-top: 20px; text-align: center; padding: 12px; border: 1px dashed #3498db; border-radius: 10px; color: #3498db; cursor: pointer; font-size: 14px; font-weight: 500; background: #f0f8ff; }
         
         .hidden { display: none !important; }
         .manage-area { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px; display: none; }
@@ -248,34 +214,16 @@
 
         /* 批次刪除 */
         .batch-checkbox { width: 22px; height: 22px; margin-right: 12px; accent-color: #e74c3c; cursor: pointer; }
-        .batch-toolbar { 
-            position: fixed; bottom: 0; left: 0; right: 0; 
-            background: rgba(255,255,255,0.95); padding: 15px; border-top: 1px solid #eee; 
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1); 
-            display: flex; gap: 10px; z-index: 900; backdrop-filter: blur(5px);
-        }
+        .batch-toolbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 15px; border-top: 1px solid #eee; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); display: flex; gap: 10px; z-index: 900; backdrop-filter: blur(5px); }
         .batch-action-btn { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
         /* === 高級排版：年份卡片 (修正對齊版) === */
-        .year-card { 
-            background: #fff; border-radius: 14px; margin-bottom: 12px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; 
-            position: relative; 
-            transition: box-shadow 0.2s;
-        }
+        .year-card { background: #fff; border-radius: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; position: relative; transition: box-shadow 0.2s; }
         .year-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
-        
-        /* 使用偽元素製作完美貼齊的邊框 */
-        .year-card::before {
-            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; z-index: 1;
-        }
+        .year-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; z-index: 1; }
         .year-card.win::before { background-color: #e74c3c; }
         .year-card.lose::before { background-color: #27ae60; }
-        
-        .year-header { 
-            padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; 
-            cursor: pointer; background: #fff; border-bottom: 1px solid #eee; 
-        }
+        .year-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; border-bottom: 1px solid #eee; }
         .year-title { font-size: 17px; font-weight: 700; color: #2c3e50; display: flex; align-items: center; gap: 10px; }
         .year-arrow { font-size: 12px; color: #bdc3c7; transition: transform 0.3s; }
         .year-expanded .year-arrow { transform: rotate(180deg); color: var(--text-main); }
@@ -283,67 +231,25 @@
         
         /* === 高級排版：月份列表 Grid 系統 === */
         .month-list { display: none; background: #fff; }
-        .month-item { 
-            display: grid; 
-            grid-template-columns: 1fr 70px 100px; /* 月份 | 場次 | 金額 */
-            align-items: center;
-            padding: 14px 20px; 
-            border-bottom: 1px solid #f9f9f9; 
-            font-size: 15px;
-        }
+        .month-item { display: grid; grid-template-columns: 1fr 70px 100px; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f9f9f9; font-size: 15px; }
         .month-item:last-child { border-bottom: none; }
         .month-item:hover { background: #fafafa; }
-
         .month-name { color: #555; font-weight: 500; }
         .month-count { color: #95a5a6; font-size: 13px; text-align: center; background: #f0f2f5; padding: 2px 8px; border-radius: 12px; }
         .month-score { font-weight: 700; text-align: right; font-family: 'Roboto Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
 
         /* 地點統計項目 */
-        .loc-stat-item { 
-            display: flex; justify-content: space-between; padding: 14px 15px; 
-            border-bottom: 1px solid #eee; font-size: 15px; align-items: center;
-        }
+        .loc-stat-item { display: flex; justify-content: space-between; padding: 14px 15px; border-bottom: 1px solid #eee; font-size: 15px; align-items: center; }
         .loc-stat-item:last-child { border-bottom: none; }
         
         /* 排行榜表格美化 (公用戰場) */
-        #groupStatsTable {
-            border-collapse: separate; 
-            border-spacing: 0; 
-            width: 100%;
-            margin-top: 5px;
-        }
-        #groupStatsTable th {
-            font-size: 13px; color: #95a5a6; font-weight: 600; padding: 8px; 
-            text-align: center; border-bottom: 1px solid #eee;
-        }
-        #groupStatsTable td {
-            padding: 14px 8px;
-            vertical-align: middle;
-            border-bottom: 1px solid #f8f9fa;
-        }
-        
+        #groupStatsTable { border-collapse: separate; border-spacing: 0; width: 100%; margin-top: 5px; }
+        #groupStatsTable th { font-size: 13px; color: #95a5a6; font-weight: 600; padding: 8px; text-align: center; border-bottom: 1px solid #eee; }
+        #groupStatsTable td { padding: 14px 8px; vertical-align: middle; border-bottom: 1px solid #f8f9fa; }
         #groupStatsTable td:nth-child(1) { width: 45px; text-align: center; }
-        #groupStatsTable td:nth-child(2) {
-            text-align: left;
-            padding-left: 15px;
-            font-size: 17px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-        #groupStatsTable td:nth-child(3) {
-            text-align: right;
-            padding-right: 10px;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 19px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        #groupStatsTable tr:first-child td {
-            background: linear-gradient(to right, #fffde7, #ffffff);
-            border-top: 1px solid #fff9c4;
-            border-bottom: 1px solid #fff9c4;
-        }
+        #groupStatsTable td:nth-child(2) { text-align: left; padding-left: 15px; font-size: 17px; font-weight: 700; color: #2c3e50; }
+        #groupStatsTable td:nth-child(3) { text-align: right; padding-right: 10px; font-family: 'Roboto Mono', monospace; font-size: 19px; font-weight: 700; letter-spacing: -0.5px; }
+        #groupStatsTable tr:first-child td { background: linear-gradient(to right, #fffde7, #ffffff); border-top: 1px solid #fff9c4; border-bottom: 1px solid #fff9c4; }
         #groupStatsTable tr:first-child td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid #fff9c4; }
         #groupStatsTable tr:first-child td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid #fff9c4; }
     </style>
@@ -922,10 +828,8 @@
                 </div>
             `;
             
-            // 如果是自訂名字，切換顯示
             if (name && !allPlayers.includes(name)) {
                  nameInputHtml = nameInputHtml.replace('style="display:none;"', '').replace('class="name-select"', 'class="name-select" style="display:none;"');
-                 // 這裡簡化處理，實際可能需要更精細的邏輯，但這能運作
             }
 
             const sign = score < 0 ? '-' : '+';
@@ -948,7 +852,6 @@
         function updateAllPlayerSelects() {
             if (currentLocType !== 'group') return;
             
-            // 重新生成選項 HTML
             let optionsHtml = `<option value="" disabled selected>請選擇選手...</option>`;
             allPlayers.forEach(name => { optionsHtml += `<option value="${name}">${name}</option>`; });
             optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
@@ -956,8 +859,6 @@
             
             document.querySelectorAll('.name-select').forEach(select => {
                 const currentVal = select.value;
-                // 只有當原本的值存在於新列表中，或原本是特殊選項時才保留，否則重置
-                // 這裡簡單暴力一點：直接更新 innerHTML，然後嘗試設回原本的值
                 select.innerHTML = optionsHtml;
                 if (currentVal) select.value = currentVal;
             });
@@ -1083,15 +984,13 @@
                     document.getElementById('hlTaiSelect').value = record.highlight.tai;
                 }
                 
-                // 動態重建選手列
                 const container = document.getElementById('playersArea');
-                container.innerHTML = ''; // 清空
+                container.innerHTML = ''; 
                 
                 record.details.forEach(p => {
                     addPlayerRow(p.name, p.score);
                 });
                 
-                // 如果不足4人，補滿4人 (雖然資料庫可能有3人紀錄，但顯示4人較美觀)
                 while(container.children.length < 4) {
                     addPlayerRow();
                 }
