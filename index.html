@@ -103,6 +103,38 @@
         .btn-plus { background: #fff; color: var(--win-color); border: 2px solid var(--win-color); }
         .btn-minus { background: var(--lose-color); color: white; border: 2px solid var(--lose-color); }
 
+        /* === 快速發車 (橫向捲軸) === */
+        .quick-scroll-wrapper {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE 10+ */
+        }
+        .quick-scroll-wrapper::-webkit-scrollbar { display: none; /* Chrome/Safari/Webkit */ }
+        
+        .squad-chip {
+            flex: 0 0 auto;
+            background: #e3f2fd;
+            color: #2980b9;
+            border: 1px solid #aed6f1;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .squad-chip:active {
+            background: #3498db;
+            color: white;
+            transform: scale(0.95);
+        }
+
         /* 大牌紀錄 */
         .highlight-section { background: #fffdf0; border: 1px solid #fae588; border-radius: 10px; padding: 12px; margin-top: 15px; }
         .highlight-toggle { 
@@ -318,10 +350,8 @@
         
         <div id="groupInputArea" class="group-mode">
             <div style="margin-bottom: 15px;">
-                <label style="display:block; font-size:13px; color:#7f8c8d; margin-bottom:6px; font-weight:700; margin-left:4px;">⚡ 快速發車 (選擇組合)</label>
-                <select id="quickSquadSelect" class="input-style" onchange="applyQuickSquad()">
-                    <option value="">請選擇固定咖...</option>
-                </select>
+                <label style="display:block; font-size:13px; color:#7f8c8d; margin-bottom:6px; font-weight:700; margin-left:4px;">⚡ 快速發車 (點擊自動帶入)</label>
+                <div id="quickSquadArea" class="quick-scroll-wrapper"></div>
             </div>
 
             <div class="row-stats">
@@ -496,11 +526,10 @@
 
         const SAFETY_PASSWORD = "8888"; 
         const DEFAULT_PLAYERS = ["宥辰", "夏瑋", "蕙儀", "H", "盛安", "一中"];
-        // 定義固定班底組合
         const PRESET_SQUADS = [
-            { name: "組合 1 (夏瑋/宥辰/蕙儀/盛安)", players: ["夏瑋", "宥辰", "蕙儀", "盛安"] },
-            { name: "組合 2 (夏瑋/宥辰/蕙儀/H)", players: ["夏瑋", "宥辰", "蕙儀", "H"] },
-            { name: "組合 3 (夏瑋/蕙儀/H/一中)", players: ["夏瑋", "蕙儀", "H", "一中"] }
+            { name: "夏瑋 / 宥辰 / 蕙儀 / 盛安", players: ["夏瑋", "宥辰", "蕙儀", "盛安"] },
+            { name: "夏瑋 / 宥辰 / 蕙儀 / H", players: ["夏瑋", "宥辰", "蕙儀", "H"] },
+            { name: "夏瑋 / 蕙儀 / H / 一中", players: ["夏瑋", "蕙儀", "H", "一中"] }
         ];
         const HAND_TYPES = ["平胡", "碰碰胡", "混一色", "清一色", "三暗刻", "四暗刻", "五暗刻", "門清自摸", "全求人", "大三元", "小三元", "大四喜", "小四喜", "字一色", "七搶一", "八仙過海", "天胡", "地胡", "人胡", "流局"];
         let allPlayers = [...DEFAULT_PLAYERS];
@@ -516,7 +545,7 @@
         }
         
         initSelectOptions(); 
-        initQuickSquads(); // 初始化快速發車
+        initQuickSquads();
         renderLocationList();
 
         db.ref('.info/connected').on('value', function(snap) {
@@ -541,31 +570,25 @@
             document.getElementById('pTaiSelect').innerHTML = taiHtml;
         }
 
-        // 初始化快速發車下拉選單
         function initQuickSquads() {
-            const select = document.getElementById('quickSquadSelect');
-            let html = '<option value="">請選擇固定咖...</option>';
+            const container = document.getElementById('quickSquadArea');
+            let html = '';
             PRESET_SQUADS.forEach((squad, index) => {
-                html += `<option value="${index}">${squad.name}</option>`;
+                // 使用 squad.name 直接顯示，或自訂更短的顯示名稱
+                html += `<div class="squad-chip" onclick="applyQuickSquad(${index})">${squad.name}</div>`;
             });
-            select.innerHTML = html;
+            container.innerHTML = html;
         }
 
-        // 應用快速發車組合
-        function applyQuickSquad() {
-            const select = document.getElementById('quickSquadSelect');
-            const index = select.value;
-            if (index === "") return;
-
+        function applyQuickSquad(index) {
             const squad = PRESET_SQUADS[index];
             const container = document.getElementById('playersArea');
-            container.innerHTML = ''; // 清空現有欄位
+            container.innerHTML = ''; 
 
             squad.players.forEach(name => {
-                addPlayerRow(name); // 自動帶入名字
+                addPlayerRow(name); 
             });
             
-            // 如果組合少於4人 (雖然目前設定都是4人)，補滿到4個
             while(container.children.length < 4) {
                 addPlayerRow();
             }
@@ -826,8 +849,7 @@
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
-        // 移除預設篩選，讓它顯示全部
-        // document.getElementById('filterMonth').value = `${year}-${month}`; 
+        // document.getElementById('filterMonth').value = `${year}-${month}`; // 移除，預設全部
 
         function initPlayerInputs() {
             const container = document.getElementById('playersArea');
@@ -1128,7 +1150,7 @@
             recordsRef.update(updates).then(() => { alert("🗑️ 刪除成功！"); toggleBatchMode(); });
         }
 
-        // 接收 filteredRecords 參數，達到排行榜與列表連動
+        // 修改：接收 filteredRecords 參數，並使用數字運算
         function renderGroupStats(filteredRecords) {
             let stats = {}; let monthlyData = {}; let yearlyJiang = {}; let grandTotalJiang = 0; let grandTotalDong = 0; 
             let maxTai = { tai: 0, player: '', hand: '' };
@@ -1193,7 +1215,6 @@
             list.innerHTML = '';
             
             let total = 0;
-            // 使用目前的 displayRecords (篩選後的)，達到連動篩選的效果
             displayRecords.forEach(rec => {
                 if (rec.details) {
                     const playerRecord = rec.details.find(p => p.name === playerName);
