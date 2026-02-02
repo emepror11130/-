@@ -244,7 +244,7 @@
         /* 排行榜表格美化 (公用戰場) */
         #groupStatsTable { border-collapse: separate; border-spacing: 0; width: 100%; margin-top: 5px; }
         #groupStatsTable th { font-size: 13px; color: #95a5a6; font-weight: 600; padding: 8px; text-align: center; border-bottom: 1px solid #eee; }
-        #groupStatsTable td { padding: 14px 8px; vertical-align: middle; border-bottom: 1px solid #f8f9fa; cursor: pointer; } /* 增加點擊手勢 */
+        #groupStatsTable td { padding: 14px 8px; vertical-align: middle; border-bottom: 1px solid #f8f9fa; cursor: pointer; } 
         #groupStatsTable td:nth-child(1) { width: 45px; text-align: center; }
         #groupStatsTable td:nth-child(2) { text-align: left; padding-left: 15px; font-size: 17px; font-weight: 700; color: #2c3e50; }
         #groupStatsTable td:nth-child(3) { text-align: right; padding-right: 10px; font-family: 'Roboto Mono', monospace; font-size: 19px; font-weight: 700; letter-spacing: -0.5px; }
@@ -478,7 +478,7 @@
         let currentLocType = 'group'; 
         let recordsRef, playersRef, settingsRef;
         let localRecords = [];
-        let displayRecords = []; // 儲存篩選後的紀錄供排行榜使用
+        let displayRecords = []; 
         let currentEditId = null;
         let publicLocationNames = ["蕙儀家"]; 
         let publicLocationsMeta = {};
@@ -643,7 +643,6 @@
                 localRecords = [];
                 if (data) {
                     Object.keys(data).forEach(key => { localRecords.push({ id: key, ...data[key] }); });
-                    // Strict Date Sort: Date Descending, then Timestamp Descending
                     localRecords.sort((a, b) => {
                         const dateA = new Date(a.date);
                         const dateB = new Date(b.date);
@@ -782,7 +781,7 @@
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
-        document.getElementById('filterMonth').value = `${year}-${month}`;
+        // document.getElementById('filterMonth').value = `${year}-${month}`; // 預設顯示全部
 
         function initPlayerInputs() {
             const container = document.getElementById('playersArea');
@@ -840,7 +839,8 @@
             optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
             optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
             document.querySelectorAll('.name-select').forEach(select => {
-                const currentVal = select.value; select.innerHTML = optionsHtml;
+                const currentVal = select.value;
+                select.innerHTML = optionsHtml;
                 if (currentVal) select.value = currentVal;
             });
         }
@@ -1086,14 +1086,12 @@
             let stats = {}; let monthlyData = {}; let yearlyJiang = {}; let grandTotalJiang = 0; let grandTotalDong = 0; 
             let maxTai = { tai: 0, player: '', hand: '' };
 
-            // 使用傳入的篩選後紀錄，若無則使用全部
             const targetRecords = filteredRecords || localRecords;
 
             targetRecords.forEach(rec => {
                 if (rec.details) {
                     rec.details.forEach(p => { 
                         if (!stats[p.name]) stats[p.name] = 0; 
-                        // 強制轉型為數字，避免字串相加
                         stats[p.name] += parseInt(p.score) || 0; 
                     });
                 }
@@ -1122,7 +1120,6 @@
                     if(index === 0) { rankContent = '🥇'; rankClass = "rank-1"; } else if(index === 1) { rankContent = '🥈'; rankClass = "rank-2"; } else if(index === 2) { rankContent = '🥉'; rankClass = "rank-3"; }
                     if (index === sortedStats.length - 1 && sortedStats.length > 1) { rankContent = '👑 老闆'; rankClass = 'rank-boss'; }
                     
-                    // 增加 onclick 事件
                     summaryBody.innerHTML += `
                         <tr onclick="showPlayerStats('${name}')" style="cursor:pointer;">
                             <td><span class="rank-badge ${rankClass}">${rankContent}</span></td>
@@ -1138,7 +1135,6 @@
             let sortedYears = Object.keys(yearlyJiang).sort().reverse(); if(sortedYears.length > 0) { yearFoot.innerHTML = `${sortedYears[0]}年總計：${yearlyJiang[sortedYears[0]]} 將`; }
         }
 
-        // 顯示選手戰績詳細 (驗算功能)
         function showPlayerStats(playerName) {
             const modal = document.getElementById('playerStatsModal');
             const title = document.getElementById('playerStatsTitle');
@@ -1149,7 +1145,6 @@
             list.innerHTML = '';
             
             let total = 0;
-            // 使用目前的 displayRecords (篩選後的)，達到連動篩選的效果
             displayRecords.forEach(rec => {
                 if (rec.details) {
                     const playerRecord = rec.details.find(p => p.name === playerName);
