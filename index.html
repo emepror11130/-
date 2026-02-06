@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🀄 雀神雲端記帳</title>
+    <title>🀄 雀神雲端記帳 - 尊絕版</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -14,370 +14,267 @@
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        /* === 🎨 新版配色定義 (Dark Luxury Theme) === */
         :root { 
-            --primary-green: #1e6f50;
-            --table-dark: #114b35;
-            --table-light: #2ecc71;
-            --win-color: #e74c3c; 
-            --lose-color: #27ae60; 
-            --text-main: #2c3e50; 
-            --card-glass: rgba(255, 255, 255, 0.92);
-            --shadow-soft: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+            --bg-dark-1: #0f172a; /* 深午夜藍 */
+            --bg-dark-2: #1e293b; /* 稍亮的藍灰 */
+            --accent-gold: #d4af37; /* 古銅金 (贏家/強調) */
+            --accent-jade: #2dd4bf; /* 青玉綠 (輸家/次要) */
+            --text-light: #e2e8f0; /* 主要淺色文字 */
+            --text-dim: #94a3b8;   /* 次要灰色文字 */
+            
+            /* 深色毛玻璃 */
+            --card-glass-dark: rgba(30, 41, 59, 0.75);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --shadow-premium: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
         }
 
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
-            color: var(--text-main); 
+            color: var(--text-light);
             margin: 0; 
             padding: 12px; 
             padding-bottom: 90px; 
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
-            /* 關鍵修正：這裡原本有背景色，現在改為透明，讓下方的 mahjong-bg 透出來 */
-            background-color: transparent; 
+            background-color: var(--bg-dark-1); /* 預設底色 */
         }
 
-        /* === 🀄 背景美術工程 (修正層級) === */
+        /* === 🀄 背景美術工程 (高級感) === */
         .mahjong-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: -2; /* 最底層 */
-            /* 聚光燈效果：模擬燈光打在綠色絨布桌上 */
-            background: radial-gradient(circle at 50% 30%, #2e8b6b 0%, #1e6f50 50%, #0d3826 100%);
+            z-index: -2;
+            /* 1. 深藍漸層底 */
+            background: radial-gradient(circle at 50% 0%, #2c3e50 0%, var(--bg-dark-1) 80%);
+        }
+        /* 2. 東方格紋疊加層 (增加細節質感) */
+        .mahjong-bg::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-rule='evenodd'%3E%3Cpath d='M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20zm20 0V0h20v20H20z' fill-opacity='0.2'/%3E%3Cpath d='M0 0h20v20H0V0zm20 20h20v20H20V20z' fill-opacity='0.1'/%3E%3C/g%3E%3C/svg%3E");
         }
 
         /* 漂浮麻將牌容器 */
         .tiles-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: -1; /* 次底層 */
-            pointer-events: none;
-            overflow: hidden;
+            z-index: -1; pointer-events: none; overflow: hidden;
         }
 
-        /* 麻將牌通用樣式 */
+        /* 麻將牌樣式 (發光的玉石感) */
         .bg-tile {
-            position: absolute;
-            width: 140px; height: 190px;
-            background: linear-gradient(135deg, #fdfdfd 0%, #ecf0f1 100%);
+            position: absolute; width: 130px; height: 180px;
+            /* 深色玉石質感 */
+            background: linear-gradient(145deg, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.05) 100%);
             border-radius: 16px;
-            box-shadow: 15px 15px 40px rgba(0,0,0,0.3), inset 2px 2px 5px rgba(255,255,255,0.9), inset -2px -2px 5px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
             display: flex; justify-content: center; align-items: center;
-            font-family: 'Ma Shan Zheng', serif; /* 書法字體 */
-            font-size: 110px;
-            opacity: 0.15; /* 稍微調高不透明度，讓您看得到 */
-            transform-style: preserve-3d;
-            border: 1px solid rgba(255,255,255,0.2);
+            font-family: 'Ma Shan Zheng', serif; 
+            font-size: 100px; opacity: 0.25; 
+            text-shadow: 0 0 20px currentColor; /* 自體發光效果 */
         }
 
-        /* 中 */
-        .tile-zhong {
-            color: #c0392b;
-            top: 5%; right: -20px;
-            transform: rotate(25deg) scale(0.9);
+        .tile-zhong { color: #ef4444; top: 8%; right: -25px; transform: rotate(20deg) scale(0.9); }
+        .tile-fa { color: var(--accent-jade); bottom: 18%; left: -35px; transform: rotate(-15deg) scale(1.0); }
+        .tile-bai { 
+            top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(10deg) scale(0.7); opacity: 0.15;
         }
-        /* 發 */
-        .tile-fa {
-            color: #27ae60;
-            bottom: 20%; left: -30px;
-            transform: rotate(-15deg) scale(1.0);
-        }
-        /* 白 */
-        .tile-bai {
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(10deg) scale(0.7);
-            opacity: 0.1; 
-        }
-        /* 白板的中間框框 */
         .tile-bai::before { 
-            content: ''; display: block; width: 85%; height: 88%; 
-            border: 4px solid #bdc3c7; border-radius: 6px; 
-            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
+            content: ''; display: block; width: 86%; height: 89%; 
+            border: 4px solid rgba(255,255,255,0.3); border-radius: 8px; 
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
         }
 
 
         /* === 頂部導航 === */
-        .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
+        .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 5px; }
         h1 { 
-            margin: 0; font-size: 22px; color: #fff; font-weight: 700; 
-            text-shadow: 0 2px 5px rgba(0,0,0,0.3); letter-spacing: 1px;
-            display: flex; align-items: center; gap: 8px;
+            margin: 0; font-size: 24px; color: var(--accent-gold); font-weight: 700; 
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3); letter-spacing: 1.5px;
         }
         
         .location-badge {
-            background: rgba(255,255,255,0.2); 
-            color: white; 
-            padding: 6px 14px; 
-            border-radius: 50px;
-            font-size: 14px; 
-            font-weight: 500;
-            cursor: pointer; 
-            border: 1px solid rgba(255,255,255,0.3);
-            display: flex; align-items: center; gap: 6px;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background: rgba(20, 30, 48, 0.6); color: var(--accent-gold);
+            padding: 8px 16px; border-radius: 50px; font-size: 14px; font-weight: 500;
+            cursor: pointer; border: 1px solid var(--accent-gold);
+            display: flex; align-items: center; gap: 8px;
+            backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
         }
-        .location-badge:active { background: rgba(255,255,255,0.4); transform: scale(0.98); }
+        .location-badge:hover { background: var(--accent-gold); color: var(--bg-dark-1); }
 
-        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.9); margin-bottom: 15px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
-        .connected { background-color: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
+        #status { text-align: center; font-size: 12px; color: var(--text-dim); margin-bottom: 20px; letter-spacing: 1px; }
+        .online-dot { height: 8px; width: 8px; background-color: var(--text-dim); border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .connected { background-color: var(--accent-jade); box-shadow: 0 0 10px var(--accent-jade); }
 
-        /* === 卡片通用樣式 (毛玻璃化) === */
+        /* === 卡片通用樣式 (深色毛玻璃) === */
         .card { 
-            background: var(--card-glass); 
-            backdrop-filter: blur(12px); /* 關鍵：模糊背景 */
-            -webkit-backdrop-filter: blur(12px);
-            padding: 20px; 
-            border-radius: 20px; 
-            box-shadow: var(--shadow-soft); 
-            margin-bottom: 18px; 
-            width: 100%; 
-            overflow: hidden; 
-            border: 1px solid rgba(255,255,255,0.6);
+            background: var(--card-glass-dark);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 24px; border-radius: 24px; 
+            box-shadow: var(--shadow-premium); 
+            margin-bottom: 20px; width: 100%; overflow: hidden; 
+            border: 1px solid var(--border-glass);
         }
         
         .card h3 { 
-            margin: 0 0 15px 0; 
-            border-bottom: 2px solid rgba(0,0,0,0.05); 
-            padding-bottom: 10px; 
-            color: var(--primary-green); 
-            font-size: 18px; 
-            font-weight: 700;
+            margin: 0 0 20px 0; padding-bottom: 12px; 
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-light); font-size: 18px; font-weight: 700; letter-spacing: 1px;
             display: flex; justify-content: space-between; align-items: center; 
         }
+        .card h3 span { display: flex; align-items: center; gap: 8px; }
 
-        /* === 輸入區 === */
-        .input-style { 
-            width: 100%; height: 46px; padding: 0 12px; border: 1px solid #e0e0e0; border-radius: 12px; 
-            font-size: 16px; background: rgba(255,255,255,0.8); color: #333; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
+        /* === 輸入區優化 === */
+        label { color: var(--text-dim) !important; font-weight: 500 !important; letter-spacing: 0.5px; }
+
+        .input-style, .name-select, .score-input, .personal-select, .mem-select { 
+            width: 100%; height: 50px; padding: 0 15px; 
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; 
+            font-size: 16px; 
+            background: rgba(255,255,255,0.05); /* 深色半透明背景 */
+            color: var(--text-light); 
+            transition: all 0.3s ease;
         }
-        .input-style:focus { border-color: var(--primary-green); background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(30, 111, 80, 0.1); }
+        .input-style:focus, .name-select:focus, .score-input:focus, .personal-select:focus { 
+            border-color: var(--accent-gold); background: rgba(255,255,255,0.1); 
+            outline: none; box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2); 
+        }
         
-        input[type="date"] { -webkit-appearance: none; appearance: none; display: flex; align-items: center; justify-content: center; line-height: normal; padding: 0; }
+        input[type="date"] { color-scheme: dark; } /* 讓日期選擇器變深色 */
 
         /* 群組模式 */
-        .group-mode .row-stats { display: flex; gap: 12px; margin-bottom: 20px; }
-        .group-mode .col-half { flex: 1; }
-        .group-mode .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-        .group-mode .name-select { width: 100%; height: 46px; border-radius: 12px; border: 1px solid #e0e0e0; background: rgba(255,255,255,0.8); font-size: 15px; padding: 0 10px; flex: 1; }
-        .group-mode .score-input { width: 85px; height: 46px; text-align: center; font-weight: bold; border-radius: 12px; border: 1px solid #e0e0e0; font-size: 17px; font-family: 'Roboto Mono', monospace; background: rgba(255,255,255,0.8); }
-        .row-delete-btn { width: 30px; height: 46px; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-size: 18px; cursor: pointer; margin-left: 2px; }
-        .row-delete-btn:hover { color: #e74c3c; }
+        .group-mode .row-stats { display: flex; gap: 15px; margin-bottom: 25px; }
+        .group-mode .player-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
+        .group-mode .score-input { width: 95px; text-align: center; font-weight: bold; font-family: 'Roboto Mono', monospace; font-size: 18px; }
+        .row-delete-btn { color: var(--text-dim); opacity: 0.7; }
+        .row-delete-btn:hover { color: #ef4444; opacity: 1; }
 
         .sign-btn { 
-            flex: 0 0 42px; height: 42px; border-radius: 50%; border: none; font-size: 22px; font-weight: bold; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.1s;
+            flex: 0 0 46px; height: 46px; border-radius: 12px; border: none; font-size: 24px; font-weight: bold; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
-        .sign-btn:active { transform: scale(0.9); }
-        .btn-plus { background: #fff; color: var(--win-color); border: 2px solid var(--win-color); }
-        .btn-minus { background: var(--lose-color); color: white; border: 2px solid var(--lose-color); }
+        .btn-plus { background: rgba(212, 175, 55, 0.15); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
+        .btn-minus { background: rgba(45, 212, 191, 0.15); color: var(--accent-jade); border: 1px solid var(--accent-jade); }
 
-        /* === 快速發車 (橫向捲軸) === */
-        .quick-scroll-wrapper {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding-bottom: 8px;
-            margin-bottom: 15px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .quick-scroll-wrapper::-webkit-scrollbar { display: none; }
-        
+        /* === 快速發車 (晶片樣式) === */
+        .quick-scroll-wrapper { gap: 12px; padding-bottom: 10px; }
         .squad-chip {
-            flex: 0 0 auto;
-            background: linear-gradient(to bottom, #ffffff, #f0f7ff);
-            color: #2980b9;
-            border: 1px solid #cce4f7;
-            padding: 10px 16px;
-            border-radius: 25px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            background: rgba(255,255,255,0.05);
+            color: var(--text-light);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 18px; border-radius: 30px;
+            font-size: 13px; font-weight: 500; letter-spacing: 0.5px;
+            transition: all 0.3s;
         }
-        .squad-chip:active { background: #3498db; color: white; transform: scale(0.95); box-shadow: none; border-color: #3498db; }
+        .squad-chip:active, .squad-chip:hover { 
+            background: var(--accent-gold); color: var(--bg-dark-1); border-color: var(--accent-gold); 
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
 
         /* 大牌紀錄 */
-        .highlight-section { background: rgba(255, 253, 240, 0.6); border: 1px solid #fae588; border-radius: 12px; padding: 15px; margin-top: 15px; }
-        .highlight-toggle { 
-            color: #f39c12; font-size: 14px; font-weight: bold; cursor: pointer; 
-            display: flex; align-items: center; gap: 5px; margin-top: 10px; 
-            padding: 8px; border-radius: 8px; transition: background 0.2s;
+        .highlight-section { 
+            background: linear-gradient(to right, rgba(212, 175, 55, 0.1), rgba(0,0,0,0));
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-left: 4px solid var(--accent-gold);
         }
-        .highlight-toggle:active { background: rgba(243, 156, 18, 0.1); }
-        .highlight-inputs { display: none; margin-top: 10px; }
-        .mem-select { width: 100%; height: 42px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: 14px; padding: 0 10px; color: #333; }
+        .highlight-toggle { color: var(--accent-gold); }
 
-        /* 個人模式 */
-        .personal-mode .input-row { margin-bottom: 15px; }
-        .personal-mode label { display: block; font-size: 13px; color: #7f8c8d; margin-bottom: 6px; font-weight: 700; margin-left: 4px; }
-        .personal-mode .score-input-large { 
-            width: 100%; height: 56px; font-size: 28px; text-align: center; 
-            border: 2px solid #e0e0e0; border-radius: 12px; font-weight: bold; 
-            color: var(--text-main); font-family: 'Roboto Mono', monospace; 
-            background: rgba(255,255,255,0.8);
-        }
-        .personal-mode .score-input-large:focus { border-color: var(--primary-green); }
-        .personal-select { width: 100%; height: 46px; padding: 0 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 15px; background: rgba(255,255,255,0.8); color: #333; }
-        .personal-custom { width: 100%; height: 46px; padding: 0 12px; border: 1px solid #3498db; border-radius: 12px; font-size: 15px; display: none; }
-
-        /* 按鈕 */
+        /* 按鈕 (高級漸層) */
         .action-btn { 
-            width: 100%; padding: 15px; 
-            background: linear-gradient(135deg, #1e6f50 0%, #114b35 100%); 
-            color: white; 
-            border: none; border-radius: 14px; font-size: 16px; font-weight: bold; 
-            cursor: pointer; margin-top: 10px; box-shadow: 0 6px 15px rgba(20, 90, 50, 0.3); 
-            transition: transform 0.1s;
+            padding: 16px; 
+            background: linear-gradient(135deg, var(--accent-gold) 0%, #b88a00 100%); 
+            color: var(--bg-dark-1); font-size: 18px; font-weight: bold; letter-spacing: 1px;
+            border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(212, 175, 55, 0.5); 
         }
-        .action-btn:active { transform: scale(0.98); box-shadow: 0 3px 8px rgba(20, 90, 50, 0.3); }
+        .action-btn:active { transform: scale(0.99); box-shadow: 0 5px 15px -5px rgba(212, 175, 55, 0.5); }
         
         .add-player-btn { 
-            width: 100%; padding: 12px; background: rgba(240, 248, 255, 0.7); 
-            color: #3498db; border: 1px dashed #3498db; border-radius: 12px; 
-            font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 5px; margin-bottom: 10px; 
-            transition: all 0.2s;
+            background: rgba(255,255,255,0.05); color: var(--text-dim);
+            border: 1px dashed rgba(255,255,255,0.3);
         }
-        .add-player-btn:active { background: #e1f0fa; }
-        
-        .cancel-btn { width: 100%; padding: 12px; background-color: #95a5a6; color: white; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
+        .add-player-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
 
         /* 統計與列表 */
-        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; font-size: 14px; table-layout: fixed; }
-        th { background-color: rgba(241, 243, 245, 0.6); color: #7f8c8d; font-weight: 600; padding: 10px; text-align: center; font-size: 13px; border-radius: 6px; }
-        td { padding: 12px 6px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); word-wrap: break-word; }
+        table { margin-top: 10px; }
+        th { background-color: rgba(0,0,0,0.2); color: var(--text-dim); font-weight: 500; padding: 12px; letter-spacing: 1px; }
+        td { padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        .win-text { color: var(--win-color); font-weight: bold; }
-        .lose-text { color: var(--lose-color); font-weight: bold; }
+        .win-text { color: var(--accent-gold); font-weight: bold; text-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+        .lose-text { color: var(--accent-jade); font-weight: bold; }
         
-        /* 排名徽章 */
-        .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 14px; font-weight: bold; }
-        .rank-1 { font-size: 22px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .rank-2 { font-size: 22px; text-shadow: 0 2px 4px rgba(0,0,0,0.15); }
-        .rank-3 { font-size: 22px; text-shadow: 0 2px 4px rgba(0,0,0,0.15); }
-        .rank-other { background: #eee; font-size: 12px; color: #666; }
-        
-        /* === 修正後的「老闆」樣式：簡約白底金框 === */
+        /* 排名徽章 (金屬質感) */
+        .rank-badge { line-height: 24px; font-size: 16px; }
+        .rank-1 { font-size: 24px; text-shadow: 0 2px 10px rgba(255,215,0,0.5); }
+        .rank-2, .rank-3 { font-size: 22px; opacity: 0.9; }
+        .rank-other { background: rgba(255,255,255,0.1); color: var(--text-dim); font-size: 12px; }
         .rank-badge.rank-boss { 
-            width: auto !important; height: auto !important; background: #fff;
-            color: #f39c12; border: 1px solid #f39c12; font-size: 11px;
-            padding: 2px 8px; border-radius: 12px; display: inline-flex;
-            align-items: center; justify-content: center; font-weight: 700;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: var(--accent-gold); color: var(--bg-dark-1); border: none;
+            box-shadow: 0 2px 10px rgba(212, 175, 55, 0.4);
         }
 
-        .dashboard-grid { display: flex; gap: 12px; margin-bottom: 8px; }
+        .dashboard-grid { gap: 15px; margin-bottom: 15px; }
         .dash-box { 
-            flex: 1; padding: 15px 10px; border-radius: 16px; text-align: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03);
+            padding: 20px 15px; border-radius: 20px; 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
         }
-        .dash-label { font-size: 12px; color: #7f8c8d; margin-bottom: 4px; font-weight: 500; }
-        .dash-value { font-size: 20px; font-weight: 800; line-height: 1.2; font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
+        .dash-label { color: var(--text-dim); letter-spacing: 1px; }
+        .dash-value { font-size: 24px; margin-top: 5px; }
 
         /* 歷史紀錄列表 */
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .history-header { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .history-date { font-size: 14px; color: #2c3e50; font-weight: 600; }
-        .history-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; display: inline-block; white-space: nowrap; }
-        .tag-holiday { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; font-weight: bold; }
-        .tag-lunar { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
-        .tag-info { background-color: #f1f3f5; color: #666; border: 1px solid #e0e0e0; }
-        .tag-highlight { background: linear-gradient(135deg, #f1c40f, #f39c12); color: white; font-weight: bold; box-shadow: 0 2px 4px rgba(243, 156, 18, 0.3); }
+        .history-item { padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .history-date { color: var(--text-light); font-size: 15px; letter-spacing: 0.5px; }
+        .tag-holiday { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; border: none; }
+        .tag-lunar { background-color: rgba(45, 212, 191, 0.2); color: var(--accent-jade); border: none; }
+        .tag-info { background-color: rgba(255,255,255,0.1); color: var(--text-dim); border: none; }
+        .tag-highlight { background: linear-gradient(135deg, var(--accent-gold), #b88a00); color: var(--bg-dark-1); box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3); }
 
-        .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 15px; margin-top: 6px; font-size: 13px; color: #555; }
+        .history-scores { gap: 8px 20px; color: var(--text-dim); font-size: 14px; }
         
-        .edit-btn { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; }
-        .delete-btn { background: #ff7675; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; margin-left: 6px;}
-        .error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 12px; text-align: center; font-weight: bold; display: none; margin-top: 10px; font-size: 14px;}
-        .editing-mode { border: 2px solid #f39c12; box-shadow: 0 0 15px rgba(243, 156, 18, 0.2); }
+        .edit-btn { background: var(--accent-gold); color: var(--bg-dark-1); }
+        .delete-btn { background: rgba(255,255,255,0.1); color: var(--text-dim); }
+        .editing-mode { border: 2px solid var(--accent-gold); box-shadow: 0 0 30px rgba(212, 175, 55, 0.3); }
 
-        .backup-btn { background: rgba(255,255,255,0.5); border: 1px solid #2ecc71; color: #2ecc71; border-radius: 20px; padding: 4px 10px; font-size: 12px; cursor: pointer; font-weight: 600; backdrop-filter: blur(4px); }
+        .backup-btn { background: rgba(45, 212, 191, 0.1); border: 1px solid var(--accent-jade); color: var(--accent-jade); }
         
-        /* 管理與選單 */
-        .manage-btn { background: none; border: none; color: #95a5a6; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 5px; }
-        .manage-btn:hover { color: #2c3e50; }
-        
-        /* 地點選單 */
-        .location-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .location-card { background: rgba(255, 255, 255, 0.95); width: 85%; max-width: 340px; padding: 25px; border-radius: 20px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.5); }
-        .location-group-title { font-size: 12px; color: #95a5a6; margin-top: 15px; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-        .location-item { padding: 14px; margin-bottom: 10px; border-radius: 10px; background: #f8f9fa; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
-        .location-item:hover { background: #fff; border-color: var(--primary-green); transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .loc-name-area { flex: 1; font-weight: 500; color: #2c3e50; display:flex; justify-content:space-between; align-items:center; }
-        .loc-delete { padding: 8px; color: #bdc3c7; font-size: 16px; cursor: pointer; border-left: 1px solid #eee; margin-left: 10px; padding-left: 10px; }
-        .loc-delete:hover { color: #e74c3c; }
-        .location-add { margin-top: 20px; text-align: center; padding: 12px; border: 1px dashed #3498db; border-radius: 12px; color: #3498db; cursor: pointer; font-size: 14px; font-weight: 500; background: rgba(240, 248, 255, 0.5); }
-        
-        .hidden { display: none !important; }
-        .manage-area { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px; display: none; }
-        .player-tag { background: #fff; border: 1px solid #e0e0e0; border-radius: 20px; padding: 6px 12px; font-size: 13px; color: #555; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .player-delete { color: #e74c3c; cursor: pointer; font-weight: bold; font-size: 16px; }
-        .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        
-        .import-textarea { width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 10px; padding: 12px; font-size: 12px; font-family: monospace; background: #f9f9f9; resize: none; }
+        /* 地點選單 (深色模式) */
+        .location-card { background: var(--bg-dark-2); border: 1px solid var(--border-glass); box-shadow: var(--shadow-premium); color: var(--text-light); }
+        .location-item { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.05); }
+        .location-item:hover { background: rgba(255,255,255,0.08); border-color: var(--accent-gold); }
+        .loc-name-area { color: var(--text-light); }
+        .location-group-title { color: var(--accent-gold); border-color: rgba(255,255,255,0.1); }
+        .loc-delete { border-color: rgba(255,255,255,0.1); }
 
-        /* 批次刪除 */
-        .batch-checkbox { width: 22px; height: 22px; margin-right: 12px; accent-color: #e74c3c; cursor: pointer; }
-        .batch-toolbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 15px; border-top: 1px solid #eee; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); display: flex; gap: 10px; z-index: 900; backdrop-filter: blur(5px); }
-        .batch-action-btn { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        /* 年份卡片 (深色) */
+        .year-card { background: var(--card-glass-dark); border: 1px solid var(--border-glass); }
+        .year-header { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.05); color: var(--text-light); }
+        .year-title { color: var(--text-light); }
+        .month-list { background: transparent; }
+        .month-item { border-color: rgba(255,255,255,0.05); }
+        .month-item:hover { background: rgba(255,255,255,0.03); }
+        .month-name { color: var(--text-dim); }
+        .month-count { background: rgba(255,255,255,0.1); color: var(--text-dim); }
 
-        /* === 高級排版：年份卡片 (修正對齊版) === */
-        .year-card { 
-            background: rgba(255,255,255,0.6); /* 微透明 */
-            border-radius: 14px; margin-bottom: 12px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; 
-            position: relative; transition: box-shadow 0.2s;
+        /* 排行榜首名特效 */
+        #groupStatsTable tr:first-child td { 
+            background: linear-gradient(to right, rgba(212, 175, 55, 0.2), transparent); 
+            border-top: 1px solid rgba(212, 175, 55, 0.3); border-bottom: 1px solid rgba(212, 175, 55, 0.3); color: var(--text-light) !important;
         }
-        .year-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
-        .year-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; z-index: 1; }
-        .year-card.win::before { background-color: #e74c3c; }
-        .year-card.lose::before { background-color: #27ae60; }
-        .year-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.8); border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .year-title { font-size: 17px; font-weight: 700; color: #2c3e50; display: flex; align-items: center; gap: 10px; }
-        .year-arrow { font-size: 12px; color: #bdc3c7; transition: transform 0.3s; }
-        .year-expanded .year-arrow { transform: rotate(180deg); color: var(--text-main); }
-        .year-score { font-size: 17px; font-weight: 800; font-family: 'Roboto Mono', monospace; }
+        #groupStatsTable tr:first-child td:first-child { border-left: 1px solid rgba(212, 175, 55, 0.3); }
+        #groupStatsTable tr:first-child td:last-child { border-right: 1px solid rgba(212, 175, 55, 0.3); }
         
-        /* === 高級排版：月份列表 Grid 系統 === */
-        .month-list { display: none; background: rgba(255,255,255,0.5); }
-        .month-item { display: grid; grid-template-columns: 1fr 70px 100px; align-items: center; padding: 14px 20px; border-bottom: 1px solid rgba(0,0,0,0.03); font-size: 15px; }
-        .month-item:last-child { border-bottom: none; }
-        .month-item:hover { background: rgba(255,255,255,0.8); }
-        .month-name { color: #555; font-weight: 500; }
-        .month-count { color: #95a5a6; font-size: 13px; text-align: center; background: rgba(240,242,245,0.8); padding: 2px 8px; border-radius: 12px; }
-        .month-score { font-weight: 700; text-align: right; font-family: 'Roboto Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+        /* Modal 深色化 */
+        .player-stats-card { background: var(--bg-dark-2); border: 1px solid var(--border-glass); color: var(--text-light); }
+        .player-stats-header { background: rgba(0,0,0,0.3); }
+        .player-record-row { border-color: rgba(255,255,255,0.05); }
+        .player-record-date { color: var(--text-dim); }
+        .player-stats-footer { background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.05); color: var(--text-light); }
 
-        /* 地點統計項目 */
-        .loc-stat-item { display: flex; justify-content: space-between; padding: 14px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 15px; align-items: center; }
-        .loc-stat-item:last-child { border-bottom: none; }
-        
-        /* 排行榜表格美化 (公用戰場) */
-        #groupStatsTable { border-collapse: separate; border-spacing: 0; width: 100%; margin-top: 5px; }
-        #groupStatsTable th { font-size: 13px; color: #95a5a6; font-weight: 600; padding: 8px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        #groupStatsTable td { padding: 14px 8px; vertical-align: middle; border-bottom: 1px solid rgba(0,0,0,0.03); cursor: pointer; } 
-        #groupStatsTable td:nth-child(1) { width: 45px; text-align: center; }
-        #groupStatsTable td:nth-child(2) { text-align: left; padding-left: 15px; font-size: 17px; font-weight: 700; color: #2c3e50; }
-        #groupStatsTable td:nth-child(3) { text-align: right; padding-right: 10px; font-family: 'Roboto Mono', monospace; font-size: 19px; font-weight: 700; letter-spacing: -0.5px; }
-        #groupStatsTable tr:first-child td { background: linear-gradient(to right, rgba(255, 253, 231, 0.8), rgba(255,255,255,0.8)); border-top: 1px solid #fff9c4; border-bottom: 1px solid #fff9c4; }
-        #groupStatsTable tr:first-child td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid #fff9c4; }
-        #groupStatsTable tr:first-child td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid #fff9c4; }
-        
-        /* 玩家詳細資料 Modal */
-        #playerStatsModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1100; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .player-stats-card { background: rgba(255,255,255,0.95); width: 90%; max-width: 400px; padding: 0; border-radius: 20px; max-height: 80vh; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.4); }
-        .player-stats-header { padding: 18px 20px; background: #2c3e50; color: white; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
-        .player-stats-close { cursor: pointer; font-size: 20px; color: rgba(255,255,255,0.7); }
-        .player-stats-body { padding: 0; overflow-y: auto; flex: 1; }
-        .player-record-row { display: flex; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 15px; align-items: center; }
-        .player-record-row:last-child { border-bottom: none; }
-        .player-record-date { color: #555; font-weight: 500; }
-        .player-record-score { font-family: 'Roboto Mono', monospace; font-weight: 700; }
-        .player-stats-footer { padding: 15px 20px; background: rgba(248, 249, 250, 0.8); border-top: 1px solid rgba(0,0,0,0.1); text-align: right; font-weight: bold; color: #2c3e50; font-size: 16px; }
+        /* 批次工具列 */
+        .batch-toolbar { background: var(--bg-dark-2); border-top: 1px solid var(--border-glass); }
     </style>
 </head>
 <body>
@@ -390,7 +287,7 @@
     </div>
 
     <div class="header-nav">
-        <h1>🀄 雀神記帳本</h1>
+        <h1>🀄 雀神殿</h1>
         <div class="location-badge" onclick="showLocationMenu()">
             <span id="currentLocationName">📍 蕙儀家</span>
         </div>
@@ -411,46 +308,46 @@
 
     <div id="locationModal" class="location-menu" onclick="closeLocationMenu(event)">
         <div class="location-card">
-            <h3 style="margin-top:0; border-bottom:none; padding-bottom:5px;">切換帳本</h3>
+            <h3 style="margin-top:0; border-bottom:none; padding-bottom:5px; color:var(--accent-gold);">切換帳本</h3>
             <div class="location-group-title">🏠 公開戰場 (無需密碼)</div>
             <div id="publicLocationList"></div>
             <div class="location-group-title">🔒 私人金庫 (需密碼)</div>
             <div id="privateLocationList"></div>
             <div style="display:flex; gap:10px;">
-                <div class="location-add" style="flex:1; border-color:#e67e22; color:#e67e22; background:#fff8e1;" onclick="createNewLocation('personal')">➕ 新增私人金庫</div>
+                <div class="location-add" style="flex:1; border-color:var(--accent-gold); color:var(--accent-gold); background:rgba(212,175,55,0.1);" onclick="createNewLocation('personal')">➕ 新增私人金庫</div>
             </div>
         </div>
     </div>
 
     <div id="importModal" class="location-menu" onclick="if(event.target.id==='importModal') document.getElementById('importModal').style.display='none'">
         <div class="location-card">
-            <h3 style="margin-top:0;">📥 匯入歷史紀錄</h3>
-            <p style="font-size:13px; color:#666; line-height:1.5;">請將 JSON 文字貼在下方框框中：</p>
-            <textarea id="importJsonArea" class="import-textarea" placeholder='[{"date": "2024-01-01", ...}]'></textarea>
-            <button class="action-btn" onclick="processImport()">確認匯入</button>
+            <h3 style="margin-top:0; color:var(--accent-gold);">📥 匯入歷史紀錄</h3>
+            <p style="font-size:13px; color:var(--text-dim); line-height:1.5;">請將 JSON 文字貼在下方框框中：</p>
+            <textarea id="importJsonArea" class="import-textarea" placeholder='[{"date": "2024-01-01", ...}]' style="background:rgba(0,0,0,0.2); color:var(--text-light); border-color:var(--border-glass);"></textarea>
+            <button class="action-btn" onclick="processImport()" style="margin-top:15px;">確認匯入</button>
         </div>
     </div>
 
     <div class="card" id="inputCard">
         <h3 id="inputTitle"><span>✏️ 新增戰績</span></h3>
-        <div style="margin-bottom: 12px;">
-            <label style="display:block; font-size:13px; color:#7f8c8d; margin-bottom:6px; font-weight:700; margin-left:4px;">日期</label>
+        <div style="margin-bottom: 15px;">
+            <label style="display:block; margin-bottom:8px; margin-left:4px;">日期</label>
             <input type="date" id="dateInput" class="input-style">
         </div>
         
         <div id="groupInputArea" class="group-mode">
-            <div style="margin-bottom: 15px;">
-                <label style="display:block; font-size:13px; color:#7f8c8d; margin-bottom:6px; font-weight:700; margin-left:4px;">⚡ 快速發車 (點擊自動帶入)</label>
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:10px; margin-left:4px; color:var(--accent-gold) !important;">⚡ 快速發車 (點擊自動帶入)</label>
                 <div id="quickSquadArea" class="quick-scroll-wrapper"></div>
             </div>
 
             <div class="row-stats">
                 <div class="col-half">
-                    <label style="display:block; font-size:13px; color:#7f8c8d; margin-bottom:6px; font-weight:700; margin-left:4px;">將數</label>
+                    <label style="display:block; margin-bottom:8px; margin-left:4px;">將數</label>
                     <input type="number" id="jiangInput" class="input-style" placeholder="0" value="1" inputmode="numeric">
                 </div>
                 <div class="col-half">
-                    <label style="display:block; font-size:13px; color:#7f8c8d; margin-bottom:6px; font-weight:700; margin-left:4px;">東錢</label>
+                    <label style="display:block; margin-bottom:8px; margin-left:4px;">東錢</label>
                     <input type="number" id="dongInput" class="input-style" placeholder="0" value="0" inputmode="numeric">
                 </div>
             </div>
@@ -460,10 +357,10 @@
             <div id="highlightInputs" class="highlight-inputs">
                 <div class="highlight-section">
                     <div style="display:flex; gap:10px;">
-                        <div style="flex:1;"><label style="font-size:12px; color:#888;">贏家</label><select id="hlWinnerSelect" class="mem-select"></select></div>
-                        <div style="flex:1;"><label style="font-size:12px; color:#888;">台數</label><select id="hlTaiSelect" class="mem-select"></select></div>
+                        <div style="flex:1;"><label style="font-size:12px;">贏家</label><select id="hlWinnerSelect" class="mem-select"></select></div>
+                        <div style="flex:1;"><label style="font-size:12px;">台數</label><select id="hlTaiSelect" class="mem-select"></select></div>
                     </div>
-                    <div style="margin-top:8px;"><label style="font-size:12px; color:#888;">牌型</label><select id="hlHandSelect" class="mem-select"></select></div>
+                    <div style="margin-top:12px;"><label style="font-size:12px;">牌型</label><select id="hlHandSelect" class="mem-select"></select></div>
                 </div>
             </div>
         </div>
@@ -472,11 +369,11 @@
                 <label>地點 / 局名</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <select id="personalLocSelect" class="personal-select" onchange="handlePersonalSelect('Loc')" style="flex:1;"><option value="" disabled selected>請選擇地點...</option></select>
-                    <button class="manage-btn" onclick="toggleLocManager()" style="background:#f0f2f5; border-radius:8px; padding:8px;">⚙️</button>
+                    <button class="manage-btn" onclick="toggleLocManager()" style="background:rgba(255,255,255,0.1); border-radius:8px; padding:8px;">⚙️</button>
                 </div>
                 <input type="text" id="personalLocCustom" class="personal-custom" placeholder="輸入新地點名稱" style="margin-top:8px;">
-                <div id="manageLocArea" class="manage-area" style="background:#f8f9fa; padding:12px; border-radius:12px; margin-top:10px; border:1px solid #eee;">
-                    <div style="font-size:12px; color:#95a5a6; margin-bottom:8px; font-weight:bold;">常用地點管理 (點擊✕刪除):</div>
+                <div id="manageLocArea" class="manage-area" style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px; margin-top:10px; border:1px solid var(--border-glass);">
+                    <div style="font-size:12px; color:var(--text-dim); margin-bottom:8px; font-weight:bold;">常用地點管理 (點擊✕刪除):</div>
                     <div id="manageLocList" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
                 </div>
             </div>
@@ -492,71 +389,71 @@
                     <input type="number" id="personalScoreInput" class="score-input-large" placeholder="0" inputmode="numeric">
                 </div>
             </div>
-            <div style="background:#fffcf5; padding:12px; border-radius:12px; margin-top:15px; border:1px solid #fae588;">
-                <label style="color:#f39c12; font-weight:bold; margin-bottom:8px;">✨ 難忘回憶 (選填)</label>
+            <div style="background:rgba(212,175,55,0.05); padding:15px; border-radius:16px; margin-top:20px; border:1px solid rgba(212,175,55,0.2);">
+                <label style="color:var(--accent-gold) !important; font-weight:bold; margin-bottom:10px;">✨ 難忘回憶 (選填)</label>
                 <div style="display:flex; gap:10px;"><select id="pHandSelect" class="mem-select" style="flex:2;"></select><select id="pTaiSelect" class="mem-select" style="flex:1;"></select></div>
             </div>
         </div>
         <p id="errorMsg" class="error-msg"></p>
         <button class="action-btn" id="saveBtn" onclick="saveData()">儲存紀錄</button>
         <div id="groupManageControls" style="display:flex; justify-content:space-between; margin-top:15px; align-items:center;">
-            <button class="manage-btn" onclick="togglePlayerManager()">⚙️ 管理選手</button>
+            <button class="manage-btn" onclick="togglePlayerManager()" style="color:var(--text-dim);">⚙️ 管理選手</button>
             <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()" style="margin:0; width:auto; padding:8px 16px;">取消修改</button>
         </div>
         <div id="personalCancelControls" class="hidden" style="text-align:right; margin-top:15px;">
              <button class="cancel-btn" id="cancelBtnPersonal" onclick="cancelEdit()" style="margin:0; display:inline-block; width:auto; padding:8px 16px;">取消修改</button>
         </div>
         <div id="manageArea" class="manage-area">
-            <div style="font-size:12px; color:#999; margin-bottom:8px; text-align:center;">點擊 ✕ 可刪除選手 (需密碼驗證)</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-bottom:8px; text-align:center;">點擊 ✕ 可刪除選手 (需密碼驗證)</div>
             <div id="manageList" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
         </div>
     </div>
 
     <div class="card" id="statsCard">
-        <h3 id="statsTitle">🏆 英雄榜</h3>
+        <h3 id="statsTitle"><span>🏆 英雄榜</span></h3>
         <table id="groupStatsTable">
             <thead><tr><th width="15%">#</th><th width="40%">姓名</th><th width="45%">累積</th></tr></thead>
-            <tbody id="summaryBody"><tr><td colspan="3">載入中...</td></tr></tbody>
+            <tbody id="summaryBody"><tr><td colspan="3" style="color:var(--text-dim);">載入中...</td></tr></tbody>
         </table>
         <div id="personalStatsView" class="hidden">
             <div class="dashboard-grid">
-                <div class="dash-box" style="background: rgba(255,243,224,0.6); border-color:#ffe0b2;">
+                <div class="dash-box">
                     <div class="dash-label">生涯總損益</div>
-                    <div class="dash-value" id="personalTotalScore" style="color: #e67e22;">$0</div>
+                    <div class="dash-value" id="personalTotalScore" style="color: var(--accent-gold);">$0</div>
                 </div>
-                <div class="dash-box" style="background: rgba(232,245,233,0.6); border-color:#c8e6c9;">
+                <div class="dash-box">
                     <div class="dash-label">總場次</div>
-                    <div class="dash-value" id="personalTotalCount" style="color: #2e7d32;">0</div>
+                    <div class="dash-value" id="personalTotalCount" style="color: var(--text-light);">0</div>
                 </div>
             </div>
-            <div class="card" style="margin-top: 15px; padding: 0; overflow: hidden; border:1px solid rgba(0,0,0,0.05); box-shadow:none; background:rgba(255,255,255,0.5);">
-                <h4 style="margin:0; padding:12px 15px; background:rgba(248,249,250,0.7); border-bottom:1px solid rgba(0,0,0,0.05); font-size:14px; color:#7f8c8d;">📍 各地戰況</h4>
+            <div class="card" style="margin-top: 15px; padding: 0; overflow: hidden; border:none; box-shadow:none; background:transparent;">
+                <h4 style="margin:0; padding:12px 15px; background:rgba(0,0,0,0.2); border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px; color:var(--text-dim);">📍 各地戰況</h4>
                 <div id="personalLocationStats"></div>
             </div>
         </div>
     </div>
 
     <div class="card" id="groupDetailStats">
-        <h3>📊 統計數據</h3>
+        <h3><span>📊 統計數據</span></h3>
         <div class="dashboard-grid">
-            <div class="dash-box" style="background: rgba(232,245,233,0.6);">
+            <div class="dash-box">
                 <div class="dash-label">歷史總將數</div>
-                <div class="dash-value" style="color: #2e7d32;" id="grandTotalJiang">0</div>
+                <div class="dash-value" style="color: var(--accent-jade);" id="grandTotalJiang">0</div>
             </div>
-            <div class="dash-box" style="background: rgba(255,243,224,0.6);">
+            <div class="dash-box">
                 <div class="dash-label">歷史總東錢</div>
-                <div class="dash-value" style="color: #ef6c00;" id="grandTotalDong">$0</div>
+                <div class="dash-value" style="color: var(--accent-gold);" id="grandTotalDong">$0</div>
             </div>
         </div>
-        <div style="margin-top:12px; padding:12px; background:rgba(255,253,245,0.7); border:1px dashed #f39c12; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <span style="font-size:13px; color:#555;">🔥 單場最大台：</span>
-            <span id="maxTaiRecord" style="font-weight:bold; color:#d35400; font-size:14px;">無紀錄</span>
+        <div style="margin-top:12px; padding:15px; background:rgba(212,175,55,0.05); border:1px solid rgba(212,175,55,0.2); border-radius:16px; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <span style="font-size:13px; color:var(--text-light);">🔥 單場最大台：</span>
+            <span id="maxTaiRecord" style="font-weight:bold; color:var(--accent-gold); font-size:15px; text-shadow:0 0 10px rgba(212,175,55,0.3);">無紀錄</span>
         </div>
-        <table class="normal-table" style="margin-top:15px;">
+        <table class="normal-table" style="margin-top:20px;">
             <thead><tr><th>月份</th><th>場次</th><th>東錢</th></tr></thead>
-            <tbody id="monthlyStatsBody"><tr><td colspan="3">計算中...</td></tr></tbody>
+            <tbody id="monthlyStatsBody"><tr><td colspan="3" style="color:var(--text-dim);">計算中...</td></tr></tbody>
         </table>
-        <div id="yearlyStatsFoot" style="text-align:center; margin-top:12px; font-weight:bold; color:#1e6f50; font-size: 13px;"></div>
+        <div id="yearlyStatsFoot" style="text-align:center; margin-top:15px; font-weight:bold; color:var(--accent-jade); font-size: 13px; opacity:0.8;"></div>
     </div>
     
     <div class="card" id="personalMonthlyStats" class="hidden" style="background:transparent; box-shadow:none; padding:0; border:none;">
@@ -566,26 +463,26 @@
     <div class="card">
         <h3>
             <span>📜 紀錄</span>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <select id="filterYear" style="border:1px solid #ddd; background:rgba(255,255,255,0.8); padding:4px 8px; border-radius:8px; font-size:13px; outline:none;" onchange="handleYearFilter()">
+            <div style="display:flex; gap:10px; align-items:center;">
+                <select id="filterYear" style="border:1px solid var(--border-glass); background:rgba(0,0,0,0.2); color:var(--text-light); padding:6px 10px; border-radius:10px; font-size:13px; outline:none;" onchange="handleYearFilter()">
                     <option value="ALL">全部年份</option>
                 </select>
-                <input type="month" id="filterMonth" style="border:1px solid #ddd; background:rgba(255,255,255,0.8); padding:4px 8px; border-radius:8px; font-size:13px; outline:none;" onchange="handleMonthFilter()">
+                <input type="month" id="filterMonth" style="border:1px solid var(--border-glass); background:rgba(0,0,0,0.2); color:var(--text-light); padding:4px 10px; border-radius:10px; font-size:13px; outline:none;" onchange="handleMonthFilter()">
             </div>
         </h3>
-        <div style="display:flex; justify-content:flex-end; margin-bottom:12px; gap:8px; flex-wrap:wrap;">
-            <button class="backup-btn" onclick="toggleBatchMode()" style="color:#e74c3c; border-color:#e74c3c;">🗑️ 批次刪除</button>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:15px; gap:10px; flex-wrap:wrap;">
+            <button class="backup-btn" onclick="toggleBatchMode()" style="color:#ef4444; border-color:#ef4444;">🗑️ 批次刪除</button>
             <button class="backup-btn" onclick="showImportModal()">📥 匯入</button>
             <button class="backup-btn" onclick="backupData()">💾 備份</button>
-            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:4px 10px; font-size:12px; cursor:pointer;">📥 Excel</button>
+            <button onclick="exportCSV()" style="background:rgba(45,212,191,0.1); border:1px solid var(--accent-jade); color:var(--accent-jade); border-radius:20px; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:600;">📥 Excel</button>
         </div>
         <div id="historyList"></div>
     </div>
 
     <div id="batchToolbar" class="batch-toolbar hidden">
-        <button class="batch-action-btn" style="background:#2ecc71; color:white;" onclick="toggleSelectAll()">✅ 全選</button>
-        <button class="batch-action-btn" style="background:#e74c3c; color:white;" onclick="deleteBatch()">🗑️ 刪除</button>
-        <button class="batch-action-btn" style="background:#95a5a6; color:white;" onclick="toggleBatchMode()">❌ 取消</button>
+        <button class="batch-action-btn" style="background:var(--accent-jade); color:var(--bg-dark-1);" onclick="toggleSelectAll()">✅ 全選</button>
+        <button class="batch-action-btn" style="background:#ef4444; color:white;" onclick="deleteBatch()">🗑️ 刪除</button>
+        <button class="batch-action-btn" style="background:var(--text-dim); color:var(--bg-dark-1);" onclick="toggleBatchMode()">❌ 取消</button>
     </div>
 
     <script>
@@ -716,7 +613,7 @@
                 personalMonthlyStats.classList.add('hidden'); 
                 groupManageCtrl.style.display = 'flex';
                 personalCancelCtrl.classList.add('hidden');
-                document.getElementById('statsTitle').innerText = "🏆 英雄榜";
+                document.getElementById('statsTitle').innerHTML = "<span>🏆 英雄榜</span>";
                 
                 initPlayerInputs(); 
             } else {
@@ -731,7 +628,7 @@
                 personalMonthlyStats.classList.remove('hidden'); 
                 groupManageCtrl.style.display = 'none';
                 personalCancelCtrl.classList.remove('hidden');
-                document.getElementById('statsTitle').innerText = "💰 我的金庫";
+                document.getElementById('statsTitle').innerHTML = "<span>💰 我的金庫</span>";
                 
                 updatePersonalSelects();
             }
@@ -779,11 +676,11 @@
             let locHtml = `<option value="" disabled selected>請選擇地點...</option>`;
             publicLocationNames.forEach(name => { locHtml += `<option value="${name}">🏠 ${name}</option>`; });
             myLocations.forEach(name => { if (!publicLocationNames.includes(name)) { locHtml += `<option value="${name}">📍 ${name}</option>`; } });
-            locHtml += `<option value="CUSTOM" style="color:#e67e22;">✏️ 自訂地點...</option>`;
+            locHtml += `<option value="CUSTOM" style="color:var(--accent-gold);">✏️ 自訂地點...</option>`;
             locSelect.innerHTML = locHtml;
             let stakeHtml = `<option value="" disabled selected>請選擇大小...</option>`;
             myStakes.forEach(s => { stakeHtml += `<option value="${s}">${s}</option>`; });
-            stakeHtml += `<option value="CUSTOM" style="color:#e67e22;">✏️ 自訂大小...</option>`;
+            stakeHtml += `<option value="CUSTOM" style="color:var(--accent-gold);">✏️ 自訂大小...</option>`;
             stakeSelect.innerHTML = stakeHtml;
         }
 
@@ -861,7 +758,7 @@
             Object.keys(publicLocationsMeta).forEach(key => {
                 const loc = publicLocationsMeta[key];
                 if (key !== 'default') { 
-                    list.innerHTML += `<div class="player-tag" style="border-color:#e67e22; color:#e67e22;">🏠 ${loc.name} <span class="player-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</span></div>`;
+                    list.innerHTML += `<div class="player-tag" style="border-color:var(--accent-gold); color:var(--accent-gold);">🏠 ${loc.name} <span class="player-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</span></div>`;
                 }
             });
             myLocations.forEach(name => {
@@ -896,7 +793,7 @@
                         if (type === 'group') { publicList.innerHTML += html; } else { privateList.innerHTML += html; }
                     });
                 }
-                if (privateList.innerHTML === '') privateList.innerHTML = '<div style="padding:10px; color:#999; font-size:13px; text-align:center;">尚無私人金庫</div>';
+                if (privateList.innerHTML === '') privateList.innerHTML = '<div style="padding:10px; color:var(--text-dim); font-size:13px; text-align:center;">尚無私人金庫</div>';
                 if (currentLocType === 'personal') { updatePersonalSelects(); renderManageLocList(); }
             });
         }
@@ -958,13 +855,13 @@
                 const selected = p === name ? 'selected' : '';
                 optionsHtml += `<option value="${p}" ${selected}>${p}</option>`; 
             });
-            optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
-            optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
+            optionsHtml += `<option value="ADD_NEW" style="color:var(--accent-gold); font-weight:bold;">➕ 新增固定牌友...</option>`;
+            optionsHtml += `<option value="Other" style="color:var(--accent-jade);">✏️ 單次自訂...</option>`;
 
             let nameInputHtml = `
                 <div class="name-wrapper" style="flex:1;">
                     <select class="name-select" onchange="handleNameChange(this)">${optionsHtml}</select>
-                    <input type="text" class="custom-name" placeholder="輸入名字" style="display:none; width:100%; height:46px; border-radius:10px; border:1px solid #e0e0e0; padding:0 10px;" value="${name}">
+                    <input type="text" class="custom-name" placeholder="輸入名字" style="display:none; width:100%; height:50px; border-radius:12px; border:1px solid var(--border-glass); padding:0 15px; background:rgba(255,255,255,0.05); color:var(--text-light);" value="${name}">
                 </div>
             `;
             
@@ -993,8 +890,8 @@
             if (currentLocType !== 'group') return;
             let optionsHtml = `<option value="" disabled selected>請選擇選手...</option>`;
             allPlayers.forEach(name => { optionsHtml += `<option value="${name}">${name}</option>`; });
-            optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
-            optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
+            optionsHtml += `<option value="ADD_NEW" style="color:var(--accent-gold); font-weight:bold;">➕ 新增固定牌友...</option>`;
+            optionsHtml += `<option value="Other" style="color:var(--accent-jade);">✏️ 單次自訂...</option>`;
             document.querySelectorAll('.name-select').forEach(select => {
                 const currentVal = select.value;
                 select.innerHTML = optionsHtml;
@@ -1140,7 +1037,7 @@
                 document.getElementById('personalScoreInput').value = Math.abs(record.score);
                 const btn = document.getElementById('personalSignBtn'); btn.innerText = record.score < 0 ? '-' : '+'; btn.className = record.score < 0 ? 'sign-btn btn-minus' : 'sign-btn btn-plus';
             }
-            currentEditId = id; document.getElementById('inputCard').classList.add('editing-mode'); document.getElementById('inputTitle').innerText = "✏️ 修改中..."; document.getElementById('saveBtn').innerText = "確認修改"; document.getElementById('saveBtn').style.backgroundColor = "#f39c12"; document.getElementById('cancelBtn').style.display = "block"; if(currentLocType !== 'group') document.getElementById('cancelBtnPersonal').style.display = "inline-block"; window.scrollTo({ top: 0, behavior: 'smooth' });
+            currentEditId = id; document.getElementById('inputCard').classList.add('editing-mode'); document.getElementById('inputTitle').innerText = "✏️ 修改中..."; document.getElementById('saveBtn').innerText = "確認修改"; document.getElementById('saveBtn').style.background = "linear-gradient(135deg, var(--accent-gold) 0%, #b88a00 100%)"; document.getElementById('cancelBtn').style.display = "block"; if(currentLocType !== 'group') document.getElementById('cancelBtnPersonal').style.display = "inline-block"; window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function deleteRecord(id) {
@@ -1151,7 +1048,7 @@
         }
 
         function cancelEdit() {
-            currentEditId = null; document.getElementById('inputCard').classList.remove('editing-mode'); document.getElementById('inputTitle').innerText = "✏️ 新增戰績"; document.getElementById('saveBtn').innerText = "儲存紀錄"; document.getElementById('saveBtn').style.backgroundColor = ""; document.getElementById('cancelBtn').style.display = "none"; document.getElementById('cancelBtnPersonal').style.display = "none"; document.getElementById('manageArea').style.display = 'none'; resetForm();
+            currentEditId = null; document.getElementById('inputCard').classList.remove('editing-mode'); document.getElementById('inputTitle').innerText = "✏️ 新增戰績"; document.getElementById('saveBtn').innerText = "儲存紀錄"; document.getElementById('saveBtn').style.background = ""; document.getElementById('cancelBtn').style.display = "none"; document.getElementById('cancelBtnPersonal').style.display = "none"; document.getElementById('manageArea').style.display = 'none'; resetForm();
         }
 
         function resetForm() {
@@ -1184,14 +1081,14 @@
                 displayRecords = localRecords.filter(rec => rec.date.startsWith(filterYear));
             }
 
-            if (displayRecords.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">無紀錄</p>'; }
+            if (displayRecords.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:var(--text-dim); padding:20px;">無紀錄</p>'; }
 
             displayRecords.forEach(rec => {
                 let html = ''; let holidayTag = getHolidayTag(rec.date);
                 let highlightTag = '';
                 if (rec.highlight && rec.highlight.hand) {
                     const playerStr = rec.highlight.player ? `${rec.highlight.player}: ` : '';
-                    highlightTag = `<div style="margin-top:4px;"><span class="history-tag tag-highlight">🏆 ${playerStr}${rec.highlight.hand} ${rec.highlight.tai}台</span></div>`;
+                    highlightTag = `<div style="margin-top:8px;"><span class="history-tag tag-highlight">🏆 ${playerStr}${rec.highlight.hand} ${rec.highlight.tai}台</span></div>`;
                 }
                 
                 let checkboxHtml = isBatchMode ? `<input type="checkbox" class="batch-checkbox" value="${rec.id}">` : '';
@@ -1204,8 +1101,8 @@
                     let infoTags = ""; if (rec.jiangCount) infoTags += `<span class="history-tag tag-info">🀄 ${rec.jiangCount}將</span>`; if (rec.dongQian) infoTags += `<span class="history-tag tag-info">💰 東${rec.dongQian}</span>`;
                     html = `<div style="display:flex; align-items:center;">${checkboxHtml}<div style="flex:1;"><div class="history-header"><span class="history-date">${rec.date}</span> ${holidayTag} ${infoTags}</div><div class="history-scores">${detailsHtml}</div>${highlightTag}</div></div>`;
                 } else {
-                    let colorClass = rec.score > 0 ? 'win-text' : (rec.score < 0 ? 'lose-text' : 'zero-text'); let sign = rec.score > 0 ? '+' : ''; let noteHtml = rec.note ? `<div style="font-size:12px; color:#888;">📏 ${rec.note}</div>` : '';
-                    html = `<div style="display:flex; align-items:center;">${checkboxHtml}<div style="flex:1;"><div class="history-header"><span class="history-date">${rec.date}</span> ${holidayTag} <span class="history-tag tag-info">📍 ${rec.location}</span></div><div style="font-size:18px; font-weight:bold; margin-top:5px;" class="${colorClass}">${sign}${rec.score}</div>${noteHtml}${highlightTag}</div></div>`;
+                    let colorClass = rec.score > 0 ? 'win-text' : (rec.score < 0 ? 'lose-text' : 'zero-text'); let sign = rec.score > 0 ? '+' : ''; let noteHtml = rec.note ? `<div style="font-size:12px; color:var(--text-dim); margin-top:4px;">📏 ${rec.note}</div>` : '';
+                    html = `<div style="display:flex; align-items:center;">${checkboxHtml}<div style="flex:1;"><div class="history-header"><span class="history-date">${rec.date}</span> ${holidayTag} <span class="history-tag tag-info">📍 ${rec.location}</span></div><div style="font-size:20px; margin-top:8px;" class="${colorClass}">${sign}${rec.score}</div>${noteHtml}${highlightTag}</div></div>`;
                 }
                 let item = document.createElement('div'); item.className = 'history-item'; 
                 let actionButtons = isBatchMode ? '' : `<div><button class="edit-btn" onclick="editRecord('${rec.id}')">✎</button><button class="delete-btn" onclick="deleteRecord('${rec.id}')">✕</button></div>`;
@@ -1269,7 +1166,7 @@
             if (maxTai.tai > 0) { maxTaiEl.innerText = `${maxTai.player} / ${maxTai.hand} (${maxTai.tai}台)`; } else { maxTaiEl.innerText = "尚無紀錄"; }
 
             const summaryBody = document.getElementById('summaryBody'); summaryBody.innerHTML = '';
-            if (Object.keys(stats).length === 0) { summaryBody.innerHTML = '<tr><td colspan="3" style="color:#999;">無資料</td></tr>'; }
+            if (Object.keys(stats).length === 0) { summaryBody.innerHTML = '<tr><td colspan="3" style="color:var(--text-dim);">無資料</td></tr>'; }
             else {
                 let sortedStats = Object.entries(stats).sort(([,a], [,b]) => b - a);
                 sortedStats.forEach(([name, score], index) => {
@@ -1281,15 +1178,15 @@
                     summaryBody.innerHTML += `
                         <tr onclick="showPlayerStats('${name}')" style="cursor:pointer;">
                             <td><span class="rank-badge ${rankClass}">${rankContent}</span></td>
-                            <td style="font-weight:500;">${name}</td>
-                            <td class="${colorClass}">${sign}${score}</td>
+                            <td style="font-weight:500; font-size:16px;">${name}</td>
+                            <td class="${colorClass}" style="font-size:18px;">${sign}${score}</td>
                         </tr>`;
                 });
             }
             document.getElementById('grandTotalJiang').innerText = grandTotalJiang; document.getElementById('grandTotalDong').innerText = "$" + grandTotalDong;
             const statsBody = document.getElementById('monthlyStatsBody'); const yearFoot = document.getElementById('yearlyStatsFoot'); statsBody.innerHTML = ''; yearFoot.innerHTML = '';
             let sortedKeys = Object.keys(monthlyData).sort().reverse();
-            if (sortedKeys.length === 0) { statsBody.innerHTML = '<tr><td colspan="3">無資料</td></tr>'; } else { sortedKeys.forEach(key => { let d = monthlyData[key]; statsBody.innerHTML += `<tr><td>${key}</td><td>${d.jiang}</td><td>${d.dong}</td></tr>`; }); }
+            if (sortedKeys.length === 0) { statsBody.innerHTML = '<tr><td colspan="3" style="color:var(--text-dim);">無資料</td></tr>'; } else { sortedKeys.forEach(key => { let d = monthlyData[key]; statsBody.innerHTML += `<tr><td>${key}</td><td>${d.jiang}</td><td>${d.dong}</td></tr>`; }); }
             let sortedYears = Object.keys(yearlyJiang).sort().reverse(); if(sortedYears.length > 0) { yearFoot.innerHTML = `${sortedYears[0]}年總計：${yearlyJiang[sortedYears[0]]} 將`; }
         }
 
@@ -1323,10 +1220,10 @@
             });
             
             const totalSign = total > 0 ? '+' : '';
-            const totalColor = total > 0 ? '#e74c3c' : (total < 0 ? '#27ae60' : '#2c3e50');
-            footer.innerHTML = `總計: <span style="color:${totalColor}">${totalSign}${total}</span>`;
+            const totalColor = total > 0 ? 'var(--accent-gold)' : (total < 0 ? 'var(--accent-jade)' : 'var(--text-light)');
+            footer.innerHTML = `總計: <span style="color:${totalColor}; font-size:20px;">${totalSign}${total}</span>`;
             
-            if (list.innerHTML === '') list.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">此區間無戰績</div>';
+            if (list.innerHTML === '') list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-dim);">此區間無戰績</div>';
             
             modal.style.display = 'flex';
         }
@@ -1358,7 +1255,7 @@
                 yearlyData[year].months[month].score += score;
             });
 
-            const sign = totalScore > 0 ? '+' : ''; const color = totalScore > 0 ? '#e74c3c' : (totalScore < 0 ? '#27ae60' : '#666');
+            const sign = totalScore > 0 ? '+' : ''; const color = totalScore > 0 ? 'var(--accent-gold)' : (totalScore < 0 ? 'var(--accent-jade)' : 'var(--text-dim)');
             document.getElementById('personalTotalScore').innerText = `${sign}$${totalScore}`;
             document.getElementById('personalTotalScore').style.color = color;
             document.getElementById('personalTotalCount').innerText = targetRecords.length;
@@ -1366,13 +1263,13 @@
             const locContainer = document.getElementById('personalLocationStats');
             let sortedLocs = Object.keys(locationStats).sort((a,b) => locationStats[b] - locationStats[a]); 
             let locHtml = '';
-            if (sortedLocs.length === 0) locHtml = '<div style="padding:12px; text-align:center; color:#999; font-size:13px;">暫無戰績</div>';
+            if (sortedLocs.length === 0) locHtml = '<div style="padding:12px; text-align:center; color:var(--text-dim); font-size:13px;">暫無戰績</div>';
             else {
                 sortedLocs.forEach(loc => {
                     let s = locationStats[loc];
                     let lSign = s > 0 ? '+' : '';
-                    let lColor = s > 0 ? '#e74c3c' : (s < 0 ? '#27ae60' : '#333');
-                    locHtml += `<div class="loc-stat-item"><span>📍 ${loc}</span><span style="color:${lColor}; font-weight:bold;">${lSign}$${s}</span></div>`;
+                    let lColor = s > 0 ? 'var(--accent-gold)' : (s < 0 ? 'var(--accent-jade)' : 'var(--text-light)');
+                    locHtml += `<div class="loc-stat-item"><span>📍 ${loc}</span><span style="color:${lColor}; font-weight:bold; font-size:16px;">${lSign}$${s}</span></div>`;
                 });
             }
             locContainer.innerHTML = locHtml;
@@ -1381,20 +1278,20 @@
             container.innerHTML = '';
             let sortedYears = Object.keys(yearlyData).sort().reverse();
             if (sortedYears.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">尚無資料</div>';
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-dim);">尚無資料</div>';
                 return;
             }
             sortedYears.forEach(year => {
                 let yData = yearlyData[year];
                 let ySign = yData.total > 0 ? '+' : '';
                 let yClass = yData.total > 0 ? 'win' : (yData.total < 0 ? 'lose' : '');
-                let yColor = yData.total > 0 ? '#e74c3c' : (yData.total < 0 ? '#27ae60' : '#333');
+                let yColor = yData.total > 0 ? 'var(--accent-gold)' : (yData.total < 0 ? 'var(--accent-jade)' : 'var(--text-light)');
                 let monthsHtml = '';
                 let sortedMonths = Object.keys(yData.months).sort().reverse();
                 sortedMonths.forEach(m => {
                     let mData = yData.months[m];
                     let mSign = mData.score > 0 ? '+' : '';
-                    let mColor = mData.score > 0 ? '#e74c3c' : (mData.score < 0 ? '#27ae60' : '#333');
+                    let mColor = mData.score > 0 ? 'var(--accent-gold)' : (mData.score < 0 ? 'var(--accent-jade)' : 'var(--text-light)');
                     monthsHtml += `<div class="month-item"><span class="month-name">${m}月</span><span class="month-count">${mData.count}場</span><span class="month-score" style="color:${mColor}">${mSign}$${mData.score}</span></div>`;
                 });
                 container.innerHTML += `<div class="year-card ${yClass}"><div class="year-header" onclick="toggleYear(this)"><div class="year-title"><span class="year-arrow">▼</span> ${year}年</div><div class="year-score" style="color:${yColor}">${ySign}$${yData.total}</div></div><div class="month-list">${monthsHtml}</div></div>`;
