@@ -10,80 +10,141 @@
     
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.2.37/lunar.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root { 
-            --bg-color: #1e6f50; 
-            --card-bg: #ffffff; 
+            --primary-green: #1e6f50;
+            --table-dark: #114b35;
+            --table-light: #2ecc71;
             --win-color: #e74c3c; 
             --lose-color: #27ae60; 
             --text-main: #2c3e50; 
-            --gray-light: #f8f9fa;
+            --card-glass: rgba(255, 255, 255, 0.92);
+            --shadow-soft: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
         }
 
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
-            background-color: var(--bg-color); 
             color: var(--text-main); 
             margin: 0; 
             padding: 12px; 
             padding-bottom: 90px; 
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
         }
+
+        /* === 🀄 背景美術工程 === */
+        .mahjong-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            /* 聚光燈效果：模擬燈光打在綠色絨布桌上 */
+            background: radial-gradient(circle at 50% 20%, #258e64 0%, #1e6f50 40%, #0d3826 100%);
+        }
+
+        /* 漂浮麻將牌容器 */
+        .tiles-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            pointer-events: none; /* 讓點擊穿透，不影響操作 */
+            overflow: hidden;
+        }
+
+        /* 麻將牌通用樣式 */
+        .bg-tile {
+            position: absolute;
+            width: 140px; height: 190px;
+            background: linear-gradient(135deg, #fdfdfd 0%, #f0f0f0 100%);
+            border-radius: 12px;
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.2), inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.1);
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Ma Shan Zheng', serif; /* 書法字體 */
+            font-size: 100px;
+            opacity: 0.12; /* 低透明度，不搶戲 */
+            transform-style: preserve-3d;
+        }
+
+        /* 中 */
+        .tile-zhong {
+            color: #c0392b;
+            top: 10%; right: -30px;
+            transform: rotate(15deg) scale(0.8);
+        }
+        /* 發 */
+        .tile-fa {
+            color: #27ae60;
+            bottom: 15%; left: -40px;
+            transform: rotate(-10deg) scale(0.9);
+        }
+        /* 白 (外框) */
+        .tile-bai {
+            color: #bdc3c7; /* 這裡用邊框代表白板 */
+            border: 4px solid #e0e0e0;
+            top: 45%; left: 40%;
+            transform: translate(-50%, -50%) rotate(5deg) scale(0.6);
+            opacity: 0.08; /* 白板更淡一點 */
+        }
+        .tile-bai::before { content: ''; display: block; width: 90%; height: 90%; border: 2px solid rgba(0,0,0,0.05); border-radius: 4px; }
+
 
         /* === 頂部導航 === */
         .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
-        h1 { margin: 0; font-size: 20px; color: #fff; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2); letter-spacing: 1px; }
+        h1 { 
+            margin: 0; font-size: 22px; color: #fff; font-weight: 700; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4); letter-spacing: 1px;
+            display: flex; align-items: center; gap: 8px;
+        }
         
         .location-badge {
-            background: rgba(255,255,255,0.25); 
+            background: rgba(255,255,255,0.2); 
             color: white; 
             padding: 6px 14px; 
-            border-radius: 20px;
+            border-radius: 50px;
             font-size: 14px; 
             font-weight: 500;
             cursor: pointer; 
-            border: 1px solid rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.3);
             display: flex; align-items: center; gap: 6px;
-            transition: all 0.2s;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px); /* 毛玻璃 */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .location-badge:active { background: rgba(255,255,255,0.4); transform: scale(0.98); }
 
-        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 12px; font-weight: 500; }
-        .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.85); margin-bottom: 15px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
         .connected { background-color: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
 
-        /* === 卡片通用樣式 === */
+        /* === 卡片通用樣式 (毛玻璃化) === */
         .card { 
-            background: var(--card-bg); 
-            padding: 18px; 
-            border-radius: 16px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            margin-bottom: 16px; 
+            background: var(--card-glass); 
+            backdrop-filter: blur(12px); /* 關鍵：模糊背景 */
+            -webkit-backdrop-filter: blur(12px);
+            padding: 20px; 
+            border-radius: 20px; 
+            box-shadow: var(--shadow-soft); 
+            margin-bottom: 18px; 
             width: 100%; 
             overflow: hidden; 
-            border: 1px solid rgba(0,0,0,0.02);
+            border: 1px solid rgba(255,255,255,0.6);
         }
         
         .card h3 { 
             margin: 0 0 15px 0; 
-            border-bottom: 2px solid #f0f0f0; 
+            border-bottom: 2px solid rgba(0,0,0,0.05); 
             padding-bottom: 10px; 
-            color: var(--bg-color); 
-            font-size: 17px; 
+            color: var(--primary-green); 
+            font-size: 18px; 
             font-weight: 700;
             display: flex; justify-content: space-between; align-items: center; 
         }
 
         /* === 輸入區 === */
         .input-style { 
-            width: 100%; height: 46px; padding: 0 12px; border: 1px solid #e0e0e0; border-radius: 10px; 
-            font-size: 16px; background: #fafafa; color: #333; display: flex; align-items: center; justify-content: center;
-            transition: border-color 0.2s;
+            width: 100%; height: 46px; padding: 0 12px; border: 1px solid #e0e0e0; border-radius: 12px; 
+            font-size: 16px; background: rgba(255,255,255,0.8); color: #333; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
         }
-        .input-style:focus { border-color: var(--bg-color); background: #fff; outline: none; }
+        .input-style:focus { border-color: var(--primary-green); background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(30, 111, 80, 0.1); }
         
         input[type="date"] { -webkit-appearance: none; appearance: none; display: flex; align-items: center; justify-content: center; line-height: normal; padding: 0; }
 
@@ -91,15 +152,17 @@
         .group-mode .row-stats { display: flex; gap: 12px; margin-bottom: 20px; }
         .group-mode .col-half { flex: 1; }
         .group-mode .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-        .group-mode .name-select { width: 100%; height: 46px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; font-size: 15px; padding: 0 10px; flex: 1; }
-        .group-mode .score-input { width: 85px; height: 46px; text-align: center; font-weight: bold; border-radius: 10px; border: 1px solid #e0e0e0; font-size: 17px; font-family: 'Roboto Mono', monospace; }
+        .group-mode .name-select { width: 100%; height: 46px; border-radius: 12px; border: 1px solid #e0e0e0; background: rgba(255,255,255,0.8); font-size: 15px; padding: 0 10px; flex: 1; }
+        .group-mode .score-input { width: 85px; height: 46px; text-align: center; font-weight: bold; border-radius: 12px; border: 1px solid #e0e0e0; font-size: 17px; font-family: 'Roboto Mono', monospace; background: rgba(255,255,255,0.8); }
         .row-delete-btn { width: 30px; height: 46px; display: flex; align-items: center; justify-content: center; color: #bdc3c7; font-size: 18px; cursor: pointer; margin-left: 2px; }
         .row-delete-btn:hover { color: #e74c3c; }
 
         .sign-btn { 
             flex: 0 0 42px; height: 42px; border-radius: 50%; border: none; font-size: 22px; font-weight: bold; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.1s;
         }
+        .sign-btn:active { transform: scale(0.9); }
         .btn-plus { background: #fff; color: var(--win-color); border: 2px solid var(--win-color); }
         .btn-minus { background: var(--lose-color); color: white; border: 2px solid var(--lose-color); }
 
@@ -110,39 +173,35 @@
             gap: 10px;
             padding-bottom: 8px;
             margin-bottom: 15px;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none;  /* IE 10+ */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
-        .quick-scroll-wrapper::-webkit-scrollbar { display: none; /* Chrome/Safari/Webkit */ }
+        .quick-scroll-wrapper::-webkit-scrollbar { display: none; }
         
         .squad-chip {
             flex: 0 0 auto;
-            background: #e3f2fd;
+            background: linear-gradient(to bottom, #ffffff, #f0f7ff);
             color: #2980b9;
-            border: 1px solid #aed6f1;
-            padding: 8px 14px;
-            border-radius: 20px;
+            border: 1px solid #cce4f7;
+            padding: 10px 16px;
+            border-radius: 25px;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .squad-chip:active {
-            background: #3498db;
-            color: white;
-            transform: scale(0.95);
-        }
+        .squad-chip:active { background: #3498db; color: white; transform: scale(0.95); box-shadow: none; border-color: #3498db; }
 
         /* 大牌紀錄 */
-        .highlight-section { background: #fffdf0; border: 1px solid #fae588; border-radius: 10px; padding: 12px; margin-top: 15px; }
+        .highlight-section { background: rgba(255, 253, 240, 0.6); border: 1px solid #fae588; border-radius: 12px; padding: 15px; margin-top: 15px; }
         .highlight-toggle { 
             color: #f39c12; font-size: 14px; font-weight: bold; cursor: pointer; 
             display: flex; align-items: center; gap: 5px; margin-top: 10px; 
             padding: 8px; border-radius: 8px; transition: background 0.2s;
         }
-        .highlight-toggle:active { background: #fff8e1; }
+        .highlight-toggle:active { background: rgba(243, 156, 18, 0.1); }
         .highlight-inputs { display: none; margin-top: 10px; }
         .mem-select { width: 100%; height: 42px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: 14px; padding: 0 10px; color: #333; }
 
@@ -153,35 +212,46 @@
             width: 100%; height: 56px; font-size: 28px; text-align: center; 
             border: 2px solid #e0e0e0; border-radius: 12px; font-weight: bold; 
             color: var(--text-main); font-family: 'Roboto Mono', monospace; 
-            background: #fff;
+            background: rgba(255,255,255,0.8);
         }
-        .personal-mode .score-input-large:focus { border-color: var(--bg-color); }
-        .personal-select { width: 100%; height: 46px; padding: 0 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 15px; background: #fff; color: #333; }
-        .personal-custom { width: 100%; height: 46px; padding: 0 12px; border: 1px solid #3498db; border-radius: 10px; font-size: 15px; display: none; }
+        .personal-mode .score-input-large:focus { border-color: var(--primary-green); }
+        .personal-select { width: 100%; height: 46px; padding: 0 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 15px; background: rgba(255,255,255,0.8); color: #333; }
+        .personal-custom { width: 100%; height: 46px; padding: 0 12px; border: 1px solid #3498db; border-radius: 12px; font-size: 15px; display: none; }
 
         /* 按鈕 */
         .action-btn { 
-            width: 100%; padding: 14px; background: var(--text-main); color: white; 
-            border: none; border-radius: 12px; font-size: 16px; font-weight: bold; 
-            cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(44, 62, 80, 0.2); 
+            width: 100%; padding: 15px; 
+            background: linear-gradient(135deg, #1e6f50 0%, #114b35 100%); 
+            color: white; 
+            border: none; border-radius: 14px; font-size: 16px; font-weight: bold; 
+            cursor: pointer; margin-top: 10px; box-shadow: 0 6px 15px rgba(20, 90, 50, 0.3); 
             transition: transform 0.1s;
         }
-        .action-btn:active { transform: scale(0.98); }
-        .add-player-btn { width: 100%; padding: 10px; background: #f0f8ff; color: #3498db; border: 1px dashed #3498db; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 5px; margin-bottom: 10px; }
+        .action-btn:active { transform: scale(0.98); box-shadow: 0 3px 8px rgba(20, 90, 50, 0.3); }
+        
+        .add-player-btn { 
+            width: 100%; padding: 12px; background: rgba(240, 248, 255, 0.7); 
+            color: #3498db; border: 1px dashed #3498db; border-radius: 12px; 
+            font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 5px; margin-bottom: 10px; 
+            transition: all 0.2s;
+        }
+        .add-player-btn:active { background: #e1f0fa; }
+        
         .cancel-btn { width: 100%; padding: 12px; background-color: #95a5a6; color: white; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
         /* 統計與列表 */
         table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; font-size: 14px; table-layout: fixed; }
-        th { background-color: #f1f3f5; color: #7f8c8d; font-weight: 600; padding: 10px; text-align: center; font-size: 13px; border-radius: 6px; }
-        td { padding: 12px 6px; text-align: center; border-bottom: 1px solid #f0f0f0; word-wrap: break-word; }
+        th { background-color: rgba(241, 243, 245, 0.6); color: #7f8c8d; font-weight: 600; padding: 10px; text-align: center; font-size: 13px; border-radius: 6px; }
+        td { padding: 12px 6px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); word-wrap: break-word; }
         
         .win-text { color: var(--win-color); font-weight: bold; }
         .lose-text { color: var(--lose-color); font-weight: bold; }
         
+        /* 排名徽章 */
         .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 14px; font-weight: bold; }
-        .rank-1 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
-        .rank-2 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
-        .rank-3 { font-size: 22px; text-shadow: 0 2px 2px rgba(0,0,0,0.1); }
+        .rank-1 { font-size: 22px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .rank-2 { font-size: 22px; text-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+        .rank-3 { font-size: 22px; text-shadow: 0 2px 4px rgba(0,0,0,0.15); }
         .rank-other { background: #eee; font-size: 12px; color: #666; }
         
         /* === 修正後的「老闆」樣式：簡約白底金框 === */
@@ -190,19 +260,19 @@
             color: #f39c12; border: 1px solid #f39c12; font-size: 11px;
             padding: 2px 8px; border-radius: 12px; display: inline-flex;
             align-items: center; justify-content: center; font-weight: 700;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .dashboard-grid { display: flex; gap: 12px; margin-bottom: 8px; }
         .dash-box { 
-            flex: 1; padding: 15px 10px; border-radius: 12px; text-align: center; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02);
+            flex: 1; padding: 15px 10px; border-radius: 16px; text-align: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03);
         }
         .dash-label { font-size: 12px; color: #7f8c8d; margin-bottom: 4px; font-weight: 500; }
         .dash-value { font-size: 20px; font-weight: 800; line-height: 1.2; font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
 
         /* 歷史紀錄列表 */
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .history-header { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .history-date { font-size: 14px; color: #2c3e50; font-weight: 600; }
         .history-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; display: inline-block; white-space: nowrap; }
@@ -213,27 +283,27 @@
 
         .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 15px; margin-top: 6px; font-size: 13px; color: #555; }
         
-        .edit-btn { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-        .delete-btn { background: #ff7675; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; margin-left: 6px;}
-        .error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; display: none; margin-top: 10px; font-size: 14px;}
-        .editing-mode { border: 2px solid #f39c12; box-shadow: 0 0 10px rgba(243, 156, 18, 0.2); }
+        .edit-btn { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; }
+        .delete-btn { background: #ff7675; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; margin-left: 6px;}
+        .error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 12px; text-align: center; font-weight: bold; display: none; margin-top: 10px; font-size: 14px;}
+        .editing-mode { border: 2px solid #f39c12; box-shadow: 0 0 15px rgba(243, 156, 18, 0.2); }
 
-        .backup-btn { background: transparent; border: 1px solid #2ecc71; color: #2ecc71; border-radius: 20px; padding: 4px 10px; font-size: 12px; cursor: pointer; font-weight: 500; }
+        .backup-btn { background: rgba(255,255,255,0.5); border: 1px solid #2ecc71; color: #2ecc71; border-radius: 20px; padding: 4px 10px; font-size: 12px; cursor: pointer; font-weight: 600; backdrop-filter: blur(4px); }
         
         /* 管理與選單 */
         .manage-btn { background: none; border: none; color: #95a5a6; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 5px; }
         .manage-btn:hover { color: #2c3e50; }
         
         /* 地點選單 */
-        .location-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
-        .location-card { background: white; width: 85%; max-width: 340px; padding: 25px; border-radius: 16px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .location-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .location-card { background: rgba(255, 255, 255, 0.95); width: 85%; max-width: 340px; padding: 25px; border-radius: 20px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.5); }
         .location-group-title { font-size: 12px; color: #95a5a6; margin-top: 15px; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 4px; }
         .location-item { padding: 14px; margin-bottom: 10px; border-radius: 10px; background: #f8f9fa; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
-        .location-item:hover { background: #fff; border-color: var(--bg-color); transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .location-item:hover { background: #fff; border-color: var(--primary-green); transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .loc-name-area { flex: 1; font-weight: 500; color: #2c3e50; display:flex; justify-content:space-between; align-items:center; }
         .loc-delete { padding: 8px; color: #bdc3c7; font-size: 16px; cursor: pointer; border-left: 1px solid #eee; margin-left: 10px; padding-left: 10px; }
         .loc-delete:hover { color: #e74c3c; }
-        .location-add { margin-top: 20px; text-align: center; padding: 12px; border: 1px dashed #3498db; border-radius: 10px; color: #3498db; cursor: pointer; font-size: 14px; font-weight: 500; background: #f0f8ff; }
+        .location-add { margin-top: 20px; text-align: center; padding: 12px; border: 1px dashed #3498db; border-radius: 12px; color: #3498db; cursor: pointer; font-size: 14px; font-weight: 500; background: rgba(240, 248, 255, 0.5); }
         
         .hidden { display: none !important; }
         .manage-area { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px; display: none; }
@@ -249,55 +319,67 @@
         .batch-action-btn { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
         /* === 高級排版：年份卡片 (修正對齊版) === */
-        .year-card { background: #fff; border-radius: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; position: relative; transition: box-shadow 0.2s; }
+        .year-card { 
+            background: rgba(255,255,255,0.6); /* 微透明 */
+            border-radius: 14px; margin-bottom: 12px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; 
+            position: relative; transition: box-shadow 0.2s;
+        }
         .year-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
         .year-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; z-index: 1; }
         .year-card.win::before { background-color: #e74c3c; }
         .year-card.lose::before { background-color: #27ae60; }
-        .year-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; border-bottom: 1px solid #eee; }
+        .year-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.8); border-bottom: 1px solid rgba(0,0,0,0.05); }
         .year-title { font-size: 17px; font-weight: 700; color: #2c3e50; display: flex; align-items: center; gap: 10px; }
         .year-arrow { font-size: 12px; color: #bdc3c7; transition: transform 0.3s; }
         .year-expanded .year-arrow { transform: rotate(180deg); color: var(--text-main); }
         .year-score { font-size: 17px; font-weight: 800; font-family: 'Roboto Mono', monospace; }
         
         /* === 高級排版：月份列表 Grid 系統 === */
-        .month-list { display: none; background: #fff; }
-        .month-item { display: grid; grid-template-columns: 1fr 70px 100px; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f9f9f9; font-size: 15px; }
+        .month-list { display: none; background: rgba(255,255,255,0.5); }
+        .month-item { display: grid; grid-template-columns: 1fr 70px 100px; align-items: center; padding: 14px 20px; border-bottom: 1px solid rgba(0,0,0,0.03); font-size: 15px; }
         .month-item:last-child { border-bottom: none; }
-        .month-item:hover { background: #fafafa; }
+        .month-item:hover { background: rgba(255,255,255,0.8); }
         .month-name { color: #555; font-weight: 500; }
-        .month-count { color: #95a5a6; font-size: 13px; text-align: center; background: #f0f2f5; padding: 2px 8px; border-radius: 12px; }
+        .month-count { color: #95a5a6; font-size: 13px; text-align: center; background: rgba(240,242,245,0.8); padding: 2px 8px; border-radius: 12px; }
         .month-score { font-weight: 700; text-align: right; font-family: 'Roboto Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
 
         /* 地點統計項目 */
-        .loc-stat-item { display: flex; justify-content: space-between; padding: 14px 15px; border-bottom: 1px solid #eee; font-size: 15px; align-items: center; }
+        .loc-stat-item { display: flex; justify-content: space-between; padding: 14px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 15px; align-items: center; }
         .loc-stat-item:last-child { border-bottom: none; }
         
         /* 排行榜表格美化 (公用戰場) */
         #groupStatsTable { border-collapse: separate; border-spacing: 0; width: 100%; margin-top: 5px; }
-        #groupStatsTable th { font-size: 13px; color: #95a5a6; font-weight: 600; padding: 8px; text-align: center; border-bottom: 1px solid #eee; }
-        #groupStatsTable td { padding: 14px 8px; vertical-align: middle; border-bottom: 1px solid #f8f9fa; cursor: pointer; } 
+        #groupStatsTable th { font-size: 13px; color: #95a5a6; font-weight: 600; padding: 8px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        #groupStatsTable td { padding: 14px 8px; vertical-align: middle; border-bottom: 1px solid rgba(0,0,0,0.03); cursor: pointer; } 
         #groupStatsTable td:nth-child(1) { width: 45px; text-align: center; }
         #groupStatsTable td:nth-child(2) { text-align: left; padding-left: 15px; font-size: 17px; font-weight: 700; color: #2c3e50; }
         #groupStatsTable td:nth-child(3) { text-align: right; padding-right: 10px; font-family: 'Roboto Mono', monospace; font-size: 19px; font-weight: 700; letter-spacing: -0.5px; }
-        #groupStatsTable tr:first-child td { background: linear-gradient(to right, #fffde7, #ffffff); border-top: 1px solid #fff9c4; border-bottom: 1px solid #fff9c4; }
+        #groupStatsTable tr:first-child td { background: linear-gradient(to right, rgba(255, 253, 231, 0.8), rgba(255,255,255,0.8)); border-top: 1px solid #fff9c4; border-bottom: 1px solid #fff9c4; }
         #groupStatsTable tr:first-child td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid #fff9c4; }
         #groupStatsTable tr:first-child td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid #fff9c4; }
         
         /* 玩家詳細資料 Modal */
-        #playerStatsModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1100; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
-        .player-stats-card { background: white; width: 90%; max-width: 400px; padding: 0; border-radius: 16px; max-height: 80vh; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
-        .player-stats-header { padding: 15px 20px; background: #2c3e50; color: white; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+        #playerStatsModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1100; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .player-stats-card { background: rgba(255,255,255,0.95); width: 90%; max-width: 400px; padding: 0; border-radius: 20px; max-height: 80vh; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.4); }
+        .player-stats-header { padding: 18px 20px; background: #2c3e50; color: white; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
         .player-stats-close { cursor: pointer; font-size: 20px; color: rgba(255,255,255,0.7); }
         .player-stats-body { padding: 0; overflow-y: auto; flex: 1; }
-        .player-record-row { display: flex; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid #f0f0f0; font-size: 15px; align-items: center; }
+        .player-record-row { display: flex; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 15px; align-items: center; }
         .player-record-row:last-child { border-bottom: none; }
         .player-record-date { color: #555; font-weight: 500; }
         .player-record-score { font-family: 'Roboto Mono', monospace; font-weight: 700; }
-        .player-stats-footer { padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #eee; text-align: right; font-weight: bold; color: #2c3e50; font-size: 16px; }
+        .player-stats-footer { padding: 15px 20px; background: rgba(248, 249, 250, 0.8); border-top: 1px solid rgba(0,0,0,0.1); text-align: right; font-weight: bold; color: #2c3e50; font-size: 16px; }
     </style>
 </head>
 <body>
+    
+    <div class="mahjong-bg"></div>
+    <div class="tiles-container">
+        <div class="bg-tile tile-zhong">中</div>
+        <div class="bg-tile tile-fa">發</div>
+        <div class="bg-tile tile-bai"></div>
+    </div>
 
     <div class="header-nav">
         <h1>🀄 雀神記帳本</h1>
@@ -430,17 +512,17 @@
         </table>
         <div id="personalStatsView" class="hidden">
             <div class="dashboard-grid">
-                <div class="dash-box" style="background: #fff3e0; border-color:#ffe0b2;">
+                <div class="dash-box" style="background: rgba(255,243,224,0.6); border-color:#ffe0b2;">
                     <div class="dash-label">生涯總損益</div>
                     <div class="dash-value" id="personalTotalScore" style="color: #e67e22;">$0</div>
                 </div>
-                <div class="dash-box" style="background: #e8f5e9; border-color:#c8e6c9;">
+                <div class="dash-box" style="background: rgba(232,245,233,0.6); border-color:#c8e6c9;">
                     <div class="dash-label">總場次</div>
                     <div class="dash-value" id="personalTotalCount" style="color: #2e7d32;">0</div>
                 </div>
             </div>
-            <div class="card" style="margin-top: 15px; padding: 0; overflow: hidden; border:1px solid #eee; box-shadow:none;">
-                <h4 style="margin:0; padding:12px 15px; background:#f8f9fa; border-bottom:1px solid #eee; font-size:14px; color:#7f8c8d;">📍 各地戰況</h4>
+            <div class="card" style="margin-top: 15px; padding: 0; overflow: hidden; border:1px solid rgba(0,0,0,0.05); box-shadow:none; background:rgba(255,255,255,0.5);">
+                <h4 style="margin:0; padding:12px 15px; background:rgba(248,249,250,0.7); border-bottom:1px solid rgba(0,0,0,0.05); font-size:14px; color:#7f8c8d;">📍 各地戰況</h4>
                 <div id="personalLocationStats"></div>
             </div>
         </div>
@@ -449,16 +531,16 @@
     <div class="card" id="groupDetailStats">
         <h3>📊 統計數據</h3>
         <div class="dashboard-grid">
-            <div class="dash-box" style="background: #e8f5e9;">
+            <div class="dash-box" style="background: rgba(232,245,233,0.6);">
                 <div class="dash-label">歷史總將數</div>
                 <div class="dash-value" style="color: #2e7d32;" id="grandTotalJiang">0</div>
             </div>
-            <div class="dash-box" style="background: #fff3e0;">
+            <div class="dash-box" style="background: rgba(255,243,224,0.6);">
                 <div class="dash-label">歷史總東錢</div>
                 <div class="dash-value" style="color: #ef6c00;" id="grandTotalDong">$0</div>
             </div>
         </div>
-        <div style="margin-top:12px; padding:12px; background:#fffcf5; border:1px dashed #f39c12; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:10px;">
+        <div style="margin-top:12px; padding:12px; background:rgba(255,253,245,0.7); border:1px dashed #f39c12; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:10px;">
             <span style="font-size:13px; color:#555;">🔥 單場最大台：</span>
             <span id="maxTaiRecord" style="font-weight:bold; color:#d35400; font-size:14px;">無紀錄</span>
         </div>
@@ -477,10 +559,10 @@
         <h3>
             <span>📜 紀錄</span>
             <div style="display:flex; gap:8px; align-items:center;">
-                <select id="filterYear" style="border:1px solid #ddd; background:#fff; padding:4px 8px; border-radius:8px; font-size:13px; outline:none;" onchange="handleYearFilter()">
+                <select id="filterYear" style="border:1px solid #ddd; background:rgba(255,255,255,0.8); padding:4px 8px; border-radius:8px; font-size:13px; outline:none;" onchange="handleYearFilter()">
                     <option value="ALL">全部年份</option>
                 </select>
-                <input type="month" id="filterMonth" style="border:1px solid #ddd; background:#fff; padding:4px 8px; border-radius:8px; font-size:13px; outline:none;" onchange="handleMonthFilter()">
+                <input type="month" id="filterMonth" style="border:1px solid #ddd; background:rgba(255,255,255,0.8); padding:4px 8px; border-radius:8px; font-size:13px; outline:none;" onchange="handleMonthFilter()">
             </div>
         </h3>
         <div style="display:flex; justify-content:flex-end; margin-bottom:12px; gap:8px; flex-wrap:wrap;">
@@ -574,7 +656,6 @@
             const container = document.getElementById('quickSquadArea');
             let html = '';
             PRESET_SQUADS.forEach((squad, index) => {
-                // 使用 squad.name 直接顯示，或自訂更短的顯示名稱
                 html += `<div class="squad-chip" onclick="applyQuickSquad(${index})">${squad.name}</div>`;
             });
             container.innerHTML = html;
@@ -875,7 +956,7 @@
             let nameInputHtml = `
                 <div class="name-wrapper" style="flex:1;">
                     <select class="name-select" onchange="handleNameChange(this)">${optionsHtml}</select>
-                    <input type="text" class="custom-name" placeholder="輸入名字" style="display:none; width:100%; height:46px; border-radius:10px; border:1px solid #e0e0e0; padding:0 10px;" value="${name}">
+                    <input type="text" class="custom-name" placeholder="輸入名字" style="display:none; width:100%; height:46px; border-radius:12px; border:1px solid #e0e0e0; padding:0 10px;" value="${name}">
                 </div>
             `;
             
