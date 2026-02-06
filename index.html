@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🀄 雀神雲端記帳</title>
+    <title>🀄 雀神雲端記帳 - 禪意木紋版</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -14,221 +14,296 @@
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        /* === 🎨 全新配色定義 (禪意木紋主題) === */
         :root { 
-            --bg-color: #1e6f50;  /* 經典雀神綠 */
-            --card-bg: #ffffff; 
-            --win-color: #e74c3c; 
+            --wood-dark: #3e2723;   /* 深木紋基底 */
+            --wood-light: #5d4037;  /* 淺木紋 */
+            --paper-bg: #faf8f5;    /* 米白宣紙色 */
+            --text-main: #4e342e;   /* 深棕色文字，比純黑柔和 */
+            --text-light: #8d6e63;  /* 淺棕色次要文字 */
+            
+            /* 高級古銅金漸層 */
+            --bronze-gradient: linear-gradient(135deg, #bcaaa4 0%, #8d6e63 100%);
+            --gold-accent: #d4af37; /* 重點金色 */
+
+            /* 功能色維持不變，確保易讀性 */
+            --win-color: #c0392b; 
             --lose-color: #27ae60; 
-            --text-main: #2c3e50; 
-            --gold-color: #f39c12;
         }
 
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
-            background-color: var(--bg-color); 
             color: var(--text-main); 
             margin: 0; 
             padding: 12px; 
-            padding-bottom: 90px; 
+            padding-bottom: 90px;
+            min-height: 100vh;
+            
+            /* === 🀄 背景美術核心 === */
+            background-color: var(--wood-dark);
+            /* 使用細緻的木紋理圖案 + 徑向漸層製造聚光燈效果 */
+            background-image: 
+                radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.3) 100%),
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='3' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%235d4037' surfaceScale='2'%3E%3CfeDistantLight azimuth='45' elevation='60'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23a)' opacity='0.4'/%3E%3C/svg%3E");
+            background-blend-mode: soft-light;
+            background-attachment: fixed; /* 讓背景固定，滾動時更有層次 */
         }
 
-        /* === 頂部導航 === */
-        .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
-        h1 { margin: 0; font-size: 20px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); letter-spacing: 1px; }
+        /* === 頂部導航 (優化質感) === */
+        .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding: 0 5px; }
+        h1 { 
+            margin: 0; font-size: 20px; color: #fff; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* 更深的文字陰影，增加立體感 */
+            letter-spacing: 1px; display: flex; align-items: center; gap: 6px;
+        }
         
         .location-badge {
-            background: rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 20px;
-            font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.15); /* 半透明毛玻璃感 */
+            color: #f0f0f0; padding: 6px 14px; border-radius: 20px;
+            font-size: 14px; font-weight: 500; cursor: pointer; 
+            border: 1px solid rgba(255,255,255,0.2);
             display: flex; align-items: center; gap: 6px;
+            backdrop-filter: blur(5px); /* 背景模糊 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .location-badge:active { background: rgba(255,255,255,0.4); }
+        .location-badge:active { background: rgba(255,255,255,0.3); }
 
-        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 15px; }
+        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 15px; text-shadow: 0 1px 1px rgba(0,0,0,0.3); }
         .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .connected { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
 
-        /* === 卡片通用樣式 (回歸白色卡片) === */
+        /* === 卡片通用樣式 (紙張質感與懸浮效果) === */
         .card { 
-            background: var(--card-bg); 
-            padding: 18px; 
-            border-radius: 16px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15); 
-            margin-bottom: 15px; 
+            background: var(--paper-bg);
+            /* 加入極細微的紙張紋理 */
+            background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h64v64H0V0zm2 2h60v60H2V2z' fill='%23f0f0f0' fill-opacity='0.4'/%3E%3C/svg%3E");
+            padding: 20px; 
+            border-radius: 18px; 
+            /* 更深、更柔和的陰影，製造懸浮在木桌上的感覺 */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 18px; 
             width: 100%; 
-            overflow: hidden; 
+            overflow: hidden;
+            border: none; /* 移除生硬的邊框 */
         }
         .card h3 { 
-            margin: 0 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 10px; 
-            color: var(--bg-color); font-size: 18px; font-weight: 700;
+            margin: 0 0 18px 0; 
+            border-bottom: 1px solid rgba(141, 110, 99, 0.2); /* 柔和的棕色分隔線 */
+            padding-bottom: 12px; 
+            color: var(--text-main); font-size: 18px; font-weight: 700;
             display: flex; justify-content: space-between; align-items: center; 
         }
+        /* 標題圖標改用金色 */
+        .card h3 span::before { content: '🀄'; margin-right: 6px; font-size: 16px; filter: sepia(1) hue-rotate(20deg); }
 
-        /* === 輸入區 === */
-        .input-style { 
-            width: 100%; height: 46px; padding: 0 12px; border: 1px solid #ddd; border-radius: 10px; 
-            font-size: 16px; background: #f9f9f9; color: #333; display: flex; align-items: center; justify-content: center;
+        /* === 輸入區 (更精緻的控制項) === */
+        .input-style, .name-select, .personal-select, .mem-select, .score-input, .score-input-large, .import-textarea {
+            background: #fff;
+            border: 1px solid #d7ccc8; /* 淺棕色邊框 */
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03); /* 輕微的內陰影，增加質感 */
+            color: var(--text-main);
+            transition: all 0.3s;
         }
+        .input-style:focus, .name-select:focus, .score-input:focus {
+            border-color: var(--text-light);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03), 0 0 5px rgba(141, 110, 99, 0.2);
+            outline: none;
+        }
+
+        .input-style { width: 100%; height: 46px; padding: 0 12px; border-radius: 12px; font-size: 16px; display: flex; align-items: center; justify-content: center; }
         input[type="date"] { -webkit-appearance: none; appearance: none; display: flex; align-items: center; justify-content: center; line-height: normal; padding: 0; }
 
         /* 群組模式 */
         .group-mode .row-stats { display: flex; gap: 12px; margin-bottom: 20px; }
         .group-mode .col-half { flex: 1; }
+        .group-mode label, .personal-mode label { color: var(--text-light); font-weight: 600; }
+        
         .group-mode .player-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-        .group-mode .name-select { width: 100%; height: 46px; border-radius: 10px; border: 1px solid #ddd; background: white; font-size: 15px; padding: 0 10px; flex: 1; }
-        .group-mode .score-input { width: 85px; height: 46px; text-align: center; font-weight: bold; border-radius: 10px; border: 1px solid #ddd; font-size: 18px; font-family: 'Roboto Mono', monospace; }
-        .row-delete-btn { width: 30px; height: 46px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 18px; cursor: pointer; }
+        .group-mode .name-select { width: 100%; height: 46px; border-radius: 12px; font-size: 15px; padding: 0 10px; flex: 1; }
+        .group-mode .score-input { width: 85px; height: 46px; text-align: center; font-weight: bold; border-radius: 12px; font-size: 18px; font-family: 'Roboto Mono', monospace; }
+        
+        .row-delete-btn { width: 30px; height: 46px; display: flex; align-items: center; justify-content: center; color: #d7ccc8; font-size: 18px; cursor: pointer; }
         .row-delete-btn:hover { color: #e74c3c; }
 
-        .sign-btn { flex: 0 0 42px; height: 42px; border-radius: 50%; border: none; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .sign-btn { flex: 0 0 42px; height: 42px; border-radius: 50%; border: none; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s; }
+        .sign-btn:active { transform: scale(0.95); }
         .btn-plus { background: #fff; color: var(--win-color); border: 2px solid var(--win-color); }
         .btn-minus { background: var(--lose-color); color: white; border: 2px solid var(--lose-color); }
 
-        /* === 快速發車 (橫向捲軸) === */
+        /* === 快速發車 (古銅金風格) === */
         .quick-scroll-wrapper {
-            display: flex; overflow-x: auto; gap: 8px; padding-bottom: 8px; margin-bottom: 15px;
+            display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; margin-bottom: 15px;
             scrollbar-width: none; -ms-overflow-style: none;
         }
         .quick-scroll-wrapper::-webkit-scrollbar { display: none; }
         
         .squad-chip {
-            flex: 0 0 auto; background: #e3f2fd; color: #2980b9; border: 1px solid #aed6f1;
-            padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;
+            flex: 0 0 auto; 
+            background: #fff;
+            color: var(--text-main); 
+            border: 1px solid #d7ccc8;
+            padding: 10px 16px; border-radius: 25px; font-size: 13px; font-weight: 700;
             cursor: pointer; white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.2s;
         }
-        .squad-chip:active { background: #3498db; color: white; }
+        .squad-chip:active, .squad-chip:hover { 
+            background: var(--bronze-gradient); 
+            color: white; border-color: transparent;
+            box-shadow: 0 3px 8px rgba(141, 110, 99, 0.3);
+        }
 
         /* 大牌紀錄 */
-        .highlight-section { background: #fffcf5; border: 1px solid #fae588; border-radius: 10px; padding: 12px; margin-top: 15px; }
-        .highlight-toggle { color: var(--gold-color); font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-top: 10px; }
-        .highlight-inputs { display: none; margin-top: 10px; }
-        .mem-select { width: 100%; height: 42px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: 14px; padding: 0 10px; color: #333; }
+        .highlight-section { background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 12px; padding: 15px; margin-top: 15px; }
+        .highlight-toggle { color: var(--gold-accent); font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-top: 10px; }
+        .highlight-inputs { display: none; margin-top: 12px; }
+        .mem-select { width: 100%; height: 46px; border-radius: 12px; padding: 0 12px; }
 
         /* 個人模式 */
-        .personal-mode .input-row { margin-bottom: 12px; }
-        .personal-mode label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; }
-        .personal-mode .score-input-large { width: 100%; height: 50px; font-size: 24px; text-align: center; border: 2px solid #ddd; border-radius: 10px; font-weight: bold; color: var(--text-main); font-family: 'Roboto Mono', monospace; }
-        .personal-select { width: 100%; height: 46px; padding: 0 10px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; background: white; }
-        .personal-custom { width: 100%; height: 46px; padding: 0 10px; border: 1px solid #3498db; border-radius: 10px; font-size: 15px; display: none; }
+        .personal-mode .input-row { margin-bottom: 15px; }
+        .personal-mode .score-input-large { width: 100%; height: 56px; font-size: 26px; text-align: center; border-radius: 12px; font-weight: bold; color: var(--text-main); font-family: 'Roboto Mono', monospace; border-width: 2px; }
+        .personal-select { width: 100%; height: 46px; padding: 0 12px; border-radius: 12px; font-size: 15px; }
+        .personal-custom { width: 100%; height: 46px; padding: 0 12px; border: 1px solid #3498db; border-radius: 12px; font-size: 15px; display: none; }
 
-        /* 按鈕 */
-        .action-btn { width: 100%; padding: 14px; background-color: var(--text-main); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
-        .add-player-btn { width: 100%; padding: 10px; background: #f0f8ff; color: #3498db; border: 1px dashed #3498db; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 5px; margin-bottom: 10px; }
-        .cancel-btn { width: 100%; padding: 10px; background-color: #95a5a6; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
+        /* 按鈕 (古銅金漸層) */
+        .action-btn { 
+            width: 100%; padding: 15px; 
+            background: var(--bronze-gradient); /* 使用高級漸層 */
+            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; 
+            cursor: pointer; margin-top: 15px; 
+            box-shadow: 0 4px 10px rgba(141, 110, 99, 0.3); 
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .action-btn:active { transform: scale(0.98); }
+        
+        .add-player-btn { width: 100%; padding: 12px; background: #fff; color: var(--text-light); border: 1px dashed #d7ccc8; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; margin-bottom: 12px; transition: all 0.2s; }
+        .add-player-btn:hover { border-color: var(--text-main); color: var(--text-main); background: #fcfafa; }
+        .cancel-btn { width: 100%; padding: 12px; background-color: #bcaaa4; color: white; border: none; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; display: none; }
 
-        /* === 排行榜表格美化 (保留字體優化) === */
-        #groupStatsTable { width: 100%; border-collapse: collapse; margin-top: 5px; table-layout: fixed; }
-        #groupStatsTable th { background-color: #f8f9fa; color: #888; font-weight: 600; padding: 10px; text-align: center; font-size: 13px; border-bottom: 2px solid #eee; }
-        #groupStatsTable td { padding: 14px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; cursor: pointer; } /* 增加點擊手勢 */
+        /* === 排行榜表格美化 (暖色調) === */
+        #groupStatsTable { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+        #groupStatsTable th { background-color: #f3e5f5; color: var(--text-light); font-weight: 600; padding: 12px; text-align: center; font-size: 13px; border-bottom: 2px solid #e1bee7; border-radius: 8px 8px 0 0; }
+        #groupStatsTable td { padding: 15px 8px; border-bottom: 1px solid rgba(141, 110, 99, 0.1); vertical-align: middle; cursor: pointer; }
         
         #groupStatsTable td:nth-child(1) { width: 45px; text-align: center; }
-        #groupStatsTable td:nth-child(2) { text-align: left; padding-left: 10px; font-size: 16px; font-weight: 700; color: #333; }
+        #groupStatsTable td:nth-child(2) { text-align: left; padding-left: 10px; font-size: 16px; font-weight: 700; color: var(--text-main); }
         #groupStatsTable td:nth-child(3) { text-align: right; padding-right: 10px; font-family: 'Roboto Mono', monospace; font-size: 18px; font-weight: 700; }
 
-        /* 第一名特效 (更淡雅的金黃色) */
-        #groupStatsTable tr:first-child td { background-color: #fffcf2; }
-        #groupStatsTable tr:first-child td:first-child { border-left: 3px solid #f39c12; }
+        /* 第一名特效 (金色光暈) */
+        #groupStatsTable tr:first-child td { background: linear-gradient(to right, rgba(212, 175, 55, 0.1), rgba(255,255,255,0)); }
+        #groupStatsTable tr:first-child td:first-child { border-left: 3px solid var(--gold-accent); }
 
         .win-text { color: var(--win-color); font-weight: bold; }
         .lose-text { color: var(--lose-color); font-weight: bold; }
         
         /* 排名徽章 */
         .rank-badge { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 14px; font-weight: bold; text-align: center; }
-        .rank-1 { font-size: 22px; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .rank-1 { font-size: 24px; text-shadow: 0 2px 4px rgba(212, 175, 55, 0.4); }
         .rank-2 { font-size: 20px; }
         .rank-3 { font-size: 18px; }
-        .rank-other { background: #eee; font-size: 12px; color: #666; width: 20px; height: 20px; line-height: 20px; }
+        .rank-other { background: #d7ccc8; font-size: 12px; color: #fff; width: 20px; height: 20px; line-height: 20px; }
         
-        /* 老闆徽章 (簡約白底金框) */
+        /* 老闆徽章 (金屬質感) */
         .rank-badge.rank-boss { 
             width: auto !important; height: auto !important; background: #fff;
-            color: var(--gold-color); border: 1px solid var(--gold-color); font-size: 11px;
-            padding: 1px 6px; border-radius: 10px; display: inline-flex;
+            color: var(--gold-accent); border: 1px solid var(--gold-accent); font-size: 11px;
+            padding: 2px 8px; border-radius: 12px; display: inline-flex;
             align-items: center; justify-content: center;
+            box-shadow: 0 1px 3px rgba(212, 175, 55, 0.2);
         }
 
-        .dashboard-grid { display: flex; gap: 10px; margin-bottom: 8px; }
-        .dash-box { flex: 1; padding: 12px 5px; border-radius: 10px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .dash-label { font-size: 12px; color: #666; margin-bottom: 2px; }
-        .dash-value { font-size: 18px; font-weight: bold; font-family: 'Roboto Mono', monospace; }
+        .dashboard-grid { display: flex; gap: 12px; margin-bottom: 10px; }
+        .dash-box { flex: 1; padding: 15px 10px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
+        .dash-label { font-size: 12px; color: var(--text-light); margin-bottom: 4px; font-weight: 600; }
+        .dash-value { font-size: 20px; font-weight: 800; font-family: 'Roboto Mono', monospace; }
 
         /* 歷史紀錄列表 */
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .history-header { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .history-date { font-size: 14px; color: #333; font-weight: 500; }
-        .history-tag { font-size: 11px; padding: 1px 5px; border-radius: 4px; display: inline-block; white-space: nowrap; }
-        .tag-holiday { background-color: #ffebee; color: #c62828; font-weight: bold; }
-        .tag-lunar { background-color: #e3f2fd; color: #1565c0; }
-        .tag-info { background-color: #f5f5f5; color: #666; }
-        .tag-highlight { background: linear-gradient(135deg, #f1c40f, #f39c12); color: white; font-weight: bold; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(141, 110, 99, 0.1); }
+        .history-header { margin-bottom: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .history-date { font-size: 15px; color: var(--text-main); font-weight: 600; }
+        .history-tag { font-size: 11px; padding: 2px 6px; border-radius: 6px; display: inline-block; white-space: nowrap; }
+        .tag-holiday { background-color: #ffcdd2; color: #c62828; font-weight: bold; }
+        .tag-lunar { background-color: #bbdefb; color: #1565c0; }
+        .tag-info { background-color: #d7ccc8; color: #5d4037; }
+        .tag-highlight { background: var(--bronze-gradient); color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(141, 110, 99, 0.3); }
 
-        .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-top: 5px; font-size: 13px; color: #555; }
+        .history-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; margin-top: 8px; font-size: 13px; color: var(--text-light); }
         
-        .edit-btn { background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-        .delete-btn { background: #ff7675; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; margin-left: 6px;}
-        .error-msg { background: #ffebee; color: #c62828; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; display: none; margin-top: 10px; font-size: 14px;}
-        .editing-mode { border: 2px solid #f39c12; }
+        .edit-btn { background: var(--gold-accent); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; box-shadow: 0 2px 5px rgba(212, 175, 55, 0.3); }
+        .delete-btn { background: #ef9a9a; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; margin-left: 8px;}
+        .error-msg { background: #ffcdd2; color: #c62828; padding: 12px; border-radius: 12px; text-align: center; font-weight: bold; display: none; margin-top: 15px; font-size: 14px; border: 1px solid #ef9a9a; }
+        .editing-mode { border: 2px solid var(--gold-accent) !important; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3) !important; }
 
-        .backup-btn { background: transparent; border: 1px solid #2ecc71; color: #2ecc71; border-radius: 20px; padding: 2px 8px; font-size: 12px; cursor: pointer; margin-left: 5px;}
+        .backup-btn { background: transparent; border: 1px solid var(--text-light); color: var(--text-light); border-radius: 20px; padding: 4px 10px; font-size: 12px; cursor: pointer; margin-left: 8px; transition: all 0.2s; }
+        .backup-btn:hover { background: var(--text-light); color: #fff; }
         
         /* 管理與選單 */
-        .manage-btn { background: none; border: none; color: #999; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 5px; }
+        .manage-btn { background: none; border: none; color: var(--text-light); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 8px; border-radius: 8px; transition: background 0.2s; }
+        .manage-btn:hover { background: rgba(0,0,0,0.05); color: var(--text-main); }
         
-        /* 地點選單 */
-        .location-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .location-card { background: white; width: 85%; max-width: 320px; padding: 20px; border-radius: 12px; max-height: 80vh; overflow-y: auto; }
-        .location-group-title { font-size: 12px; color: #999; margin-top: 10px; margin-bottom: 5px; font-weight: bold; }
-        .location-item { padding: 12px; margin-bottom: 8px; border-radius: 8px; background: #f9f9f9; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .loc-name-area { flex: 1; }
-        .loc-delete { padding: 5px 10px; color: #ccc; font-size: 16px; cursor: pointer; }
-        .location-add { margin-top: 15px; text-align: center; padding: 10px; border: 1px dashed #aaa; border-radius: 8px; color: #666; cursor: pointer; font-size: 14px; }
+        /* 地點選單 (毛玻璃+木紋) */
+        .location-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(62, 39, 35, 0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+        .location-card { background: var(--paper-bg); width: 85%; max-width: 340px; padding: 25px; border-radius: 16px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .location-group-title { font-size: 12px; color: var(--text-light); margin-top: 15px; margin-bottom: 8px; font-weight: bold; letter-spacing: 0.5px; }
+        .location-item { padding: 14px; margin-bottom: 10px; border-radius: 10px; background: #fff; border: 1px solid #d7ccc8; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
+        .location-item:hover { border-color: var(--gold-accent); box-shadow: 0 3px 8px rgba(0,0,0,0.05); transform: translateY(-1px); }
+        .loc-name-area { flex: 1; color: var(--text-main); font-weight: 500; }
+        .loc-delete { padding: 8px 12px; color: #bcaaa4; font-size: 18px; cursor: pointer; border-left: 1px solid #eee; margin-left: 10px; }
+        .loc-delete:hover { color: #e74c3c; }
+        .location-add { margin-top: 20px; text-align: center; padding: 12px; border: 1px dashed var(--gold-accent); border-radius: 12px; color: var(--gold-accent); cursor: pointer; font-size: 14px; font-weight: 600; background: rgba(212, 175, 55, 0.05); }
         
         .hidden { display: none !important; }
-        .manage-area { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px; display: none; }
-        .player-tag { background: #f0f2f5; border: 1px solid #dcdfe6; border-radius: 20px; padding: 5px 12px; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; }
-        .player-delete { color: #f56c6c; cursor: pointer; font-weight: bold; font-size: 16px; }
-        .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .manage-area { margin-top: 15px; border-top: 1px dashed rgba(141, 110, 99, 0.3); padding-top: 15px; display: none; }
+        .player-tag { background: #fff; border: 1px solid #d7ccc8; border-radius: 20px; padding: 6px 12px; font-size: 13px; color: var(--text-main); display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .player-delete { color: #e74c3c; cursor: pointer; font-weight: bold; font-size: 16px; opacity: 0.7; }
+        .player-delete:hover { opacity: 1; }
+        .player-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
         
-        .import-textarea { width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 12px; }
+        .import-textarea { width: 100%; height: 150px; border-radius: 12px; padding: 12px; font-size: 12px; font-family: monospace; resize: none; background: #fff; }
 
         /* 批次刪除 */
-        .batch-checkbox { width: 20px; height: 20px; margin-right: 10px; accent-color: #e74c3c; }
-        .batch-toolbar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; border-top: 1px solid #eee; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; gap: 10px; z-index: 900; }
-        .batch-action-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; }
+        .batch-checkbox { width: 22px; height: 22px; margin-right: 12px; accent-color: #e74c3c; cursor: pointer; }
+        .batch-toolbar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--paper-bg); padding: 15px; border-top: 1px solid rgba(141, 110, 99, 0.2); box-shadow: 0 -5px 15px rgba(0,0,0,0.1); display: flex; gap: 12px; z-index: 900; }
+        .batch-action-btn { flex: 1; padding: 14px; border-radius: 10px; border: none; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: transform 0.1s; }
+        .batch-action-btn:active { transform: scale(0.98); }
 
         /* === 年份卡片 (修正對齊版) === */
-        .year-card { background: #fff; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; position: relative; border: 1px solid #eee; }
-        .year-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; z-index: 1; }
-        .year-card.win::before { background-color: #e74c3c; }
-        .year-card.lose::before { background-color: #27ae60; }
-        .year-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; border-bottom: 1px solid #eee; }
-        .year-title { font-size: 16px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 8px; }
-        .year-arrow { font-size: 12px; color: #999; transition: transform 0.3s; }
+        .year-card { background: #fff; border-radius: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; position: relative; border: none; }
+        .year-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; z-index: 1; }
+        .year-card.win::before { background-color: var(--win-color); }
+        .year-card.lose::before { background-color: var(--lose-color); }
+        .year-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; border-bottom: 1px solid #f0f0f0; }
+        .year-title { font-size: 17px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .year-arrow { font-size: 12px; color: var(--text-light); transition: transform 0.3s; }
         .year-expanded .year-arrow { transform: rotate(180deg); }
-        .year-score { font-size: 16px; font-weight: 700; font-family: 'Roboto Mono', monospace; }
+        .year-score { font-size: 17px; font-weight: 800; font-family: 'Roboto Mono', monospace; }
         
         /* === 月份列表 Grid 系統 === */
         .month-list { display: none; background: #fff; }
-        .month-item { display: grid; grid-template-columns: 1fr 60px 90px; align-items: center; padding: 12px 15px; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
+        .month-item { display: grid; grid-template-columns: 1fr 70px 100px; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f9f9f9; font-size: 15px; }
         .month-item:last-child { border-bottom: none; }
-        .month-item:hover { background: #f9f9f9; }
-        .month-name { color: #555; }
-        .month-count { color: #999; font-size: 12px; text-align: center; background: #f0f2f5; padding: 2px 6px; border-radius: 10px; }
+        .month-item:hover { background: #fcfafa; }
+        .month-name { color: var(--text-main); font-weight: 500; }
+        .month-count { color: var(--text-light); font-size: 13px; text-align: center; background: #f0f2f5; padding: 3px 8px; border-radius: 12px; }
         .month-score { font-weight: 700; text-align: right; font-family: 'Roboto Mono', monospace; font-variant-numeric: tabular-nums; }
 
         /* 地點統計項目 */
-        .loc-stat-item { display: flex; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; align-items: center; }
+        .loc-stat-item { display: flex; justify-content: space-between; padding: 14px 15px; border-bottom: 1px solid rgba(141, 110, 99, 0.1); font-size: 15px; align-items: center; }
         .loc-stat-item:last-child { border-bottom: none; }
         
         /* 玩家詳細資料 Modal */
-        #playerStatsModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1100; justify-content: center; align-items: center; }
-        .player-stats-card { background: white; width: 90%; max-width: 400px; padding: 0; border-radius: 12px; max-height: 80vh; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
-        .player-stats-header { padding: 15px; background: #2c3e50; color: white; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .player-stats-close { cursor: pointer; font-size: 18px; color: rgba(255,255,255,0.8); }
+        #playerStatsModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(62, 39, 35, 0.7); z-index: 1100; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+        .player-stats-card { background: var(--paper-bg); width: 90%; max-width: 400px; padding: 0; border-radius: 16px; max-height: 80vh; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+        .player-stats-header { padding: 18px; background: var(--wood-dark); color: #d7ccc8; font-weight: bold; font-size: 17px; display: flex; justify-content: space-between; align-items: center; }
+        .player-stats-close { cursor: pointer; font-size: 20px; color: rgba(255,255,255,0.7); transition: color 0.2s; }
+        .player-stats-close:hover { color: #fff; }
         .player-stats-body { padding: 0; overflow-y: auto; flex: 1; }
-        .player-record-row { display: flex; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid #f0f0f0; font-size: 14px; align-items: center; }
-        .player-record-date { color: #666; }
+        .player-record-row { display: flex; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(141, 110, 99, 0.1); font-size: 15px; align-items: center; }
+        .player-record-date { color: var(--text-light); font-weight: 500; }
         .player-record-score { font-family: 'Roboto Mono', monospace; font-weight: 700; }
-        .player-stats-footer { padding: 12px 15px; background: #f8f9fa; border-top: 1px solid #eee; text-align: right; font-weight: bold; color: #333; font-size: 15px; }
+        .player-stats-footer { padding: 15px 18px; background: #fff; border-top: 1px solid rgba(141, 110, 99, 0.1); text-align: right; font-weight: bold; color: var(--text-main); font-size: 16px; }
     </style>
 </head>
 <body>
@@ -255,13 +330,13 @@
 
     <div id="locationModal" class="location-menu" onclick="closeLocationMenu(event)">
         <div class="location-card">
-            <h3 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px;">切換帳本</h3>
+            <h3 style="margin-top:0; border-bottom:1px solid rgba(141, 110, 99, 0.2); padding-bottom:12px;">切換帳本</h3>
             <div class="location-group-title">🏠 公開戰場 (無需密碼)</div>
             <div id="publicLocationList"></div>
             <div class="location-group-title">🔒 私人金庫 (需密碼)</div>
             <div id="privateLocationList"></div>
             <div style="display:flex; gap:10px;">
-                <div class="location-add" style="flex:1; border-color:#e67e22; color:#e67e22;" onclick="createNewLocation('personal')">➕ 新增私人金庫</div>
+                <div class="location-add" style="flex:1;" onclick="createNewLocation('personal')">➕ 新增私人金庫</div>
             </div>
         </div>
     </div>
@@ -269,32 +344,32 @@
     <div id="importModal" class="location-menu" onclick="if(event.target.id==='importModal') document.getElementById('importModal').style.display='none'">
         <div class="location-card">
             <h3 style="margin-top:0;">📥 匯入歷史紀錄</h3>
-            <p style="font-size:12px; color:#666;">請將 JSON 文字貼在下方：</p>
+            <p style="font-size:13px; color:var(--text-light); line-height:1.5;">請將 JSON 文字貼在下方：</p>
             <textarea id="importJsonArea" class="import-textarea" placeholder='[{"date": "2024-01-01", ...}]'></textarea>
-            <button class="action-btn" onclick="processImport()">確認匯入</button>
+            <button class="action-btn" onclick="processImport()" style="margin-top:15px;">確認匯入</button>
         </div>
     </div>
 
     <div class="card" id="inputCard">
         <h3 id="inputTitle"><span>✏️ 新增戰績</span></h3>
-        <div style="margin-bottom: 12px;">
-            <label style="display:block; font-size:13px; color:#666; margin-bottom:5px; font-weight:bold;">日期</label>
+        <div style="margin-bottom: 15px;">
+            <label style="display:block; font-size:13px; color:var(--text-light); margin-bottom:6px; font-weight:600; margin-left:4px;">日期</label>
             <input type="date" id="dateInput" class="input-style">
         </div>
         
         <div id="groupInputArea" class="group-mode">
-            <div style="margin-bottom: 15px;">
-                <label style="display:block; font-size:13px; color:#666; margin-bottom:5px; font-weight:bold;">⚡ 快速發車 (點擊自動帶入)</label>
+            <div style="margin-bottom: 18px;">
+                <label style="display:block; font-size:13px; color:var(--gold-accent); margin-bottom:8px; font-weight:600; margin-left:4px;">⚡ 快速發車 (點擊自動帶入)</label>
                 <div id="quickSquadArea" class="quick-scroll-wrapper"></div>
             </div>
 
             <div class="row-stats">
                 <div class="col-half">
-                    <label style="display:block; font-size:13px; color:#666; margin-bottom:5px; font-weight:bold;">將數</label>
+                    <label style="display:block; font-size:13px; color:var(--text-light); margin-bottom:6px; font-weight:600; margin-left:4px;">將數</label>
                     <input type="number" id="jiangInput" class="input-style" placeholder="0" value="1" inputmode="numeric">
                 </div>
                 <div class="col-half">
-                    <label style="display:block; font-size:13px; color:#666; margin-bottom:5px; font-weight:bold;">東錢</label>
+                    <label style="display:block; font-size:13px; color:var(--text-light); margin-bottom:6px; font-weight:600; margin-left:4px;">東錢</label>
                     <input type="number" id="dongInput" class="input-style" placeholder="0" value="0" inputmode="numeric">
                 </div>
             </div>
@@ -304,10 +379,10 @@
             <div id="highlightInputs" class="highlight-inputs">
                 <div class="highlight-section">
                     <div style="display:flex; gap:10px;">
-                        <div style="flex:1;"><label style="font-size:12px; color:#888;">贏家</label><select id="hlWinnerSelect" class="mem-select"></select></div>
-                        <div style="flex:1;"><label style="font-size:12px; color:#888;">台數</label><select id="hlTaiSelect" class="mem-select"></select></div>
+                        <div style="flex:1;"><label style="font-size:12px; color:var(--text-light);">贏家</label><select id="hlWinnerSelect" class="mem-select"></select></div>
+                        <div style="flex:1;"><label style="font-size:12px; color:var(--text-light);">台數</label><select id="hlTaiSelect" class="mem-select"></select></div>
                     </div>
-                    <div style="margin-top:8px;"><label style="font-size:12px; color:#888;">牌型</label><select id="hlHandSelect" class="mem-select"></select></div>
+                    <div style="margin-top:10px;"><label style="font-size:12px; color:var(--text-light);">牌型</label><select id="hlHandSelect" class="mem-select"></select></div>
                 </div>
             </div>
         </div>
@@ -316,11 +391,11 @@
                 <label>地點 / 局名</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <select id="personalLocSelect" class="personal-select" onchange="handlePersonalSelect('Loc')" style="flex:1;"><option value="" disabled selected>請選擇地點...</option></select>
-                    <button class="manage-btn" onclick="toggleLocManager()" style="border:1px solid #ddd; border-radius:8px; padding:8px;">⚙️</button>
+                    <button class="manage-btn" onclick="toggleLocManager()" style="border:1px solid #d7ccc8; padding:8px 12px;">⚙️</button>
                 </div>
                 <input type="text" id="personalLocCustom" class="personal-custom" placeholder="輸入新地點名稱" style="margin-top:8px;">
-                <div id="manageLocArea" class="manage-area" style="background:#f9f9f9; padding:10px; border-radius:8px; margin-top:10px; border:1px solid #eee;">
-                    <div style="font-size:12px; color:#999; margin-bottom:8px; font-weight:bold;">常用地點管理 (點擊✕刪除):</div>
+                <div id="manageLocArea" class="manage-area" style="background:#fff; padding:12px; border-radius:10px; margin-top:10px; border:1px solid #d7ccc8;">
+                    <div style="font-size:12px; color:var(--text-light); margin-bottom:10px; font-weight:bold;">常用地點管理 (點擊✕刪除):</div>
                     <div id="manageLocList" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
                 </div>
             </div>
@@ -336,23 +411,23 @@
                     <input type="number" id="personalScoreInput" class="score-input-large" placeholder="0" inputmode="numeric">
                 </div>
             </div>
-            <div style="background:#fffcf5; padding:12px; border-radius:10px; margin-top:15px; border:1px solid #fae588;">
-                <label style="color:#f39c12; font-weight:bold; margin-bottom:8px;">✨ 難忘回憶 (選填)</label>
+            <div style="background:rgba(212, 175, 55, 0.08); padding:15px; border-radius:12px; margin-top:18px; border:1px solid rgba(212, 175, 55, 0.3);">
+                <label style="color:var(--gold-accent); font-weight:bold; margin-bottom:10px;">✨ 難忘回憶 (選填)</label>
                 <div style="display:flex; gap:10px;"><select id="pHandSelect" class="mem-select" style="flex:2;"></select><select id="pTaiSelect" class="mem-select" style="flex:1;"></select></div>
             </div>
         </div>
         <p id="errorMsg" class="error-msg"></p>
         <button class="action-btn" id="saveBtn" onclick="saveData()">儲存紀錄</button>
-        <div id="groupManageControls" style="display:flex; justify-content:space-between; margin-top:15px; align-items:center;">
-            <button class="manage-btn" onclick="togglePlayerManager()">⚙️ 管理選手</button>
-            <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()" style="margin:0; width:auto; padding:8px 16px;">取消修改</button>
+        <div id="groupManageControls" style="display:flex; justify-content:space-between; margin-top:18px; align-items:center;">
+            <button class="manage-btn" onclick="togglePlayerManager()" style="padding:8px 12px;">⚙️ 管理選手</button>
+            <button class="cancel-btn" id="cancelBtn" onclick="cancelEdit()" style="margin:0; width:auto; padding:10px 18px;">取消修改</button>
         </div>
-        <div id="personalCancelControls" class="hidden" style="text-align:right; margin-top:15px;">
-             <button class="cancel-btn" id="cancelBtnPersonal" onclick="cancelEdit()" style="margin:0; display:inline-block; width:auto; padding:8px 16px;">取消修改</button>
+        <div id="personalCancelControls" class="hidden" style="text-align:right; margin-top:18px;">
+             <button class="cancel-btn" id="cancelBtnPersonal" onclick="cancelEdit()" style="margin:0; display:inline-block; width:auto; padding:10px 18px;">取消修改</button>
         </div>
         <div id="manageArea" class="manage-area">
-            <div style="font-size:12px; color:#999; margin-bottom:8px; text-align:center;">點擊 ✕ 可刪除選手 (需密碼驗證)</div>
-            <div id="manageList" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
+            <div style="font-size:12px; color:var(--text-light); margin-bottom:10px; text-align:center;">點擊 ✕ 可刪除選手 (需密碼驗證)</div>
+            <div id="manageList" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;"></div>
         </div>
     </div>
 
@@ -364,7 +439,7 @@
         </table>
         <div id="personalStatsView" class="hidden">
             <div class="dashboard-grid">
-                <div class="dash-box" style="background: #fff3e0; border-color:#ffe0b2;">
+                <div class="dash-box" style="background: #fff8e1; border-color:#ffe0b2;">
                     <div class="dash-label">生涯總損益</div>
                     <div class="dash-value" id="personalTotalScore" style="color: #e67e22;">$0</div>
                 </div>
@@ -373,8 +448,8 @@
                     <div class="dash-value" id="personalTotalCount" style="color: #2e7d32;">0</div>
                 </div>
             </div>
-            <div class="card" style="margin-top: 15px; padding: 0; overflow: hidden; border:1px solid #eee; box-shadow:none;">
-                <h4 style="margin:0; padding:12px 15px; background:#f8f9fa; border-bottom:1px solid #eee; font-size:14px; color:#7f8c8d;">📍 各地戰況</h4>
+            <div class="card" style="margin-top: 18px; padding: 0; overflow: hidden; border:1px solid #d7ccc8; box-shadow:none; background:#fff;">
+                <h4 style="margin:0; padding:12px 18px; background:#f0f2f5; border-bottom:1px solid #d7ccc8; font-size:14px; color:var(--text-light);">📍 各地戰況</h4>
                 <div id="personalLocationStats"></div>
             </div>
         </div>
@@ -387,20 +462,20 @@
                 <div class="dash-label">歷史總將數</div>
                 <div class="dash-value" style="color: #2e7d32;" id="grandTotalJiang">0</div>
             </div>
-            <div class="dash-box" style="background: #fff3e0;">
+            <div class="dash-box" style="background: #fff8e1;">
                 <div class="dash-label">歷史總東錢</div>
                 <div class="dash-value" style="color: #ef6c00;" id="grandTotalDong">$0</div>
             </div>
         </div>
-        <div style="margin-top:12px; padding:12px; background:#fffcf5; border:1px dashed #f39c12; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <span style="font-size:13px; color:#555;">🔥 單場最大台：</span>
-            <span id="maxTaiRecord" style="font-weight:bold; color:#d35400; font-size:14px;">無紀錄</span>
+        <div style="margin-top:15px; padding:12px; background:#fff; border:1px dashed var(--gold-accent); border-radius:12px; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <span style="font-size:13px; color:var(--text-light);">🔥 單場最大台：</span>
+            <span id="maxTaiRecord" style="font-weight:bold; color:#d35400; font-size:14px; text-shadow:0 1px 1px rgba(0,0,0,0.1);">無紀錄</span>
         </div>
-        <table style="width:100%; margin-top:15px; border-collapse:collapse;">
-            <thead><tr><th style="background:#f8f9fa; padding:8px; font-size:13px;">月份</th><th style="background:#f8f9fa; padding:8px; font-size:13px;">場次</th><th style="background:#f8f9fa; padding:8px; font-size:13px;">東錢</th></tr></thead>
-            <tbody id="monthlyStatsBody"><tr><td colspan="3" style="text-align:center; padding:10px; color:#999;">計算中...</td></tr></tbody>
+        <table style="width:100%; margin-top:18px; border-collapse:collapse;">
+            <thead><tr><th style="background:#f3e5f5; padding:10px; font-size:13px; color:var(--text-light); border-bottom:2px solid #e1bee7; border-radius:8px 8px 0 0;">月份</th><th style="background:#f3e5f5; padding:10px; font-size:13px; color:var(--text-light); border-bottom:2px solid #e1bee7;">場次</th><th style="background:#f3e5f5; padding:10px; font-size:13px; color:var(--text-light); border-bottom:2px solid #e1bee7;">東錢</th></tr></thead>
+            <tbody id="monthlyStatsBody"><tr><td colspan="3" style="text-align:center; padding:15px; color:var(--text-light);">計算中...</td></tr></tbody>
         </table>
-        <div id="yearlyStatsFoot" style="text-align:center; margin-top:12px; font-weight:bold; color:#1e6f50; font-size: 13px;"></div>
+        <div id="yearlyStatsFoot" style="text-align:center; margin-top:15px; font-weight:bold; color:var(--text-light); font-size: 13px;"></div>
     </div>
     
     <div class="card" id="personalMonthlyStats" class="hidden" style="background:transparent; box-shadow:none; padding:0; border:none;">
@@ -410,18 +485,18 @@
     <div class="card">
         <h3>
             <span>📜 紀錄</span>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <select id="filterYear" style="border:1px solid #ddd; background:#fff; padding:4px 8px; border-radius:8px; font-size:13px; outline:none;" onchange="handleYearFilter()">
+            <div style="display:flex; gap:10px; align-items:center;">
+                <select id="filterYear" style="border:1px solid #d7ccc8; background:#fff; padding:6px 10px; border-radius:10px; font-size:13px; outline:none;" onchange="handleYearFilter()">
                     <option value="ALL">全部年份</option>
                 </select>
-                <input type="month" id="filterMonth" style="border:1px solid #ddd; background:#fff; padding:4px 8px; border-radius:8px; font-size:13px; outline:none;" onchange="handleMonthFilter()">
+                <input type="month" id="filterMonth" style="border:1px solid #d7ccc8; background:#fff; padding:4px 10px; border-radius:10px; font-size:13px; outline:none;" onchange="handleMonthFilter()">
             </div>
         </h3>
-        <div style="display:flex; justify-content:flex-end; margin-bottom:12px; gap:8px; flex-wrap:wrap;">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:15px; gap:10px; flex-wrap:wrap;">
             <button class="backup-btn" onclick="toggleBatchMode()" style="color:#e74c3c; border-color:#e74c3c;">🗑️ 批次刪除</button>
-            <button class="backup-btn" onclick="showImportModal()">📥 匯入</button>
-            <button class="backup-btn" onclick="backupData()">💾 備份</button>
-            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:4px 10px; font-size:12px; cursor:pointer;">📥 Excel</button>
+            <button class="backup-btn" onclick="showImportModal()" style="color:var(--text-light); border-color:var(--text-light);">📥 匯入</button>
+            <button class="backup-btn" onclick="backupData()" style="color:var(--text-light); border-color:var(--text-light);">💾 備份</button>
+            <button onclick="exportCSV()" style="background:transparent; border:1px solid #3498db; color:#3498db; border-radius:20px; padding:4px 12px; font-size:12px; cursor:pointer; transition:all 0.2s;">📥 Excel</button>
         </div>
         <div id="historyList"></div>
     </div>
@@ -429,7 +504,7 @@
     <div id="batchToolbar" class="batch-toolbar hidden">
         <button class="batch-action-btn" style="background:#2ecc71; color:white;" onclick="toggleSelectAll()">✅ 全選</button>
         <button class="batch-action-btn" style="background:#e74c3c; color:white;" onclick="deleteBatch()">🗑️ 刪除</button>
-        <button class="batch-action-btn" style="background:#95a5a6; color:white;" onclick="toggleBatchMode()">❌ 取消</button>
+        <button class="batch-action-btn" style="background:#bcaaa4; color:white;" onclick="toggleBatchMode()">❌ 取消</button>
     </div>
 
     <script>
@@ -623,11 +698,11 @@
             let locHtml = `<option value="" disabled selected>請選擇地點...</option>`;
             publicLocationNames.forEach(name => { locHtml += `<option value="${name}">🏠 ${name}</option>`; });
             myLocations.forEach(name => { if (!publicLocationNames.includes(name)) { locHtml += `<option value="${name}">📍 ${name}</option>`; } });
-            locHtml += `<option value="CUSTOM" style="color:#e67e22;">✏️ 自訂地點...</option>`;
+            locHtml += `<option value="CUSTOM" style="color:var(--gold-accent);">✏️ 自訂地點...</option>`;
             locSelect.innerHTML = locHtml;
             let stakeHtml = `<option value="" disabled selected>請選擇大小...</option>`;
             myStakes.forEach(s => { stakeHtml += `<option value="${s}">${s}</option>`; });
-            stakeHtml += `<option value="CUSTOM" style="color:#e67e22;">✏️ 自訂大小...</option>`;
+            stakeHtml += `<option value="CUSTOM" style="color:var(--gold-accent);">✏️ 自訂大小...</option>`;
             stakeSelect.innerHTML = stakeHtml;
         }
 
@@ -705,7 +780,7 @@
             Object.keys(publicLocationsMeta).forEach(key => {
                 const loc = publicLocationsMeta[key];
                 if (key !== 'default') { 
-                    list.innerHTML += `<div class="player-tag" style="border-color:#e67e22; color:#e67e22;">🏠 ${loc.name} <span class="player-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</span></div>`;
+                    list.innerHTML += `<div class="player-tag" style="border-color:var(--gold-accent); color:var(--gold-accent);">🏠 ${loc.name} <span class="player-delete" onclick="deleteLocation('${key}', '${loc.name}', '${loc.password}')">✕</span></div>`;
                 }
             });
             myLocations.forEach(name => {
@@ -740,7 +815,7 @@
                         if (type === 'group') { publicList.innerHTML += html; } else { privateList.innerHTML += html; }
                     });
                 }
-                if (privateList.innerHTML === '') privateList.innerHTML = '<div style="padding:10px; color:#999; font-size:13px; text-align:center;">尚無私人金庫</div>';
+                if (privateList.innerHTML === '') privateList.innerHTML = '<div style="padding:10px; color:var(--text-light); font-size:13px; text-align:center;">尚無私人金庫</div>';
                 if (currentLocType === 'personal') { updatePersonalSelects(); renderManageLocList(); }
             });
         }
@@ -802,13 +877,13 @@
                 const selected = p === name ? 'selected' : '';
                 optionsHtml += `<option value="${p}" ${selected}>${p}</option>`; 
             });
-            optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
-            optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
+            optionsHtml += `<option value="ADD_NEW" style="color:var(--gold-accent); font-weight:bold;">➕ 新增固定牌友...</option>`;
+            optionsHtml += `<option value="Other" style="color:#e74c3c;">✏️ 單次自訂...</option>`;
 
             let nameInputHtml = `
                 <div class="name-wrapper" style="flex:1;">
                     <select class="name-select" onchange="handleNameChange(this)">${optionsHtml}</select>
-                    <input type="text" class="custom-name" placeholder="輸入名字" style="display:none; width:100%; height:46px; border-radius:10px; border:1px solid #ddd; padding:0 10px;" value="${name}">
+                    <input type="text" class="custom-name" placeholder="輸入名字" style="display:none; width:100%; height:46px; border-radius:12px; border:1px solid #d7ccc8; padding:0 12px;" value="${name}">
                 </div>
             `;
             
@@ -837,8 +912,8 @@
             if (currentLocType !== 'group') return;
             let optionsHtml = `<option value="" disabled selected>請選擇選手...</option>`;
             allPlayers.forEach(name => { optionsHtml += `<option value="${name}">${name}</option>`; });
-            optionsHtml += `<option value="ADD_NEW" style="color:#2ecc71; font-weight:bold;">➕ 新增固定牌友...</option>`;
-            optionsHtml += `<option value="Other" style="color:#e67e22;">✏️ 單次自訂...</option>`;
+            optionsHtml += `<option value="ADD_NEW" style="color:var(--gold-accent); font-weight:bold;">➕ 新增固定牌友...</option>`;
+            optionsHtml += `<option value="Other" style="color:#e74c3c;">✏️ 單次自訂...</option>`;
             document.querySelectorAll('.name-select').forEach(select => {
                 const currentVal = select.value;
                 select.innerHTML = optionsHtml;
