@@ -34,19 +34,23 @@
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
+            /* 關鍵修正：這裡原本有背景色，現在改為透明，讓下方的 mahjong-bg 透出來 */
+            background-color: transparent; 
         }
 
-        /* === 🀄 背景美術工程 === */
+        /* === 🀄 背景美術工程 (修正層級) === */
         .mahjong-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: -2; /* 最底層 */
             /* 聚光燈效果：模擬燈光打在綠色絨布桌上 */
-            background: radial-gradient(circle at 50% 20%, #258e64 0%, #1e6f50 40%, #0d3826 100%);
+            background: radial-gradient(circle at 50% 30%, #2e8b6b 0%, #1e6f50 50%, #0d3826 100%);
         }
 
         /* 漂浮麻將牌容器 */
         .tiles-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            pointer-events: none; /* 讓點擊穿透，不影響操作 */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: -1; /* 次底層 */
+            pointer-events: none;
             overflow: hidden;
         }
 
@@ -54,44 +58,48 @@
         .bg-tile {
             position: absolute;
             width: 140px; height: 190px;
-            background: linear-gradient(135deg, #fdfdfd 0%, #f0f0f0 100%);
-            border-radius: 12px;
-            box-shadow: 10px 10px 30px rgba(0,0,0,0.2), inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #fdfdfd 0%, #ecf0f1 100%);
+            border-radius: 16px;
+            box-shadow: 15px 15px 40px rgba(0,0,0,0.3), inset 2px 2px 5px rgba(255,255,255,0.9), inset -2px -2px 5px rgba(0,0,0,0.1);
             display: flex; justify-content: center; align-items: center;
             font-family: 'Ma Shan Zheng', serif; /* 書法字體 */
-            font-size: 100px;
-            opacity: 0.12; /* 低透明度，不搶戲 */
+            font-size: 110px;
+            opacity: 0.15; /* 稍微調高不透明度，讓您看得到 */
             transform-style: preserve-3d;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         /* 中 */
         .tile-zhong {
             color: #c0392b;
-            top: 10%; right: -30px;
-            transform: rotate(15deg) scale(0.8);
+            top: 5%; right: -20px;
+            transform: rotate(25deg) scale(0.9);
         }
         /* 發 */
         .tile-fa {
             color: #27ae60;
-            bottom: 15%; left: -40px;
-            transform: rotate(-10deg) scale(0.9);
+            bottom: 20%; left: -30px;
+            transform: rotate(-15deg) scale(1.0);
         }
-        /* 白 (外框) */
+        /* 白 */
         .tile-bai {
-            color: #bdc3c7; /* 這裡用邊框代表白板 */
-            border: 4px solid #e0e0e0;
-            top: 45%; left: 40%;
-            transform: translate(-50%, -50%) rotate(5deg) scale(0.6);
-            opacity: 0.08; /* 白板更淡一點 */
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(10deg) scale(0.7);
+            opacity: 0.1; 
         }
-        .tile-bai::before { content: ''; display: block; width: 90%; height: 90%; border: 2px solid rgba(0,0,0,0.05); border-radius: 4px; }
+        /* 白板的中間框框 */
+        .tile-bai::before { 
+            content: ''; display: block; width: 85%; height: 88%; 
+            border: 4px solid #bdc3c7; border-radius: 6px; 
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
+        }
 
 
         /* === 頂部導航 === */
         .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
         h1 { 
             margin: 0; font-size: 22px; color: #fff; font-weight: 700; 
-            text-shadow: 0 2px 4px rgba(0,0,0,0.4); letter-spacing: 1px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3); letter-spacing: 1px;
             display: flex; align-items: center; gap: 8px;
         }
         
@@ -105,12 +113,12 @@
             cursor: pointer; 
             border: 1px solid rgba(255,255,255,0.3);
             display: flex; align-items: center; gap: 6px;
-            backdrop-filter: blur(8px); /* 毛玻璃 */
+            backdrop-filter: blur(8px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .location-badge:active { background: rgba(255,255,255,0.4); transform: scale(0.98); }
 
-        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.85); margin-bottom: 15px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        #status { text-align: center; font-size: 12px; color: rgba(255,255,255,0.9); margin-bottom: 15px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .online-dot { height: 8px; width: 8px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
         .connected { background-color: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
 
@@ -956,7 +964,7 @@
             let nameInputHtml = `
                 <div class="name-wrapper" style="flex:1;">
                     <select class="name-select" onchange="handleNameChange(this)">${optionsHtml}</select>
-                    <input type="text" class="custom-name" placeholder="輸入名字" style="display:none; width:100%; height:46px; border-radius:12px; border:1px solid #e0e0e0; padding:0 10px;" value="${name}">
+                    <input type="text" class="custom-name" placeholder="輸入名字" style="display:none; width:100%; height:46px; border-radius:10px; border:1px solid #e0e0e0; padding:0 10px;" value="${name}">
                 </div>
             `;
             
